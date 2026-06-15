@@ -1,0 +1,83 @@
+#pragma once
+
+#include <vector>
+#include <chrono>
+#include <functional>
+#include <queue>
+#include <unordered_set>
+
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<Clock>;
+// using Duration = std::chrono::nanoseconds;
+
+using TimerId = uint64_t;
+
+typedef struct TimerEvent {
+    TimerId id;
+    TimePoint expiry;
+    std::function<void()> callback;
+    // Priority queue is a Max-Heap by default, 
+    // so we overload '>' to make it a Min-Heap (earliest time first).
+    bool operator>(const TimerEvent& other) const {
+        return expiry > other.expiry;
+    }
+} TimerEvent;
+
+class Timer {
+    // Min-Heap to keep the soonest timer at the top
+    std::priority_queue<TimerEvent, std::vector<TimerEvent>, std::greater<TimerEvent>> timers;
+    std::unordered_set<TimerId> runningTimers;
+    std::unordered_set<TimerId> cancelledTimers;
+    
+    TimerId nextId = 0;
+
+public:
+
+	TimerId schedule(std::chrono::milliseconds delay, std::function<void()> callback) {
+	    auto id = nextId++;
+	    auto expiry = Clock::now() + delay;
+
+    	runningTimers.emplace(id);
+
+    	if (callback == nullptr) {
+    		callback = []{};
+    	}
+
+	    timers.push({id, expiry, callback});
+	    return id;
+	}
+
+    void cancel(TimerId id) {
+    	cancelledTimers.emplace(id);
+    }
+
+    bool isRunning(TimerId id) {
+	    auto cancelledId = cancelledTimers.find(id);
+	    auto runningId = runningTimers.find(id);
+
+	    return cancelledId != cancelledTimers.end() || runningId != runningTimers.end();
+    }
+
+    bool isEmpty() {
+	    return cancelledTimers.empty() && runningTimers.empty();
+    }
+
+	void update() {
+	    auto now = Clock::now();
+
+	    while (!timers.empty() && timers.top().expiry <= now) {
+	        // 1. Get the timer from the top
+	        TimerEvent event = timers.top();
+	        timers.pop();
+
+	        auto it = cancelledTimers.find(event.id);
+            if (it != cancelledTimers.end()) {
+            	cancelledTimers.erase(event.id);
+                continue; 
+            }
+
+	        event.callback();
+            runningTimers.erase(event.id);
+	    }
+	}
+};
