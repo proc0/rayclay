@@ -1,5 +1,7 @@
 #pragma once
 
+#include "clay.h"
+
 #include "types.hpp"
 #include "input.hpp"
 #include "timer.hpp"
@@ -11,6 +13,8 @@ class App {
 	Game game;
 	Input input;
     Timer timer;
+    Font fonts[2];
+
     Camera2D camera = {
         .offset = { 0.0f, 0.0f },
         .target = { 0.0f, 0.0f },
@@ -29,9 +33,9 @@ public:
     void load();
     void logo() const;
     static void intro(void* self);
-    void render() const;
+    void render(Clay_RenderCommandArray renderCommands);
     static void run(void* self);
     void start();
-    void update();
+    Clay_RenderCommandArray update();
     static const char* unload(int eventType, const void *reserved, void *self);
 };

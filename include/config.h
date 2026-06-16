@@ -1,9 +1,9 @@
 #pragma once
 
-#define PROJECT_NAME "raystart"
+#define PROJECT_NAME "rayclay"
 #define VERSION "0.2.0"
 #define DEBUG 1
-#define DATE_BUILD "2026-06-11 09:57:58"
+#define DATE_BUILD "2026-06-16 11:08:26"
 #define DIR_ASSETS "assets"
 
 #define PATH_ASSET(filename) DIR_ASSETS "/" filename

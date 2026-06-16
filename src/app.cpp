@@ -11,6 +11,10 @@
 #include <raylib.h>
 #include <chrono>
 
+#define CLAY_IMPLEMENTATION
+#include "clay.h"
+#include "clay_renderer_raylib.c"
+
 void App::load() {
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
 
@@ -20,6 +24,25 @@ void App::load() {
     SetExitKey(KEY_NULL);
 
 	screen.load();
+
+    // 1. Query minimum memory required for default element limits
+    uint64_t totalMemorySize = Clay_MinMemorySize();
+     
+    // 2. Allocate memory (malloc, stack, or custom allocator)
+    void* memory = malloc(totalMemorySize);
+     
+    // 3. Create arena [clay.h:2150-2158]
+    Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, memory);
+     
+    // 4. Initialize Clay [clay.h:2186-2188]
+    Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ Clay__ErrorHandlerFunctionDefault }));
+
+    fonts[0] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 48, 0, 400);
+    SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
+    fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
+    SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
+    Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
+
 	game.load();
 	world.load();
 
@@ -56,9 +79,12 @@ void App::intro(void* self) {
 #endif
 }
 
-void App::render() const {
+void App::render(Clay_RenderCommandArray renderCommands) {
 	BeginDrawing();
 		world.render();
+
+        Clay_Raylib_Render(renderCommands, fonts);
+
 		game.render();
 	EndDrawing();
 }
@@ -66,8 +92,8 @@ void App::render() const {
 void App::run(void* self) {
     App* app = static_cast<App*>(self);
 
-    app->update();
-    app->render();
+    Clay_RenderCommandArray renderCommands = app->update();
+    app->render(renderCommands);
 }
 
 void App::start() {
@@ -95,7 +121,7 @@ void App::start() {
 #endif
 }
 
-void App::update() {
+Clay_RenderCommandArray App::update() {
     timer.update();
 
     InputEvent inputEvent = input.update();
@@ -104,15 +130,41 @@ void App::update() {
 	game.update();
 	world.update();
 
+    Clay_BeginLayout();
+     
+    // Root container
+    CLAY(CLAY_ID("MainContent"), {
+        .layout = { 
+            .sizing = { CLAY_SIZING_GROW(1), CLAY_SIZING_GROW(1) },
+            .padding = CLAY_PADDING_ALL(16),
+            .childGap = 16 
+        },
+        .backgroundColor = {250, 250, 255, 0}
+    }) {
+        // A nested child
+        CLAY(CLAY_ID("Sidebar"), {
+            .layout = { .sizing = { .width = CLAY_SIZING_FIXED(screen.width()*0.3f), .height = CLAY_SIZING_FIXED(screen.height()*0.8f) } },
+            .backgroundColor = {200, 200, 200, 255}
+        }) {
+            CLAY_TEXT(CLAY_STRING("I'm an inline floating container."), CLAY_TEXT_CONFIG({ .textColor = {255,255,255,255}, .fontSize = 24 }));
+        }
+    }
+     
+    Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
+
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
         state = State::App::END;
     }
 #endif
+
+    return renderCommands;
 }
 
 const char* App::unload(int eventType, const void *reserved, void *self) {
     App* app = static_cast<App*>(self);
+
+    Clay_Raylib_Close();
 
 	app->world.unload();
 	app->game.unload();
