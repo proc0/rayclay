@@ -1,3 +1,4 @@
+#pragma once
 // VERSION: 0.14
 
 /*
