@@ -104,16 +104,14 @@ Ray getScreenToWorldPointWithZDistance(Vector2 position, Camera camera, int scre
 }
 
 void Display::load(){
-    uint64_t totalMemorySize = Clay_MinMemorySize();
-     
+    // 1. Query minimum memory required for default element limits
+    uint64_t memorySize = Clay_MinMemorySize();
     // 2. Allocate memory (malloc, stack, or custom allocator)
-    void* memory = malloc(totalMemorySize);
-     
+    void* memory = malloc(memorySize);
     // 3. Create arena [clay.h:2150-2158]
-    Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, memory);
-     
+    arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
     // 4. Initialize Clay [clay.h:2186-2188]
-    Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ Clay__ErrorHandlerFunctionDefault }));
+    Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
 
     fonts[0] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 48, 0, 400);
     SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
@@ -324,6 +322,24 @@ void Display::update(){
     // return renderCommands;
 }
 
+void Display::handleError(Clay_ErrorData errorData) {
+    TraceLog(LOG_INFO, "%s", errorData.errorText.chars);
+    Display* self = static_cast<Display*>(errorData.userData);
+
+    if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
+        // reinitializeClay = true;
+        Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
+    } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
+        // reinitializeClay = true;
+        Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
+    }
+
+    uint64_t memorySize = Clay_MinMemorySize();
+    void* memory = malloc(memorySize);
+    self->arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
+    Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->screen.width()), static_cast<float>(self->screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
+}
+
 void Display::unload(){
     if(temp_render_buffer) free(temp_render_buffer);
     temp_render_buffer_len = 0;
@@ -331,4 +347,6 @@ void Display::unload(){
     UnloadShader(overlayShader);
     UnloadFont(fonts[0]);
     UnloadFont(fonts[1]);
+
+    free(arena.memory);
 }

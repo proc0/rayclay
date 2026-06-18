@@ -32,17 +32,19 @@ typedef struct
 
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
-static bool overlayEnabled = false;
+static inline bool overlayEnabled = false;
 // A MALLOC'd buffer, that we keep modifying inorder to save from so many Malloc and Free Calls.
 // Call Clay_Raylib_Close() to free
-static char *temp_render_buffer;
-static int temp_render_buffer_len;
+static inline char *temp_render_buffer;
+static inline int temp_render_buffer_len;
 
 class Display {
     Shader overlayShader;
     Camera Raylib_camera;
     Font fonts[2];
 
+    Clay_Arena arena = {};
+    
     const Screen& screen;
 
     int colorLoc;
@@ -54,8 +56,9 @@ public:
     void load();
     void render(Clay_RenderCommandArray& renderCommands) const;
     void initOverlay();
-    void setColorOverlay(Color color) const;
+    void setColorOverlay(Color) const;
     void disableColorOverlay() const;
     void update();
+    static void handleError(Clay_ErrorData);
     void unload();
 };
