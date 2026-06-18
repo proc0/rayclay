@@ -49,15 +49,15 @@ void Game::update(){
 }
 
 void Game::render() const {
-    BeginDrawing();
-        ClearBackground(BLACK);
+    // BeginDrawing();
+        // ClearBackground(BLACK);
         // world.render();
         // display.render();
 
         // if(state == PLAY){
         //     DrawCircleV(GetMousePosition(), 40, YELLOW);
         // }
-    EndDrawing();
+    // EndDrawing();
 }
 
 void Game::load(){

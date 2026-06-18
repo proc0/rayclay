@@ -45,7 +45,7 @@ class Display : public ScreenListener {
     Shader overlayShader;
     Camera Raylib_camera;
     Font fonts[2];
-
+    Texture2D profilePicture;
     Clay_Arena arena = {};
     
     const Screen& screen;

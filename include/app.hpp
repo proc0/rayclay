@@ -11,6 +11,13 @@
 
 #include "clay.h"
 
+typedef struct
+{
+    Clay_Vector2 clickOrigin;
+    Clay_Vector2 positionOrigin;
+    bool mouseDown;
+} ScrollbarData;
+
 class App {
 	Game game;
 	Input input;
@@ -26,7 +33,8 @@ class App {
 	Screen screen = Screen(camera);
     Display display = Display(screen);
 	World world = World(screen);
-	
+
+	ScrollbarData scrollbarData = {0};
 	State::App state = State::App::NIL;
 
 public:

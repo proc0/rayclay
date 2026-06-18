@@ -78,9 +78,10 @@ void App::intro(void* self) {
 
 void App::render(Clay_RenderCommandArray& renderCommands) const {
 	BeginDrawing();
+        ClearBackground(BLANK);
 		world.render();
-        display.render(renderCommands);
 		game.render();
+        display.render(renderCommands);
 	EndDrawing();
 }
 
@@ -125,8 +126,37 @@ Clay_RenderCommandArray App::update() {
 	game.update();
 	world.update();
 
+    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
-    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
+    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
+
+    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
+    float mouseWheelX = mouseWheelDelta.x;
+    float mouseWheelY = mouseWheelDelta.y;
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
+
+    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        scrollbarData.clickOrigin = mousePosition;
+        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
+        scrollbarData.mouseDown = true;
+    } else if (scrollbarData.mouseDown) {
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        if (scrollContainerData.contentDimensions.height > 0) {
+            Clay_Vector2 ratio = Clay_Vector2({
+                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
+                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
+            });
+
+            if (scrollContainerData.config.vertical) {
+                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
+            }
+            
+            if (scrollContainerData.config.horizontal) {
+                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
+            }
+        }
+    }
 
     Clay_BeginLayout();
 
