@@ -43,6 +43,7 @@ void App::load() {
 	world.load();
 
     screen.listen(&world);
+    screen.listen(&display);
 }
 
 void App::logo() const {
@@ -123,6 +124,9 @@ Clay_RenderCommandArray App::update() {
 
 	game.update();
 	world.update();
+
+    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
+    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
 
     Clay_BeginLayout();
 

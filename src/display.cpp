@@ -290,6 +290,19 @@ void Display::disableColorOverlay() const {
     }
 }
 
+void Display::button(Clay_String buttonText) {
+	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE); 
+    // Red box button with 8px of padding
+    CLAY_AUTO_ID({ 
+    	.layout = { 
+    		.padding = CLAY_PADDING_ALL(8) 
+    	}, 
+    	.backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE) 
+    }) {
+        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
+    }
+}
+
 void Display::update(){
 
     // Clay_BeginLayout();
@@ -305,15 +318,21 @@ void Display::update(){
     }) {
         // A nested child
         CLAY(CLAY_ID("Sidebar"), {
-            .layout = { 
+            .layout = {
                 .sizing = { 
-                    .width = CLAY_SIZING_FIXED(screen.width()*0.3f), 
-                    .height = CLAY_SIZING_FIXED(screen.height()*0.8f) 
-                } 
+                    // .width = CLAY_SIZING_FIXED(screen.width()*0.3f), 
+                    // .height = CLAY_SIZING_FIXED(screen.height()*0.8f) 
+                    .width = CLAY_SIZING_FIXED(300), 
+                    .height = CLAY_SIZING_GROW(1) 
+                },
+            	.layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
             .backgroundColor = { 200, 200, 200, 255 }
         }) {
+    		// Clay_OnHover([](Clay_ElementId id, Clay_PointerData ptr, void* userData){ printf("Button hover"); }, 0);
             CLAY_TEXT(CLAY_STRING("I'm an inline floating container."), CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
+        	button(CLAY_STRING("HAHAHAHA"));
+        	button(CLAY_STRING("BWEH"));
         }
     }
      
@@ -338,6 +357,15 @@ void Display::handleError(Clay_ErrorData errorData) {
     void* memory = malloc(memorySize);
     self->arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
     Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->screen.width()), static_cast<float>(self->screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
+}
+
+void Display::onScreenResize(int width, int height) {
+	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
+    // Clay_Context* context = Clay_GetCurrentContext();
+    // if (context != nullptr) {
+    // 	context->layoutDimensions = Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) });
+    // }
+    // Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
 }
 
 void Display::unload(){
