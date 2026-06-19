@@ -61,6 +61,8 @@ class Display : public ScreenListener {
     int colorLoc;
 
 public:
+    bool showOverlay;
+    
     Display(const Screen& screen): screen(screen) {};
     ~Display() = default;
 
@@ -71,7 +73,7 @@ public:
     void disableColorOverlay() const;
     void layout();
     void update(const InputEvent& inputEvent);
-    void button(Clay_String buttonText);
+    void button(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void onScreenResize(int width, int height);
     void unload();
