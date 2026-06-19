@@ -175,11 +175,23 @@ void Display::render(Clay_RenderCommandArray& renderCommands) const {
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_START: {
-                setColorOverlay(CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color));
+                // setColorOverlay(CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color));
+                Color color = CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color);
+			    float colorFloat[4] = {
+			        static_cast<float>(color.r)/255.0f,
+			        static_cast<float>(color.g)/255.0f,
+			        static_cast<float>(color.b)/255.0f,
+			        static_cast<float>(color.a)/255.0f,
+			    };
+
+			    SetShaderValue(overlayShader, colorLoc, colorFloat, SHADER_UNIFORM_VEC4);
+			    BeginShaderMode(overlayShader);
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_END: {
-                disableColorOverlay();
+                // disableColorOverlay();
+        		EndShaderMode();
+        		break;
             }
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE: {
                 Clay_RectangleRenderData *config = &renderCommand->renderData.rectangle;
@@ -272,25 +284,27 @@ void Display::initOverlay() {
     colorLoc = GetShaderLocation(overlayShader, "overlayColor");
 }
 
-void Display::setColorOverlay(Color color) const {
-    overlayEnabled = true;
-    float colorFloat[4] = {
-        (float)color.r/255.0f,
-        (float)color.g/255.0f,
-        (float)color.b/255.0f,
-        (float)color.a/255.0f,
-    };
+// void Display::setColorOverlay(Color color) const {
+//     overlayEnabled = true;
+//     float colorFloat[4] = {
+//         static_cast<float>(color.r)/255.0f,
+//         static_cast<float>(color.g)/255.0f,
+//         static_cast<float>(color.b)/255.0f,
+//         static_cast<float>(color.a)/255.0f,
+//     };
 
-    SetShaderValue(overlayShader, colorLoc, colorFloat, SHADER_UNIFORM_VEC4);
-    BeginShaderMode(overlayShader);
-}
+//     SetShaderValue(overlayShader, colorLoc, colorFloat, SHADER_UNIFORM_VEC4);
+//     BeginShaderMode(overlayShader);
+// }
 
-void Display::disableColorOverlay() const {
-    if (overlayEnabled) {
-        EndShaderMode();
-        overlayEnabled = false;
-    }
-}
+// void Display::disableColorOverlay() const {
+//     if (overlayEnabled) {
+//         EndShaderMode();
+//         overlayEnabled = false;
+//     } else {
+//     	TraceLog(LOG_INFO, "OVERLAY HIT");
+//     }
+// }
 
 void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
 	Display* display = static_cast<Display*>(userData);
@@ -342,7 +356,7 @@ void RenderDropdownTextItem(int index) {
 Clay_TransitionData EnterExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
     Clay_TransitionData targetState = initialState;
     if (properties & CLAY_TRANSITION_PROPERTY_Y) {
-        targetState.boundingBox.y += 20;
+        targetState.boundingBox.y -= 20;
     }
     if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
         targetState.overlayColor = Clay_Color({ 255, 255, 255, 255 });
@@ -555,8 +569,9 @@ void Display::layout() {
                      			.width = CLAY_SIZING_FIXED(120) 
                      		}
                      	}, 
+            			.overlayColor = { 100, 0, 0, 140 },
                      	.aspectRatio = { 0.5f },
-            			.image = { .imageData = &profilePicture }, 
+            			.image = { .imageData = &profilePicture },
                      });
                      CLAY(CLAY_ID("Picture1"), { 
                      	.layout = { 

@@ -42,7 +42,8 @@ typedef struct
 
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
-static inline bool overlayEnabled = false;
+// static inline bool overlayEnabled = false;
+
 // A MALLOC'd buffer, that we keep modifying inorder to save from so many Malloc and Free Calls.
 // Call Clay_Raylib_Close() to free
 static inline char *temp_render_buffer;
@@ -62,7 +63,7 @@ class Display : public ScreenListener {
 
 public:
     bool showOverlay;
-    
+
     Display(const Screen& screen): screen(screen) {};
     ~Display() = default;
 
