@@ -126,65 +126,10 @@ Clay_RenderCommandArray App::update() {
 	game.update();
 	world.update();
 
-    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
-    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
-    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
-
-    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
-    float mouseWheelX = mouseWheelDelta.x;
-    float mouseWheelY = mouseWheelDelta.y;
-    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
-
-    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
-        scrollbarData.clickOrigin = mousePosition;
-        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
-        scrollbarData.mouseDown = true;
-    } else if (scrollbarData.mouseDown) {
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
-        if (scrollContainerData.contentDimensions.height > 0) {
-            Clay_Vector2 ratio = Clay_Vector2({
-                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
-                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
-            });
-
-            if (scrollContainerData.config.vertical) {
-                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
-            }
-            
-            if (scrollContainerData.config.horizontal) {
-                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
-            }
-        }
-    }
+    display.update(inputEvent);
 
     Clay_BeginLayout();
-
-    display.update();
-     
-    // // Root container
-    // CLAY(CLAY_ID("MainContent"), {
-    //     .layout = { 
-    //         .sizing = { CLAY_SIZING_GROW(1), CLAY_SIZING_GROW(1) },
-    //         .padding = CLAY_PADDING_ALL(16),
-    //         .childGap = 16 
-    //     },
-    //     .backgroundColor = {250, 250, 255, 0}
-    // }) {
-    //     // A nested child
-    //     CLAY(CLAY_ID("Sidebar"), {
-    //         .layout = { 
-    //             .sizing = { 
-    //                 .width = CLAY_SIZING_FIXED(screen.width()*0.3f), 
-    //                 .height = CLAY_SIZING_FIXED(screen.height()*0.8f) 
-    //             } 
-    //         },
-    //         .backgroundColor = { 200, 200, 200, 255 }
-    //     }) {
-    //         CLAY_TEXT(CLAY_STRING("I'm an inline floating container."), CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
-    //     }
-    // }
-     
+    display.layout();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
 #ifndef __EMSCRIPTEN__

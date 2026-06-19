@@ -336,7 +336,47 @@ void RenderDropdownTextItem(int index) {
         CLAY_TEXT(CLAY_STRING("I'm a text field in a scroll container."), dropdownTextElementConfig);
     }
 }
-void Display::update(){
+
+void Display::update(const InputEvent& inputEvent) {
+
+    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN;
+    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
+    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
+
+    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
+    float mouseWheelX = mouseWheelDelta.x;
+    float mouseWheelY = mouseWheelDelta.y;
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
+
+    if (inputEvent.id == Event::Input::PRIMARY_UP) {
+        scrollbarData.mouseDown = false;
+    }
+
+    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        scrollbarData.clickOrigin = mousePosition;
+        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
+        scrollbarData.mouseDown = true;
+    } else if (scrollbarData.mouseDown) {
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        if (scrollContainerData.contentDimensions.height > 0) {
+            Clay_Vector2 ratio = Clay_Vector2({
+                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
+                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
+            });
+
+            if (scrollContainerData.config.vertical) {
+                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
+            }
+            
+            if (scrollContainerData.config.horizontal) {
+                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
+            }
+        }
+    }
+}
+
+void Display::layout() {
 
     // Clay_BeginLayout();
      
@@ -566,21 +606,26 @@ void Display::update(){
 				CLAY_TEXT(CLAY_STRING("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt."),
 					CLAY_TEXT_CONFIG({ .textColor = Clay_Color({100,100,100,255}), .fontId = 0, .fontSize = 24 }));
 
-                 CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
-                           CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24, .lineHeight = 60, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
+                CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
+                    CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24, .lineHeight = 60, .textAlignment = CLAY_TEXT_ALIGN_CENTER }));
 
-                 CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
-                     CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
+                CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
+                    CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
             } // main content
 
 	        Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
 	        if (scrollData.found) {
 	            CLAY(CLAY_ID("ScrollBar"), {
 	                .floating = {
-	                    .offset = { .y = -(scrollData.scrollPosition->y / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height },
+	                    .offset = { 
+	                    	.y = -(scrollData.scrollPosition->y / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height 
+	                    },
 	                    .parentId = Clay_GetElementId(CLAY_STRING("MainContent")).id,
 	                    .zIndex = 1,
-	                    .attachPoints = { .element = CLAY_ATTACH_POINT_RIGHT_TOP, .parent = CLAY_ATTACH_POINT_RIGHT_TOP },
+	                    .attachPoints = { 
+	                    	.element = CLAY_ATTACH_POINT_RIGHT_TOP, 
+	                    	.parent = CLAY_ATTACH_POINT_RIGHT_TOP 
+	                    },
 	                    .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
 	                }
 	            }) {

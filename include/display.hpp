@@ -33,6 +33,13 @@ typedef struct
     } customData;
 } CustomLayoutElement;
 
+typedef struct
+{
+    Clay_Vector2 clickOrigin;
+    Clay_Vector2 positionOrigin;
+    bool mouseDown;
+} ScrollbarData;
+
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
 static inline bool overlayEnabled = false;
@@ -47,6 +54,7 @@ class Display : public ScreenListener {
     Font fonts[2];
     Texture2D profilePicture;
     Clay_Arena arena = {};
+    ScrollbarData scrollbarData = {0};
     
     const Screen& screen;
 
@@ -61,7 +69,8 @@ public:
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
-    void update();
+    void layout();
+    void update(const InputEvent& inputEvent);
     void button(Clay_String buttonText);
     static void handleError(Clay_ErrorData);
     void onScreenResize(int width, int height);
