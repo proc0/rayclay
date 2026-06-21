@@ -3,7 +3,7 @@
 #include "screen.hpp"
 #include "types.hpp"
 
-#include "clay.h"
+#include "clay.h" // IWYU pragma: export
 
 #include <raylib.h>
 
@@ -57,6 +57,7 @@ class Display : public ScreenListener {
     Clay_Arena arena = {};
     ScrollbarData scrollbarData = {0};
     
+    uint32_t buttonHoverId = {};
     const Screen& screen;
 
     int colorLoc;

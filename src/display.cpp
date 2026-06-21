@@ -310,21 +310,34 @@ void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, v
 	Display* display = static_cast<Display*>(userData);
     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME && strcmp(elementId.stringId.chars, "Bweh1") == 0) {
     	display->showOverlay = !display->showOverlay;
-        TraceLog(LOG_INFO, "BUTTON CLICKED!!!");
     }
 }
 
-void Display::button(const Clay_ElementId& id, const Clay_String& buttonText) {
-	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE); 
-    CLAY(id, { 
-    	.layout = { 
-    		.padding = CLAY_PADDING_ALL(8) 
-    	}, 
-    	.backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE) 
+void Display::button(const Clay_ElementId& elementId, const Clay_String& buttonText) {
+	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE);
+
+    CLAY(elementId, { 
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0)
+            },
+            .padding = CLAY_PADDING_ALL(8),
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
+        }, 
+        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE) 
     }) {
+        if (Clay_Hovered() && buttonHoverId != elementId.id) {
+            buttonHoverId = elementId.id;
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+        }
     	Clay_OnHover(handleButtonClick, this);
-        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = {0,0,0,255}, .fontSize = 24 }));
+        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = { 255, 255, 255, 255 }, .fontSize = 24 }));
     }
+
+
+    // else if (buttonHoverId.id != id.id){
+    //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    // }
 }
 
 Clay_String profileText = CLAY_STRING_CONST("Profile Page one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen");
@@ -338,6 +351,7 @@ Clay_ElementDeclaration HeaderButtonStyle(bool hovered) {
         .backgroundColor = hovered ? COLOR_ORANGE : COLOR_BLUE,
     });
 }
+
 
 void RenderHeaderButton(Clay_String text) {
     CLAY_AUTO_ID(HeaderButtonStyle(Clay_Hovered())) {
@@ -353,16 +367,49 @@ void RenderDropdownTextItem(int index) {
     }
 }
 
-Clay_TransitionData EnterExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+// static Clay_TransitionData EnterSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+//     Clay_TransitionData targetState = initialState;
+//     if (properties & CLAY_TRANSITION_PROPERTY_Y) {
+//         targetState.boundingBox.y -= 20;
+//     }
+//     if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
+//         targetState.overlayColor = Clay_Color({ 255, 255, 255, 200 });
+//     }
+//     // if (properties & CLAY_TRANSITION_PROPERTY_HEIGHT) {
+//     //     // targetState.overlayColor = Clay_Color({ 255, 255, 255, 0 });
+//     //     targetState.boundingBox.height += 200.0f;
+//     // }
+//     return targetState;
+// }
+
+static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
     Clay_TransitionData targetState = initialState;
-    if (properties & CLAY_TRANSITION_PROPERTY_Y) {
-        targetState.boundingBox.y -= 20;
-    }
     if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
-        targetState.overlayColor = Clay_Color({ 255, 255, 255, 255 });
+        targetState.overlayColor = Clay_Color({ 255, 255, 255, 200 });
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_HEIGHT) {
+        // targetState.overlayColor = Clay_Color({ 255, 255, 255, 0 });
+        targetState.boundingBox.height = 0.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
+        targetState.backgroundColor.a = 0.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
+        targetState.borderColor.a = 0.0f;
     }
     return targetState;
 }
+
+// static Clay_TransitionData TransitionFadeOut(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+//     Clay_TransitionData targetState = initialState;
+//     if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
+//         targetState.backgroundColor.a = 0.0f;
+//     }
+//     if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
+//         targetState.borderColor.a = 0.0f;
+//     }
+//     return targetState;
+// }
 
 void Display::update(const InputEvent& inputEvent) {
 
@@ -416,7 +463,8 @@ void Display::layout() {
     	}, 
     	.backgroundColor = Clay_Color({ 200, 200, 200, 0 })
     }) {
-        CLAY(CLAY_ID("SideBar"), { 
+        Clay_ElementId sidebarId = CLAY_ID("SideBar");
+        CLAY(sidebarId, { 
         	.layout = { 
         		.sizing = { 
         			.width = CLAY_SIZING_FIXED(300), 
@@ -454,10 +502,17 @@ void Display::layout() {
                 	.textAlignment = CLAY_TEXT_ALIGN_RIGHT 
                 }));
             }
+
+            if (Clay_Hovered() && buttonHoverId != sidebarId.id) {
+                buttonHoverId = sidebarId.id;
+                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            }
+            
             button(CLAY_ID("Bweh1"), CLAY_STRING("Show Overlay"));
             button(CLAY_ID("Bweh2"), CLAY_STRING("Some Other Item"));
             button(CLAY_ID("Bweh3"), CLAY_STRING("Another Item"));
             button(CLAY_ID("Bweh4"), CLAY_STRING("More Items"));
+
         }
 
 
@@ -509,8 +564,10 @@ void Display::layout() {
 					CLAY(CLAY_ID("FloatingContainer"), {
 						.layout = { 
 							.sizing = { 
-								.width = CLAY_SIZING_PERCENT(0.5), 
-								.height = CLAY_SIZING_FIXED(300) 
+								.width = CLAY_SIZING_PERCENT(0.5f), 
+								.height = CLAY_SIZING_PERCENT(0.2f) 
+                                // .width = CLAY_SIZING_GROW(0), 
+                                // .height = CLAY_SIZING_GROW(0) 
 							}, 
 							.padding = { 16, 16, 16, 16 }
 						},
@@ -530,13 +587,20 @@ void Display::layout() {
 						},
                         .transition = {
                             .handler = Clay_EaseOut,
-                            .duration = Clay_Hovered() && Clay_GetPointerState().state != CLAY_POINTER_DATA_PRESSED_THIS_FRAME ? 0.f : 0.5f,
-                            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_WIDTH | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-                            .enter = { .setInitialState = EnterExitSlideUp },
-                            .exit = { .setFinalState = EnterExitSlideUp },
+                            .duration = 0.3f,
+                            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+                            .enter = { .setInitialState = ExitSlideUp },
+                            .exit = { .setFinalState = ExitSlideUp },
                         }
 					}) {
-						CLAY_TEXT(CLAY_STRING("I'm an inline floating container."), CLAY_TEXT_CONFIG({  .textColor = Clay_Color({255,255,255,255}), .fontSize = 24 }));
+                        // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
+                        // and as a result any fading on the parent leave the text unchange and looks jarring.
+                        // solution is to either add .transition to each text element in Clay, or allow the parent
+                        // to somehow force fade the children text nodes in it if a transition property is set.
+						CLAY_TEXT(CLAY_STRING("I'm an inline floating container."), CLAY_TEXT_CONFIG({ 
+                            .textColor = Clay_Color({0,0,0,255}),
+                            .fontSize = 24,
+                        }));
 					}
             	}
 
