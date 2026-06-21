@@ -57,7 +57,7 @@ class Display : public ScreenListener {
     Clay_Arena arena = {};
     ScrollbarData scrollbarData = {0};
     
-    uint32_t buttonHoverId = {};
+    uint32_t buttonHoverId = 0;
     Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
     const Screen& screen;
@@ -66,6 +66,7 @@ class Display : public ScreenListener {
 
 public:
     bool showOverlay;
+    uint32_t activeTabId = 0;
 
     Display(const Screen& screen): screen(screen) {};
     ~Display() = default;
@@ -77,7 +78,8 @@ public:
     void disableColorOverlay() const;
     void layout();
     void update(const InputEvent& inputEvent);
-    void button(const Clay_ElementId& id, const Clay_String& buttonText);
+    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
+    void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void onScreenResize(int width, int height);
     void unload();
