@@ -364,48 +364,6 @@ void Display::buttonTab(const Clay_ElementId& elementId, const Clay_String& butt
     }
 }
 
-Clay_String profileText = CLAY_STRING_CONST("Profile Page one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen");
-#define COLOR_ORANGE Clay_Color({225, 138, 50, 255})
-#define COLOR_BLUE Clay_Color({111, 173, 162, 255})
-Clay_TextElementConfig headerTextConfig = { .textColor = {0,0,0,255}, .fontId = 1, .fontSize = 16, .letterSpacing = 5 };
-
-Clay_ElementDeclaration HeaderButtonStyle(bool hovered) {
-    return Clay_ElementDeclaration({
-        .layout = {.padding = {16, 16, 8, 8}},
-        .backgroundColor = hovered ? COLOR_ORANGE : COLOR_BLUE,
-    });
-}
-
-
-void RenderHeaderButton(Clay_String text) {
-    CLAY_AUTO_ID(HeaderButtonStyle(Clay_Hovered())) {
-        CLAY_TEXT(text, CLAY_TEXT_CONFIG(headerTextConfig));
-    }
-}
-Clay_LayoutConfig dropdownTextItemLayout = { .padding = {8, 8, 4, 4} };
-Clay_TextElementConfig dropdownTextElementConfig = { .textColor = {255,255,255,255}, .fontSize = 24 };
-
-void RenderDropdownTextItem(int index) {
-    CLAY_AUTO_ID({ .layout = dropdownTextItemLayout, .backgroundColor = {180, 180, 180, 255} }) {
-        CLAY_TEXT(CLAY_STRING("I'm a text field in a scroll container."), dropdownTextElementConfig);
-    }
-}
-
-// static Clay_TransitionData EnterSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
-//     Clay_TransitionData targetState = initialState;
-//     if (properties & CLAY_TRANSITION_PROPERTY_Y) {
-//         targetState.boundingBox.y -= 20;
-//     }
-//     if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
-//         targetState.overlayColor = Clay_Color({ 255, 255, 255, 200 });
-//     }
-//     // if (properties & CLAY_TRANSITION_PROPERTY_HEIGHT) {
-//     //     // targetState.overlayColor = Clay_Color({ 255, 255, 255, 0 });
-//     //     targetState.boundingBox.height += 200.0f;
-//     // }
-//     return targetState;
-// }
-
 static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
     Clay_TransitionData targetState = initialState;
     if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
@@ -451,12 +409,12 @@ void Display::update(const InputEvent& inputEvent) {
     }
 
     if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
         scrollbarData.clickOrigin = mousePosition;
         scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
         scrollbarData.mouseDown = true;
     } else if (scrollbarData.mouseDown) {
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
         if (scrollContainerData.contentDimensions.height > 0) {
             Clay_Vector2 ratio = Clay_Vector2({
                 scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
@@ -520,7 +478,7 @@ void Display::layout() {
                		},
             		.image = { .imageData = &profilePicture }, 
                 });
-                CLAY_TEXT(profileText, CLAY_TEXT_CONFIG({ 
+                CLAY_TEXT(CLAY_STRING("Blah blah bla blahhasoa lalalsl"), CLAY_TEXT_CONFIG({ 
                 	.textColor = Clay_Color({0, 0, 0, 255}), 
                 	.fontSize = 24, 
                 	.textAlignment = CLAY_TEXT_ALIGN_RIGHT 
@@ -540,7 +498,8 @@ void Display::layout() {
         }
 
 
-        CLAY(CLAY_ID("RightPanel"), { 
+        Clay_ElementId mainContentId = CLAY_ID("MainContent");
+        CLAY(mainContentId, { 
         	.layout = { 
         		.sizing = { 
         			.width = CLAY_SIZING_GROW(0), 
@@ -554,6 +513,11 @@ void Display::layout() {
             Clay_ElementId tabId1 = CLAY_ID("Tab1");
             Clay_ElementId tabId2 = CLAY_ID("Tab2");
             Clay_ElementId tabId3 = CLAY_ID("Tab3");
+
+            if (Clay_Hovered() && buttonHoverId != mainContentId.id) {
+                buttonHoverId = mainContentId.id;
+                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            }
 
             CLAY_AUTO_ID({ 
             	.layout = { 
@@ -615,7 +579,7 @@ void Display::layout() {
                 }
             }
 
-            CLAY(CLAY_ID("MainContent"), {
+            CLAY(CLAY_ID("TabContent"), {
                 .layout = { 
                 	.sizing = { 
                 		.width = CLAY_SIZING_GROW(0),
@@ -707,14 +671,14 @@ void Display::layout() {
 
             } // main content
 
-	        Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
+	        Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
 	        if (scrollData.found && scrollData.scrollContainerDimensions.height < scrollData.contentDimensions.height) {
 	            CLAY(CLAY_ID("ScrollBar"), {
 	                .floating = {
 	                    .offset = { 
 	                    	.y = -(scrollData.scrollPosition->y / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height 
 	                    },
-	                    .parentId = Clay_GetElementId(CLAY_STRING("MainContent")).id,
+	                    .parentId = Clay_GetElementId(CLAY_STRING("TabContent")).id,
 	                    .zIndex = 1,
 	                    .attachPoints = { 
 	                    	.element = CLAY_ATTACH_POINT_RIGHT_TOP, 
