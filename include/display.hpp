@@ -58,6 +58,8 @@ class Display : public ScreenListener {
     ScrollbarData scrollbarData = {0};
     
     uint32_t buttonHoverId = {};
+    Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
+
     const Screen& screen;
 
     int colorLoc;

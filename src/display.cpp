@@ -324,7 +324,8 @@ void Display::button(const Clay_ElementId& elementId, const Clay_String& buttonT
             .padding = CLAY_PADDING_ALL(8),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
         }, 
-        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE) 
+        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE),
+        .cornerRadius = CLAY_CORNER_RADIUS(10),
     }) {
         if (Clay_Hovered() && buttonHoverId != elementId.id) {
             buttonHoverId = elementId.id;
@@ -467,7 +468,7 @@ void Display::layout() {
         CLAY(sidebarId, { 
         	.layout = { 
         		.sizing = { 
-        			.width = CLAY_SIZING_FIXED(300), 
+        			.width = sidebarWidth, 
         			.height = CLAY_SIZING_GROW(0) 
         		}, 
         		.padding = { 16, 16, 16, 16 }, 
@@ -728,6 +729,12 @@ void Display::handleError(Clay_ErrorData errorData) {
 }
 
 void Display::onScreenResize(int width, int height) {
+    if (width < 720) {
+        sidebarWidth = CLAY_SIZING_FIXED(150);
+    } else {
+        sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
+    }
+
 	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
 }
 
