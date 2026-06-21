@@ -708,7 +708,7 @@ void Display::layout() {
             } // main content
 
 	        Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("MainContent")));
-	        if (scrollData.found) {
+	        if (scrollData.found && scrollData.scrollContainerDimensions.height < scrollData.contentDimensions.height) {
 	            CLAY(CLAY_ID("ScrollBar"), {
 	                .floating = {
 	                    .offset = { 
