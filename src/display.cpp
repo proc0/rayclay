@@ -122,6 +122,7 @@ void Display::load(){
     initOverlay();
 
     profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
+    parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
 }
 
 void Display::render(Clay_RenderCommandArray& renderCommands) const {
@@ -157,10 +158,16 @@ void Display::render(Clay_RenderCommandArray& renderCommands) const {
                 if (tintColor.r == 0 && tintColor.g == 0 && tintColor.b == 0 && tintColor.a == 0) {
                     tintColor = Clay_Color({ 255, 255, 255, 255 });
                 }
+                // float imageOffset = 0.0f;
+                // if (scrollbarData.scrollY + imageTexture.height <= 0) {
+                //     imageOffset = static_cast<float>(static_cast<int>(scrollbarData.scrollY) % imageTexture.height);
+                // } else {
+                //     imageOffset = scrollbarData.scrollY + static_cast<float>(imageTexture.height);
+                // }
                 DrawTexturePro(
                     imageTexture,
                     Rectangle({ 0, 0, static_cast<float>(imageTexture.width), static_cast<float>(imageTexture.height) }),
-                    Rectangle({boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height}),
+                    Rectangle({boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height }),
                     Vector2({}),
                     0,
                     CLAY_COLOR_TO_RAYLIB_COLOR(tintColor));
@@ -408,13 +415,14 @@ void Display::update(const InputEvent& inputEvent) {
         scrollbarData.mouseDown = false;
     }
 
-    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
         Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
+    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
         scrollbarData.clickOrigin = mousePosition;
         scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
         scrollbarData.mouseDown = true;
+
     } else if (scrollbarData.mouseDown) {
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
+        // Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
         if (scrollContainerData.contentDimensions.height > 0) {
             Clay_Vector2 ratio = Clay_Vector2({
                 scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
@@ -430,6 +438,12 @@ void Display::update(const InputEvent& inputEvent) {
             }
         }
     }
+
+    // if(scrollContainerData.scrollPosition) {
+
+    //     scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
+    //     TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
+    // }
 }
 
 void Display::layout() {
@@ -508,7 +522,8 @@ void Display::layout() {
         		.childGap = 16, 
         		.layoutDirection = CLAY_TOP_TO_BOTTOM
         	},
-    		.backgroundColor = Clay_Color({ 200, 200, 200, 255 })
+    		// .backgroundColor = Clay_Color({ 200, 200, 200, 255 }),
+            .image = { .imageData = &parchmentTexture },
         }) {
             Clay_ElementId tabId1 = CLAY_ID("Tab1");
             Clay_ElementId tabId2 = CLAY_ID("Tab2");
@@ -583,16 +598,19 @@ void Display::layout() {
                 .layout = { 
                 	.sizing = { 
                 		.width = CLAY_SIZING_GROW(0),
+                        .height = CLAY_SIZING_GROW(0),
                 	}, 
                 	.padding = {16, 16, 16, 16}, 
                 	.childGap = 16, 
                 	.layoutDirection = CLAY_TOP_TO_BOTTOM 
                 },
-                .backgroundColor = {200, 200, 255, 0},
+                // .backgroundColor = {200, 200, 255, 0},
+                // .image = { .imageData = &parchmentTexture },
                 .clip = { 
                 	.vertical = true, 
                 	.childOffset = Clay_GetScrollOffset()
                 },
+
             }) {
 
 
@@ -620,7 +638,8 @@ void Display::layout() {
                                 .y = CLAY_ALIGN_Y_CENTER 
                             } 
                         }, 
-                        .backgroundColor = {180, 180, 220, 255} 
+                        .backgroundColor = {180, 180, 220, 255},
+                        // .image = { .imageData = &parchmentTexture },
                      }) {
                          CLAY(CLAY_ID("Picture2"), { 
                             .layout = { 
@@ -744,5 +763,6 @@ void Display::unload(){
 
     free(arena.memory);
 
+    UnloadTexture(parchmentTexture);
     UnloadTexture(profilePicture);
 }

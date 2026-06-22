@@ -37,6 +37,7 @@ typedef struct
 {
     Clay_Vector2 clickOrigin;
     Clay_Vector2 positionOrigin;
+    // float scrollY;
     bool mouseDown;
 } ScrollbarData;
 
@@ -54,6 +55,7 @@ class Display : public ScreenListener {
     Camera Raylib_camera;
     Font fonts[2];
     Texture2D profilePicture;
+    Texture2D parchmentTexture;
     Clay_Arena arena = {};
     ScrollbarData scrollbarData = {0};
     
