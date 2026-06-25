@@ -71,7 +71,7 @@ void App::intro(void* self) {
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
-        app->state = State::App::END;
+        app->state = State::App::HALT;
     }
 #endif
 }
@@ -81,7 +81,9 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
         ClearBackground(BLANK);
 		world.render();
 		game.render();
-        display.render(renderCommands);
+        // display.render(renderCommands);
+        (display.*displayRender)(renderCommands);
+
 	EndDrawing();
 }
 
@@ -107,11 +109,11 @@ void App::start() {
 #else
     SetTargetFPS(TARGET_FPS);
 
-    while (state == State::App::NIL) {
+    while (state == State::App::LOAD) {
         intro(this);
     }
 
-    while (state == State::App::RUN) {
+    while (state != State::App::HALT) {
         run(this);
     }
 #endif
@@ -123,10 +125,23 @@ Clay_RenderCommandArray App::update() {
     InputEvent inputEvent = input.update();
     screen.update(inputEvent);
 
+    if(inputEvent.id == Event::Input::KEY_ESCAPE){
+        if(state == State::App::PAUSE) {
+            state = State::App::RUN;
+            displayUpdate = &Display::update;
+            displayRender = &Display::render;
+        } else if (state == State::App::RUN) {
+            state = State::App::PAUSE;
+            displayUpdate = &Display::updateNull;
+            displayRender = &Display::renderNull;
+        }
+    }
+
 	game.update();
 	world.update();
 
-    display.update(inputEvent);
+    // display.update(inputEvent);
+    (display.*displayUpdate)(inputEvent);
 
     Clay_BeginLayout();
     display.layout();
@@ -134,7 +149,7 @@ Clay_RenderCommandArray App::update() {
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
-        state = State::App::END;
+        state = State::App::HALT;
     }
 #endif
 

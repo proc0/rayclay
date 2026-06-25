@@ -60,7 +60,7 @@
 
 class Game {
     
-    State::Game state = State::Game::STALL;
+    State::Game state = State::Game::START;
 
 public:
     void load();

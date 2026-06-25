@@ -31,17 +31,17 @@ namespace Event {
 
 namespace State {
     enum App {
-        NIL,
+        LOAD,
         RUN,
-        END
+        PAUSE,
+        HALT
     };
 
     enum Game {
-        STALL,
         START,
         PLAY,
-        PAUSE,
-        OVER
+        OVER,
+        END
     };
 
     enum Pointer {

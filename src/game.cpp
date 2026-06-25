@@ -13,26 +13,26 @@ void Game::update(){
     // }
 
     // toggle pause menu
-    if(IsKeyPressed(KEY_ESCAPE)){
-        if(state == State::Game::PAUSE) {
-            state = State::Game::PLAY;
-            HideCursor();
-            return;
-        }
+    // if(IsKeyPressed(KEY_ESCAPE)){
+    //     if(state == State::Game::PAUSE) {
+    //         state = State::Game::PLAY;
+    //         HideCursor();
+    //         return;
+    //     }
         
-        if(state == State::Game::PLAY) {
-            state = State::Game::PAUSE;
-            ShowCursor();
-            return;
-        }
-    }
+    //     if(state == State::Game::PLAY) {
+    //         state = State::Game::PAUSE;
+    //         ShowCursor();
+    //         return;
+    //     }
+    // }
 
     // run background stuff and UI to begin
-    if(state == State::Game::OVER || state == State::Game::PAUSE || state == State::Game::START) {
-        // listen for play button here
-        // display.update(world);
-        return;
-    }
+    // if(state == State::Game::OVER || state == State::Game::END || state == State::Game::START) {
+    //     // listen for play button here
+    //     // display.update(world);
+    //     return;
+    // }
 
     if(state == State::Game::PLAY){
         // world.update();

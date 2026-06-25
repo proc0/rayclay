@@ -76,11 +76,13 @@ public:
 
     void load();
     void render(Clay_RenderCommandArray& renderCommands) const;
+    void renderNull(Clay_RenderCommandArray& renderCommands) const;
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
     void layout();
     void update(const InputEvent& inputEvent);
+    void updateNull(const InputEvent& inputEvent);
     void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);

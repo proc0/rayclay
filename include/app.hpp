@@ -25,9 +25,13 @@ class App {
 
 	Screen screen = Screen(camera);
     Display display = Display(screen);
+    // std::unique_ptr<Display> display = std::make_unique<Display>(screen);
 	World world = World(screen);
 
-	State::App state = State::App::NIL;
+    void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::renderNull;
+    void (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::updateNull;
+
+	State::App state = State::App::LOAD;
 
 public:
 	App() {};
