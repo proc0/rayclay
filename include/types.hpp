@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <raylib.h>
 
 namespace Event {
@@ -32,6 +31,7 @@ namespace Event {
 namespace State {
     enum App {
         LOAD,
+        TITLE,
         RUN,
         PAUSE,
         HALT

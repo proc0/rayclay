@@ -38,7 +38,8 @@ public:
     ~App() = default;
 
     void load();
-    void logo() const;
+    void renderLogo() const;
+    void renderTitle() const;
     static void intro(void* self);
     void render(Clay_RenderCommandArray& renderCommands) const;
     static void run(void* self);

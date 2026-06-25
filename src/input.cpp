@@ -96,3 +96,9 @@ InputEvent Input::update() {
 		.position = position
 	};
 }
+
+bool Input::updateAnyKey() {
+	InputEvent event = update();
+
+	return event.id == Event::Input::PRIMARY_UP || event.id == Event::Input::SECONDARY_UP || event.id == Event::Input::KEY_ESCAPE || event.id == Event::Input::KEY_OTHER;
+}

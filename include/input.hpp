@@ -10,4 +10,5 @@ class Input {
 
 public:
 	InputEvent update();
+    bool updateAnyKey();
 };

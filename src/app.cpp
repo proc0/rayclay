@@ -46,27 +46,39 @@ void App::load() {
     screen.listen(&display);
 }
 
-void App::logo() const {
+void App::renderLogo() const {
     BeginDrawing();
         ClearBackground(RED);
     EndDrawing();
 }
 
+void App::renderTitle() const {
+    BeginDrawing();
+        ClearBackground(BLUE);
+    EndDrawing();
+}
+
 void App::intro(void* self) {
     App* app = static_cast<App*>(self);
-
-    InputEvent inputEvent = app->input.update();
     app->timer.update();
-
-    app->logo();
     
-    if(inputEvent.id != Event::Input::IDLE || app->timer.isEmpty()) {
-        app->state = State::App::RUN;
+    if (app->state == State::App::LOAD) {
+        if(app->input.updateAnyKey() || app->timer.isEmpty()) {
+            app->state = State::App::TITLE;
+        }
+
+        app->renderLogo();
+    } else if (app->state == State::App::TITLE) {
+        app->renderTitle();
+
+        if(app->input.updateAnyKey()) {
+            app->state = State::App::RUN;
 #ifdef __EMSCRIPTEN__
-        // cancel the main loop before setting it to run
-        emscripten_cancel_main_loop();
-        emscripten_set_main_loop_arg(app->run, app, 0, 0);
+            // cancel the main loop before setting it to run
+            emscripten_cancel_main_loop();
+            emscripten_set_main_loop_arg(app->run, app, 0, 0);
 #endif
+        }
     }
 
 #ifndef __EMSCRIPTEN__
@@ -109,7 +121,7 @@ void App::start() {
 #else
     SetTargetFPS(TARGET_FPS);
 
-    while (state == State::App::LOAD) {
+    while (state != State::App::RUN) {
         intro(this);
     }
 
@@ -128,12 +140,12 @@ Clay_RenderCommandArray App::update() {
     if(inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
             state = State::App::RUN;
-            displayUpdate = &Display::update;
-            displayRender = &Display::render;
-        } else if (state == State::App::RUN) {
-            state = State::App::PAUSE;
             displayUpdate = &Display::updateNull;
             displayRender = &Display::renderNull;
+        } else if (state == State::App::RUN) {
+            state = State::App::PAUSE;
+            displayUpdate = &Display::update;
+            displayRender = &Display::render;
         }
     }
 
