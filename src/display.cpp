@@ -1,3 +1,4 @@
+#include "types.hpp"
 #define CLAY_IMPLEMENTATION
 #include "display.hpp"
 
@@ -335,13 +336,14 @@ void Display::initOverlay() {
 // }
 
 void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-	Display* display = static_cast<Display*>(userData);
-    if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME && strcmp(elementId.stringId.chars, "Bweh1") == 0) {
-    	display->showOverlay = !display->showOverlay;
+    Display* display = static_cast<Display*>(userData);
+    if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+        std::string idStr(elementId.stringId.chars);
+    	display->buttonAction = display->buttonActions.at(idStr.c_str());
     }
 }
 
-void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& buttonText) {
+void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& buttonText, Action::Display action) {
 	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE);
 
     CLAY(elementId, { 
@@ -421,9 +423,11 @@ static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_Tr
 //     return targetState;
 // }
 
-void Display::updateNull(const InputEvent& inputEvent) {}
+Action::Display Display::updateNull(const InputEvent& inputEvent) {
+    return Action::Display::DO_NOTHING;
+}
 
-void Display::update(const InputEvent& inputEvent) {
+Action::Display Display::update(const InputEvent& inputEvent) {
 
     bool isMouseDown = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN;
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
@@ -467,6 +471,82 @@ void Display::update(const InputEvent& inputEvent) {
         scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
         // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
     }
+
+    // Action::Display lastButtonAction = buttonAction;
+    // buttonAction = Action::Display::DO_NOTHING;
+
+    return buttonAction;
+}
+
+void Display::layoutPauseMenu() {
+
+}
+
+void Display::layoutMainMenu() {
+    CLAY(CLAY_ID("ContainerMainMenu"), { 
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0), 
+                .height = CLAY_SIZING_GROW(0) 
+            }, 
+        }, 
+        .backgroundColor = Clay_Color({ 0, 0, 0, 0 })
+    }) {
+        CLAY(CLAY_ID("ContentMainMenu"), {
+            .layout = { 
+                .sizing = { 
+                    .width = CLAY_SIZING_PERCENT(0.33f), 
+                    .height = CLAY_SIZING_PERCENT(0.5f) 
+                }, 
+                .padding = { 16, 16, 16, 16 },
+                .layoutDirection = CLAY_TOP_TO_BOTTOM 
+            },
+            .backgroundColor = { 140, 80, 200, 255 },
+            .floating = { 
+                .offset = {0, 0}, 
+                .zIndex = 1, 
+                .attachPoints = { 
+                    CLAY_ATTACH_POINT_CENTER_CENTER, 
+                    CLAY_ATTACH_POINT_CENTER_CENTER 
+                }, 
+                .attachTo = CLAY_ATTACH_TO_PARENT 
+            },
+            .border = { 
+                .color = Clay_Color({80, 80, 80, 255}), 
+                .width = CLAY_BORDER_OUTSIDE(2) 
+            },
+            .transition = {
+                .handler = Clay_EaseOut,
+                .duration = 0.3f,
+                .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+                .enter = { .setInitialState = ExitSlideUp },
+                .exit = { .setFinalState = ExitSlideUp },
+            }
+        }) {
+            // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
+            // and as a result any fading on the parent leave the text unchange and looks jarring.
+            // solution is to either add .transition to each text element in Clay, or allow the parent
+            // to somehow force fade the children text nodes in it if a transition property is set.
+            CLAY_TEXT(CLAY_STRING("Main Menu"), CLAY_TEXT_CONFIG({ 
+                .textColor = Clay_Color({ 0, 0, 0, 255 }),
+                .fontSize = 24,
+            }));
+
+            buttonSimple(CLAY_ID("ButtonMainMenu1"), CLAY_STRING("Show Overlay"), Action::Display::SHOW_OVERLAY);
+            buttonSimple(CLAY_ID("ButtonMainMenu2"), CLAY_STRING("Some Other Item"), Action::Display::DO_NOTHING);
+            buttonSimple(CLAY_ID("ButtonMainMenu3"), CLAY_STRING("Another Item"), Action::Display::DO_NOTHING);
+            buttonSimple(CLAY_ID("ButtonMainMenu_Quit"), CLAY_STRING("Quit"), Action::Display::QUIT_APP);
+
+            if(showOverlay) {
+                CLAY_TEXT(CLAY_STRING("HA HA HA HA HA HA"), CLAY_TEXT_CONFIG({ 
+                    .textColor = Clay_Color({ 0, 0, 0, 255 }),
+                    .fontSize = 24,
+                }));
+            }
+        }
+    }
+
+    buttonAction = Action::Display::DO_NOTHING;
 }
 
 void Display::layout() {
@@ -527,10 +607,10 @@ void Display::layout() {
                 SetMouseCursor(MOUSE_CURSOR_DEFAULT);
             }
             
-            buttonSimple(CLAY_ID("Bweh1"), CLAY_STRING("Show Overlay"));
-            buttonSimple(CLAY_ID("Bweh2"), CLAY_STRING("Some Other Item"));
-            buttonSimple(CLAY_ID("Bweh3"), CLAY_STRING("Another Item"));
-            buttonSimple(CLAY_ID("Bweh4"), CLAY_STRING("More Items"));
+            buttonSimple(CLAY_ID("Bweh1"), CLAY_STRING("Show Overlay"), Action::Display::DO_NOTHING);
+            buttonSimple(CLAY_ID("Bweh2"), CLAY_STRING("Some Other Item"), Action::Display::DO_NOTHING);
+            buttonSimple(CLAY_ID("Bweh3"), CLAY_STRING("Another Item"), Action::Display::DO_NOTHING);
+            buttonSimple(CLAY_ID("Bweh4"), CLAY_STRING("More Items"), Action::Display::DO_NOTHING);
 
         }
 

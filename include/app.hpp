@@ -28,10 +28,12 @@ class App {
     // std::unique_ptr<Display> display = std::make_unique<Display>(screen);
 	World world = World(screen);
 
-    void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::renderNull;
-    void (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::updateNull;
+    void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::render;
+    Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
+    void (Display::*displayLayout)() = &Display::layoutMainMenu;
 
 	State::App state = State::App::LOAD;
+    State::AppScreen stateScreen = State::AppScreen::INTRO;
 
 public:
 	App() {};

@@ -2,6 +2,14 @@
 
 #include <raylib.h>
 
+namespace Action {
+    enum Display {
+        DO_NOTHING,
+        SHOW_OVERLAY,
+        QUIT_APP,
+    };
+}
+
 namespace Event {
     enum Input {
         IDLE,
@@ -31,10 +39,16 @@ namespace Event {
 namespace State {
     enum App {
         LOAD,
-        TITLE,
         RUN,
         PAUSE,
         HALT
+    };
+
+    enum AppScreen {
+        INTRO,
+        TITLE,
+        MAIN,
+        GAME
     };
 
     enum Game {

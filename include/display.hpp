@@ -6,6 +6,8 @@
 #include "clay.h" // IWYU pragma: export
 
 #include <raylib.h>
+#include <string>
+#include <unordered_map>
 
 #define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) (Rectangle) { .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height }
 #define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
@@ -41,6 +43,10 @@ typedef struct
     bool mouseDown;
 } ScrollbarData;
 
+typedef struct DisplayButtonContext {
+    void* self;
+    Action::Display action;
+} DisplayButtonContext;
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
 // static inline bool overlayEnabled = false;
@@ -64,10 +70,16 @@ class Display : public ScreenListener {
     Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
     const Screen& screen;
-
     int colorLoc;
 
 public:
+    Action::Display buttonAction = Action::Display::DO_NOTHING;
+    const std::unordered_map<std::string, Action::Display> buttonActions = {
+        { "ButtonMainMenu1", Action::Display::SHOW_OVERLAY },
+        { "ButtonMainMenu2", Action::Display::DO_NOTHING },
+        { "ButtonMainMenu3", Action::Display::DO_NOTHING },
+        { "ButtonMainMenu_Quit", Action::Display::QUIT_APP }
+    };
     bool showOverlay;
     uint32_t activeTabId = 0;
 
@@ -81,9 +93,11 @@ public:
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
     void layout();
-    void update(const InputEvent& inputEvent);
-    void updateNull(const InputEvent& inputEvent);
-    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
+    void layoutMainMenu();
+    void layoutPauseMenu();
+    Action::Display update(const InputEvent& inputEvent);
+    Action::Display updateNull(const InputEvent& inputEvent);
+    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText, Action::Display action);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void onScreenResize(int width, int height);

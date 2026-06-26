@@ -62,17 +62,19 @@ void App::intro(void* self) {
     App* app = static_cast<App*>(self);
     app->timer.update();
     
-    if (app->state == State::App::LOAD) {
+    if (app->stateScreen == State::AppScreen::INTRO) {
         if(app->input.updateAnyKey() || app->timer.isEmpty()) {
-            app->state = State::App::TITLE;
+            app->stateScreen = State::AppScreen::TITLE;
         }
 
         app->renderLogo();
-    } else if (app->state == State::App::TITLE) {
+    } else if (app->stateScreen == State::AppScreen::TITLE) {
         app->renderTitle();
 
         if(app->input.updateAnyKey()) {
             app->state = State::App::RUN;
+            app->stateScreen = State::AppScreen::MAIN;
+
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
             emscripten_cancel_main_loop();
@@ -149,18 +151,27 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
+    // if (stateScreen == State::AppScreen::GAME) {
+    //     displayLayout = &Display::layout;
+    // }
+
 	game.update();
 	world.update();
 
     // display.update(inputEvent);
-    (display.*displayUpdate)(inputEvent);
+    Action::Display displayAction = (display.*displayUpdate)(inputEvent);
+
+    if (displayAction == Action::Display::SHOW_OVERLAY) {
+        display.showOverlay = !display.showOverlay;
+    }
 
     Clay_BeginLayout();
-    display.layout();
+    // display.layoutMainMenu();
+    (display.*displayLayout)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
 #ifndef __EMSCRIPTEN__
-    if (WindowShouldClose()) {
+    if (displayAction == Action::Display::QUIT_APP || WindowShouldClose()) {
         state = State::App::HALT;
     }
 #endif
