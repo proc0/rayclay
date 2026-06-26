@@ -75,12 +75,14 @@ class Display : public ScreenListener {
 public:
     Action::Display buttonAction = Action::Display::DO_NOTHING;
     const std::unordered_map<std::string, Action::Display> buttonActions = {
-        { "ButtonMainMenu1", Action::Display::SHOW_OVERLAY },
-        { "ButtonMainMenu2", Action::Display::DO_NOTHING },
-        { "ButtonMainMenu3", Action::Display::DO_NOTHING },
-        { "ButtonMainMenu_Quit", Action::Display::QUIT_APP }
+        { "ButtonGameNew", Action::Display::NEW_GAME },
+        { "ButtonGameResume", Action::Display::RESUME_GAME },
+        { "ButtonMainMenu", Action::Display::MAIN_MENU },
+        { "ButtonGameLoad", Action::Display::LOAD_GAME },
+        { "ButtonOptions", Action::Display::OPTIONS },
+        { "ButtonQuit", Action::Display::QUIT_APP }
     };
-    bool showOverlay;
+    bool showOverlay = 0;
     uint32_t activeTabId = 0;
 
     Display(const Screen& screen): screen(screen) {};

@@ -114,7 +114,7 @@ void Display::load(){
     // 4. Initialize Clay [clay.h:2186-2188]
     Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
 
-    fonts[0] = LoadFontEx(PATH_ASSET("Jacquard24-Regular.ttf"), 48, 0, 400);
+    fonts[0] = LoadFontEx(PATH_ASSET("RobotoMono-Medium.ttf"), 48, 0, 400);
     SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
     fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
     SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
@@ -354,15 +354,20 @@ void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& b
             .padding = CLAY_PADDING_ALL(8),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
         }, 
-        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE),
-        .cornerRadius = CLAY_CORNER_RADIUS(10),
+        .backgroundColor = Clay_Hovered() ? Clay_Color({ 125, 125, 125, 255 }) : Clay_Color({ 150, 150, 150, 255 }),
+        .border = { 
+            .color = Clay_Color({ 255, 255, 255, 255 }), 
+            .width = CLAY_BORDER_OUTSIDE(2) 
+        },
     }) {
+        Clay_Color textColor = { 220, 220, 220, 255 };
         if (Clay_Hovered() && buttonHoverId != elementId.id) {
             buttonHoverId = elementId.id;
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+            textColor = { 255, 255, 255, 255 };
         }
     	Clay_OnHover(handleButtonClick, this);
-        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = { 255, 255, 255, 255 }, .fontSize = 24 }));
+        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = textColor, .fontSize = 24 }));
     }
 }
 
@@ -479,7 +484,61 @@ Action::Display Display::update(const InputEvent& inputEvent) {
 }
 
 void Display::layoutPauseMenu() {
+    CLAY(CLAY_ID("ContainerPauseMenu"), { 
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0), 
+                .height = CLAY_SIZING_GROW(0) 
+            }, 
+        }, 
+        .backgroundColor = Clay_Color({ 0, 0, 0, 0 })
+    }) {
+        CLAY(CLAY_ID("ContentPauseMenu"), {
+            .layout = { 
+                .sizing = { 
+                    .width = CLAY_SIZING_PERCENT(0.33f), 
+                    .height = CLAY_SIZING_PERCENT(0.5f) 
+                }, 
+                .padding = { 16, 16, 16, 16 },
+                .childGap = 16,
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            },
+            .backgroundColor = { 0, 0, 0, 200 },
+            .floating = { 
+                .offset = {0, 0}, 
+                .zIndex = 1, 
+                .attachPoints = { 
+                    CLAY_ATTACH_POINT_CENTER_CENTER, 
+                    CLAY_ATTACH_POINT_CENTER_CENTER 
+                }, 
+                .attachTo = CLAY_ATTACH_TO_PARENT 
+            },
+            .transition = {
+                .handler = Clay_EaseOut,
+                .duration = 0.3f,
+                .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+                .enter = { .setInitialState = ExitSlideUp },
+                .exit = { .setFinalState = ExitSlideUp },
+            }
+        }) {
+            // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
+            // and as a result any fading on the parent leave the text unchange and looks jarring.
+            // solution is to either add .transition to each text element in Clay, or allow the parent
+            // to somehow force fade the children text nodes in it if a transition property is set.
+            CLAY_TEXT(CLAY_STRING("Pause Menu"), CLAY_TEXT_CONFIG({ 
+                .textColor = Clay_Color({ 150, 150, 150, 255 }),
+                .fontSize = 24,
+            }));
 
+            buttonSimple(CLAY_ID("ButtonGameResume"), CLAY_STRING("Resume Game"), Action::Display::RESUME_GAME);
+            buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"), Action::Display::LOAD_GAME);
+            buttonSimple(CLAY_ID("ButtonOptions"), CLAY_STRING("Options"), Action::Display::OPTIONS);
+            buttonSimple(CLAY_ID("ButtonMainMenu"), CLAY_STRING("Main Menu"), Action::Display::MAIN_MENU);
+            buttonSimple(CLAY_ID("ButtonQuit"), CLAY_STRING("Quit"), Action::Display::QUIT_APP);
+        }
+    }
+
+    buttonAction = Action::Display::DO_NOTHING;
 }
 
 void Display::layoutMainMenu() {
@@ -499,9 +558,10 @@ void Display::layoutMainMenu() {
                     .height = CLAY_SIZING_PERCENT(0.5f) 
                 }, 
                 .padding = { 16, 16, 16, 16 },
+                .childGap = 16,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            .backgroundColor = { 140, 80, 200, 255 },
+            .backgroundColor = { 0, 0, 0, 200 },
             .floating = { 
                 .offset = {0, 0}, 
                 .zIndex = 1, 
@@ -510,10 +570,6 @@ void Display::layoutMainMenu() {
                     CLAY_ATTACH_POINT_CENTER_CENTER 
                 }, 
                 .attachTo = CLAY_ATTACH_TO_PARENT 
-            },
-            .border = { 
-                .color = Clay_Color({80, 80, 80, 255}), 
-                .width = CLAY_BORDER_OUTSIDE(2) 
             },
             .transition = {
                 .handler = Clay_EaseOut,
@@ -528,21 +584,14 @@ void Display::layoutMainMenu() {
             // solution is to either add .transition to each text element in Clay, or allow the parent
             // to somehow force fade the children text nodes in it if a transition property is set.
             CLAY_TEXT(CLAY_STRING("Main Menu"), CLAY_TEXT_CONFIG({ 
-                .textColor = Clay_Color({ 0, 0, 0, 255 }),
+                .textColor = Clay_Color({ 150, 150, 150, 255 }),
                 .fontSize = 24,
             }));
 
-            buttonSimple(CLAY_ID("ButtonMainMenu1"), CLAY_STRING("Show Overlay"), Action::Display::SHOW_OVERLAY);
-            buttonSimple(CLAY_ID("ButtonMainMenu2"), CLAY_STRING("Some Other Item"), Action::Display::DO_NOTHING);
-            buttonSimple(CLAY_ID("ButtonMainMenu3"), CLAY_STRING("Another Item"), Action::Display::DO_NOTHING);
-            buttonSimple(CLAY_ID("ButtonMainMenu_Quit"), CLAY_STRING("Quit"), Action::Display::QUIT_APP);
-
-            if(showOverlay) {
-                CLAY_TEXT(CLAY_STRING("HA HA HA HA HA HA"), CLAY_TEXT_CONFIG({ 
-                    .textColor = Clay_Color({ 0, 0, 0, 255 }),
-                    .fontSize = 24,
-                }));
-            }
+            buttonSimple(CLAY_ID("ButtonGameNew"), CLAY_STRING("New Game"), Action::Display::NEW_GAME);
+            buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"), Action::Display::LOAD_GAME);
+            buttonSimple(CLAY_ID("ButtonOptions"), CLAY_STRING("Options"), Action::Display::OPTIONS);
+            buttonSimple(CLAY_ID("ButtonQuit"), CLAY_STRING("Quit"), Action::Display::QUIT_APP);
         }
     }
 

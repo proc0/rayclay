@@ -5,7 +5,11 @@
 namespace Action {
     enum Display {
         DO_NOTHING,
-        SHOW_OVERLAY,
+        NEW_GAME,
+        LOAD_GAME,
+        OPTIONS,
+        RESUME_GAME,
+        MAIN_MENU,
         QUIT_APP,
     };
 }

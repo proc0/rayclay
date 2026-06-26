@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "defaults.hpp"
+#include "display.hpp"
 #include "types.hpp"
 
 #ifdef __EMSCRIPTEN__
@@ -62,18 +63,18 @@ void App::intro(void* self) {
     App* app = static_cast<App*>(self);
     app->timer.update();
     
-    if (app->stateScreen == State::AppScreen::INTRO) {
+    if (app->appScreen == State::AppScreen::INTRO) {
         if(app->input.updateAnyKey() || app->timer.isEmpty()) {
-            app->stateScreen = State::AppScreen::TITLE;
+            app->appScreen = State::AppScreen::TITLE;
         }
 
         app->renderLogo();
-    } else if (app->stateScreen == State::AppScreen::TITLE) {
+    } else if (app->appScreen == State::AppScreen::TITLE) {
         app->renderTitle();
 
         if(app->input.updateAnyKey()) {
             app->state = State::App::RUN;
-            app->stateScreen = State::AppScreen::MAIN;
+            app->appScreen = State::AppScreen::MAIN;
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -139,6 +140,22 @@ Clay_RenderCommandArray App::update() {
     InputEvent inputEvent = input.update();
     screen.update(inputEvent);
 
+    Action::Display displayAction = (display.*displayUpdate)(inputEvent);
+
+    if (displayAction != Action::Display::DO_NOTHING) {        
+        if (appScreen == State::AppScreen::GAME && displayAction == Action::Display::MAIN_MENU) {
+            displayLayout = &Display::layoutMainMenu;
+            displayUpdate = &Display::update;
+            displayRender = &Display::render;
+            appScreen = State::AppScreen::MAIN;
+        } else if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
+            displayLayout = &Display::layoutPauseMenu;
+            displayUpdate = &Display::updateNull;
+            displayRender = &Display::renderNull;
+            appScreen = State::AppScreen::GAME;
+        }
+    }
+
     if(inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
             state = State::App::RUN;
@@ -151,27 +168,21 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
-    // if (stateScreen == State::AppScreen::GAME) {
-    //     displayLayout = &Display::layout;
-    // }
-
-	game.update();
-	world.update();
-
-    // display.update(inputEvent);
-    Action::Display displayAction = (display.*displayUpdate)(inputEvent);
-
-    if (displayAction == Action::Display::SHOW_OVERLAY) {
-        display.showOverlay = !display.showOverlay;
+    if (appScreen == State::AppScreen::GAME) {        
+    	game.update();
+    	world.update();
     }
 
     Clay_BeginLayout();
-    // display.layoutMainMenu();
     (display.*displayLayout)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
+    if (displayAction == Action::Display::QUIT_APP) {
+        state = State::App::HALT;
+    }
+
 #ifndef __EMSCRIPTEN__
-    if (displayAction == Action::Display::QUIT_APP || WindowShouldClose()) {
+    if (WindowShouldClose()) {
         state = State::App::HALT;
     }
 #endif

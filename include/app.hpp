@@ -33,7 +33,7 @@ class App {
     void (Display::*displayLayout)() = &Display::layoutMainMenu;
 
 	State::App state = State::App::LOAD;
-    State::AppScreen stateScreen = State::AppScreen::INTRO;
+    State::AppScreen appScreen = State::AppScreen::INTRO;
 
 public:
 	App() {};
