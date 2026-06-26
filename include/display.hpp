@@ -14,6 +14,12 @@
 #define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(roundf(color.r)), static_cast<float>(roundf(color.g)), static_cast<float>(roundf(color.b)), static_cast<float>(roundf(color.a)) })
 #define RAYLIB_VECTOR2_TO_CLAY_VECTOR2(vector) Clay_Vector2({ .x = vector.x, .y = vector.y })
 
+#define DISPLAY_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
+#define DISPLAY_BUTTON_COLOR_BG_HL Clay_Color({ 0, 0, 0, 130 })
+#define DISPLAY_BUTTON_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
+#define DISPLAY_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
+#define DISPLAY_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
+
 typedef enum
 {
     CUSTOM_LAYOUT_ELEMENT_TYPE_3D_MODEL

@@ -1,6 +1,6 @@
-#include "types.hpp"
 #define CLAY_IMPLEMENTATION
 #include "display.hpp"
+#include "types.hpp"
 
 #include "raylib.h"
 #include "raymath.h"
@@ -339,7 +339,17 @@ void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, v
     Display* display = static_cast<Display*>(userData);
     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
         std::string idStr(elementId.stringId.chars);
-    	display->buttonAction = display->buttonActions.at(idStr.c_str());
+        auto displayActionMatch = display->buttonActions.find(idStr.c_str());
+
+        Action::Display displayAction = Action::Display::DO_NOTHING;
+        if (displayActionMatch != display->buttonActions.end()) {
+            displayAction = displayActionMatch->second;
+        } else {
+            TraceLog(LOG_ERROR, "UI DISPLAY ERROR: Button ID not found.");
+        }
+
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    	display->buttonAction = displayAction;
     }
 }
 
@@ -352,19 +362,19 @@ void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& b
                 .width = CLAY_SIZING_GROW(0)
             },
             .padding = CLAY_PADDING_ALL(8),
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
-        .backgroundColor = Clay_Hovered() ? Clay_Color({ 125, 125, 125, 255 }) : Clay_Color({ 150, 150, 150, 255 }),
+        .backgroundColor = Clay_Hovered() ? DISPLAY_BUTTON_COLOR_BG_HL : DISPLAY_BUTTON_COLOR_BG,
         .border = { 
-            .color = Clay_Color({ 255, 255, 255, 255 }), 
-            .width = CLAY_BORDER_OUTSIDE(2) 
+            .color = Clay_Color({ 220, 220, 220, 255 }), 
+            .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
-        Clay_Color textColor = { 220, 220, 220, 255 };
+        Clay_Color textColor = DISPLAY_BUTTON_COLOR_FG;
         if (Clay_Hovered() && buttonHoverId != elementId.id) {
             buttonHoverId = elementId.id;
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-            textColor = { 255, 255, 255, 255 };
+            textColor = DISPLAY_BUTTON_COLOR_FG_HL;
         }
     	Clay_OnHover(handleButtonClick, this);
         CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = textColor, .fontSize = 24 }));
@@ -493,7 +503,8 @@ void Display::layoutPauseMenu() {
         }, 
         .backgroundColor = Clay_Color({ 0, 0, 0, 0 })
     }) {
-        CLAY(CLAY_ID("ContentPauseMenu"), {
+        Clay_ElementId contentPauseMenuId = CLAY_ID("ContentPauseMenu");
+        CLAY(contentPauseMenuId, {
             .layout = { 
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(0.33f), 
@@ -503,7 +514,7 @@ void Display::layoutPauseMenu() {
                 .childGap = 16,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
-            .backgroundColor = { 0, 0, 0, 200 },
+            .backgroundColor = DISPLAY_MENU_COLOR_BG,
             .floating = { 
                 .offset = {0, 0}, 
                 .zIndex = 1, 
@@ -521,12 +532,16 @@ void Display::layoutPauseMenu() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
+            if (Clay_Hovered() && buttonHoverId != contentPauseMenuId.id) {
+                buttonHoverId = contentPauseMenuId.id;
+                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            }
             // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
             // and as a result any fading on the parent leave the text unchange and looks jarring.
             // solution is to either add .transition to each text element in Clay, or allow the parent
             // to somehow force fade the children text nodes in it if a transition property is set.
             CLAY_TEXT(CLAY_STRING("Pause Menu"), CLAY_TEXT_CONFIG({ 
-                .textColor = Clay_Color({ 150, 150, 150, 255 }),
+                .textColor = DISPLAY_BUTTON_COLOR_FG,
                 .fontSize = 24,
             }));
 
@@ -551,7 +566,8 @@ void Display::layoutMainMenu() {
         }, 
         .backgroundColor = Clay_Color({ 0, 0, 0, 0 })
     }) {
-        CLAY(CLAY_ID("ContentMainMenu"), {
+        Clay_ElementId contentMainMenuId = CLAY_ID("ContentMainMenu");
+        CLAY(contentMainMenuId, {
             .layout = { 
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(0.33f), 
@@ -561,7 +577,7 @@ void Display::layoutMainMenu() {
                 .childGap = 16,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            .backgroundColor = { 0, 0, 0, 200 },
+            .backgroundColor = DISPLAY_MENU_COLOR_BG,
             .floating = { 
                 .offset = {0, 0}, 
                 .zIndex = 1, 
@@ -579,12 +595,16 @@ void Display::layoutMainMenu() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
+            if (Clay_Hovered() && buttonHoverId != contentMainMenuId.id) {
+                buttonHoverId = contentMainMenuId.id;
+                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            }
             // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
             // and as a result any fading on the parent leave the text unchange and looks jarring.
             // solution is to either add .transition to each text element in Clay, or allow the parent
             // to somehow force fade the children text nodes in it if a transition property is set.
             CLAY_TEXT(CLAY_STRING("Main Menu"), CLAY_TEXT_CONFIG({ 
-                .textColor = Clay_Color({ 150, 150, 150, 255 }),
+                .textColor = DISPLAY_BUTTON_COLOR_FG,
                 .fontSize = 24,
             }));
 

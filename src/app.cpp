@@ -144,6 +144,7 @@ Clay_RenderCommandArray App::update() {
 
     if (displayAction != Action::Display::DO_NOTHING) {        
         if (appScreen == State::AppScreen::GAME && displayAction == Action::Display::MAIN_MENU) {
+            state = State::App::RUN;
             displayLayout = &Display::layoutMainMenu;
             displayUpdate = &Display::update;
             displayRender = &Display::render;
@@ -165,6 +166,14 @@ Clay_RenderCommandArray App::update() {
             state = State::App::PAUSE;
             displayUpdate = &Display::update;
             displayRender = &Display::render;
+        }
+    }
+
+    if (state == State::App::PAUSE) {
+        if (displayAction == Action::Display::RESUME_GAME) {
+            state = State::App::RUN;
+            displayUpdate = &Display::updateNull;
+            displayRender = &Display::renderNull;            
         }
     }
 
