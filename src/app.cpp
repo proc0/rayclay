@@ -48,14 +48,33 @@ void App::load() {
 }
 
 void App::renderLogo() const {
+    const char* logoName = "proc0";
+    int logoFontSize = 108;
+    float logoSize = MeasureText(logoName, logoFontSize);
+    int logoX = static_cast<int>(screen.halfWidth())-logoSize/2;
+    int logoY = static_cast<int>(screen.halfHeight())-logoFontSize/2;
     BeginDrawing();
-        ClearBackground(RED);
+        ClearBackground(BLACK);
+        DrawText(logoName, logoX, logoY, logoFontSize, RAYWHITE);
     EndDrawing();
 }
 
 void App::renderTitle() const {
+    const char* gameTitle = "GAME TITLE";
+    int titleFontSize = 128;
+    float titleSize = MeasureText(gameTitle, titleFontSize);
+    int titleX = static_cast<int>(screen.halfWidth())-titleSize/2;
+    int titleY = static_cast<int>(screen.halfHeight())-titleFontSize/2;
+
+    const char* subtitle = "Press any key";
+    int subtitleFontSize = 32;
+    float subtitleSize = MeasureText(subtitle, subtitleFontSize);
+    int subtitleX = static_cast<int>(screen.halfWidth())-subtitleSize/2;
+    int subtitleY = static_cast<int>(screen.height()-screen.height()/4)-subtitleFontSize/2;
     BeginDrawing();
-        ClearBackground(BLUE);
+        ClearBackground(GRAY);
+        DrawText(gameTitle, titleX, titleY, titleFontSize, RAYWHITE);
+        DrawText(subtitle, subtitleX, subtitleY, subtitleFontSize, RAYWHITE);
     EndDrawing();
 }
 
@@ -140,6 +159,8 @@ Clay_RenderCommandArray App::update() {
     InputEvent inputEvent = input.update();
     screen.update(inputEvent);
 
+    // TODO: create multiple display.update<Type> depending on the situation
+    // to switch in here. Pause/Menu screen has an update, in-game UI update?
     Action::Display displayAction = (display.*displayUpdate)(inputEvent);
 
     if (displayAction != Action::Display::DO_NOTHING) {        
@@ -177,6 +198,10 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
+    if (displayAction == Action::Display::QUIT_APP) {
+        state = State::App::HALT;
+    }
+
     if (appScreen == State::AppScreen::GAME) {        
     	game.update();
     	world.update();
@@ -185,10 +210,6 @@ Clay_RenderCommandArray App::update() {
     Clay_BeginLayout();
     (display.*displayLayout)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
-
-    if (displayAction == Action::Display::QUIT_APP) {
-        state = State::App::HALT;
-    }
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
