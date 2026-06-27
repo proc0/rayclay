@@ -291,6 +291,25 @@ void Display::render(Clay_RenderCommandArray& renderCommands) const {
 }
 
 void Display::initOverlay() {
+#ifdef __EMSCRIPTEN__
+    // GLSL ES 2.0 shader for WebGL 1.0 used by Emscripten for Web
+    const char* overlayShaderCode = "precision mediump float\n"
+                                    "\n"
+                                    "varying vec2 fragTexCoord;\n"
+                                    "varying vec4 fragColor;\n"
+                                    "\n"
+                                    "uniform sampler2D texture0;\n"
+                                    "uniform vec4 overlayColor;\n"
+                                    "\n"
+                                    "void main()\n"
+                                    "{\n"
+                                    "    vec4 texelColor = texture2D(texture0, fragTexCoord) * fragColor;\n"
+                                    "\n"
+                                    "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
+                                    "\n"
+                                    "    gl_FragColor = vec4(blendedRGB, texelColor.a);\n"
+                                    "}";
+#else
 	const char* overlayShaderCode = "#version 330\n"
 	                                "\n"
 	                                "in vec2 fragTexCoord;\n"
@@ -309,6 +328,7 @@ void Display::initOverlay() {
 	                                "\n"
 	                                "    finalColor = vec4(blendedRGB, texelColor.a);\n"
 	                                "}";
+#endif
     overlayShader = LoadShaderFromMemory(0, overlayShaderCode);
     colorLoc = GetShaderLocation(overlayShader, "overlayColor");
 }

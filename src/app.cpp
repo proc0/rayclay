@@ -13,6 +13,10 @@
 #include <chrono>
 
 void App::load() {
+#if DEBUG == 0
+    SetTraceLogLevel(LOG_NONE);
+#endif
+
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
@@ -43,8 +47,14 @@ void App::load() {
 	game.load();
 	world.load();
 
+    screen.listen(this);
     screen.listen(&world);
     screen.listen(&display);
+
+    // Render texture to draw, enables screen scaling
+    // NOTE: If screen is scaled, mouse input should be scaled proportionally
+    target = LoadRenderTexture(screen.width(), screen.height());
+    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 void App::renderLogo() const {
@@ -81,6 +91,8 @@ void App::renderTitle() const {
 void App::intro(void* self) {
     App* app = static_cast<App*>(self);
     app->timer.update();
+
+    app->screen.update({ .id = Event::Input::IDLE, .position = Vector2({}) });
     
     if (app->appScreen == State::AppScreen::INTRO) {
         if(app->input.updateAnyKey() || app->timer.isEmpty()) {
@@ -111,13 +123,31 @@ void App::intro(void* self) {
 }
 
 void App::render(Clay_RenderCommandArray& renderCommands) const {
-	BeginDrawing();
-        ClearBackground(BLANK);
-		world.render();
-		game.render();
-        // display.render(renderCommands);
-        (display.*displayRender)(renderCommands);
+    BeginTextureMode(target);
+        ClearBackground(RAYWHITE);
+        
+        // TODO: Draw your game screen here
+        world.render();
 
+        DrawRectangle(70, 90, 200, 200, BLACK);
+        DrawRectangle(70 + 16, 90 + 16, 200 - 32, 200 - 32, RAYWHITE);
+        DrawText("raylib", 70 + 200 - MeasureText("raylib", 40) - 32, 90 + 200 - 40 - 24, 40, BLACK);
+
+        game.render();
+        // if ((frameCounter/20)%2) DrawText("are you ready?", 160, 500, 50, BLACK);
+        
+        // DrawRectangleLinesEx((Rectangle){ 0, 0, screenWidth, screenHeight }, 16, BLACK);
+        
+    EndTextureMode();
+
+	BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // display.render(renderCommands);
+        DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
+            { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
+        
+        (display.*displayRender)(renderCommands);
 	EndDrawing();
 }
 
@@ -135,7 +165,7 @@ void App::start() {
 #ifdef __EMSCRIPTEN__
     // no target FPS (3rd param) to allow browser to optimize frame rate
     // set simulate infinite loop (4th param) to 0 to let the rest of the function execute (on Web)
-    emscripten_set_main_loop_arg(intro, this, 0, 0);
+    emscripten_set_main_loop_arg(intro, this, 0, 1);
     // set the main loop directly to run here if any performance issues on Web
     // and set the App state to Run before running
     // emscripten_set_main_loop_arg(run, this, 0, 0);
@@ -143,7 +173,7 @@ void App::start() {
 #else
     SetTargetFPS(TARGET_FPS);
 
-    while (state != State::App::RUN) {
+    while (state != State::App::RUN && state != State::App::HALT) {
         intro(this);
     }
 
@@ -200,6 +230,10 @@ Clay_RenderCommandArray App::update() {
 
     if (displayAction == Action::Display::QUIT_APP) {
         state = State::App::HALT;
+// #ifdef __EMSCRIPTEN__
+//         emscripten_cancel_main_loop();
+// #endif
+        return Clay_RenderCommandArray({ 0, 0, nullptr });
     }
 
     if (appScreen == State::AppScreen::GAME) {        
@@ -222,6 +256,8 @@ Clay_RenderCommandArray App::update() {
 
 const char* App::unload(int eventType, const void *reserved, void *self) {
     App* app = static_cast<App*>(self);
+    
+    UnloadRenderTexture(app->target);
 
     app->display.unload();
 
@@ -234,4 +270,11 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     delete app;
 
     return nullptr;
+}
+
+void App::onScreenResize(int width, int height) {
+    TraceLog(LOG_INFO, "APP RESIZE");
+    UnloadRenderTexture(target);
+    target = LoadRenderTexture(screen.width(), screen.height());
+    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }

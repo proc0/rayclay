@@ -11,7 +11,7 @@
 
 #include "clay.h"
 
-class App {
+class App : ScreenListener {
 	Game game;
 	Input input;
     Timer timer;
@@ -22,6 +22,7 @@ class App {
         .rotation = 0.0f,
         .zoom = 1.0f
     };
+    RenderTexture2D target;  // Render texture to render our game
 
 	Screen screen = Screen(camera);
     Display display = Display(screen);
@@ -48,4 +49,5 @@ public:
     void start();
     Clay_RenderCommandArray update();
     static const char* unload(int eventType, const void *reserved, void *self);
+    void onScreenResize(int width, int height);
 };
