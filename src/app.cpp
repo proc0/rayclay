@@ -63,9 +63,25 @@ void App::renderLogo() const {
     float logoSize = MeasureText(logoName, logoFontSize);
     int logoX = static_cast<int>(screen.halfWidth())-logoSize/2;
     int logoY = static_cast<int>(screen.halfHeight())-logoFontSize/2;
+
+    const char* raylibName = "raylib";
+    constexpr int raylibLogoFontSize = 40;
+    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
+    constexpr int raylibLogoSize = 200;
+    constexpr int raylibLogoBorder = 16;
+    int raylibLogoX = static_cast<int>(screen.halfWidth())-raylibLogoSize/2;
+    int raylibLogoY = static_cast<int>(screen.height())-raylibLogoSize-20;
+    constexpr int raylibLogoInnerSize = raylibLogoSize - 2*raylibLogoBorder;
+    int raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
+    int raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
+    int raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2*raylibLogoBorder;
+    int raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - static_cast<int>(1.5f*raylibLogoBorder);
     BeginDrawing();
-        ClearBackground(BLACK);
-        DrawText(logoName, logoX, logoY, logoFontSize, RAYWHITE);
+        ClearBackground(RAYWHITE);
+        DrawRectangle(raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize, BLACK);
+        DrawRectangle(raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize, RAYWHITE);
+        DrawText(raylibName, raylibLogoTextX, raylibLogoTextY, raylibLogoFontSize, BLACK);
+        DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
     EndDrawing();
 }
 
