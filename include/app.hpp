@@ -12,7 +12,6 @@
 #include "clay.h"
 
 class App : ScreenListener {
-	Game game;
 	Input input;
     Timer timer;
 
@@ -28,6 +27,7 @@ class App : ScreenListener {
     Display display = Display(screen);
     // std::unique_ptr<Display> display = std::make_unique<Display>(screen);
 	World world = World(screen);
+    Game game = Game(screen);
 
     void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::render;
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;

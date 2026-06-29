@@ -26,23 +26,6 @@ void App::load() {
 
 	screen.load();
     display.load();
-    // 1. Query minimum memory required for default element limits
-    // uint64_t totalMemorySize = Clay_MinMemorySize();
-     
-    // // 2. Allocate memory (malloc, stack, or custom allocator)
-    // void* memory = malloc(totalMemorySize);
-     
-    // // 3. Create arena [clay.h:2150-2158]
-    // Clay_Arena arena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, memory);
-     
-    // // 4. Initialize Clay [clay.h:2186-2188]
-    // Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ Clay__ErrorHandlerFunctionDefault }));
-
-    // fonts[0] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 48, 0, 400);
-    // SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
-    // fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
-    // SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
-    // Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
 	game.load();
 	world.load();
@@ -64,23 +47,24 @@ void App::renderLogo() const {
     int logoX = static_cast<int>(screen.halfWidth())-logoSize/2;
     int logoY = static_cast<int>(screen.halfHeight())-logoFontSize/2;
 
-    const char* raylibName = "raylib";
-    constexpr int raylibLogoFontSize = 40;
-    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
-    constexpr int raylibLogoSize = 200;
-    constexpr int raylibLogoBorder = 16;
-    int raylibLogoX = static_cast<int>(screen.halfWidth())-raylibLogoSize/2;
-    int raylibLogoY = static_cast<int>(screen.height())-raylibLogoSize-20;
-    constexpr int raylibLogoInnerSize = raylibLogoSize - 2*raylibLogoBorder;
-    int raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
-    int raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
-    int raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2*raylibLogoBorder;
-    int raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - static_cast<int>(1.5f*raylibLogoBorder);
+    // const char* raylibName = "raylib";
+    // constexpr int raylibLogoFontSize = 40;
+    // int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
+    // constexpr int raylibLogoSize = 200;
+    // constexpr int raylibLogoBorder = 16;
+    // int raylibLogoX = static_cast<int>(screen.halfWidth())-raylibLogoSize/2;
+    // int raylibLogoY = static_cast<int>(screen.height())-raylibLogoSize-20;
+    // constexpr int raylibLogoInnerSize = raylibLogoSize - 2*raylibLogoBorder;
+    // int raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
+    // int raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
+    // int raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2*raylibLogoBorder;
+    // int raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - static_cast<int>(1.5f*raylibLogoBorder);
     BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawRectangle(raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize, BLACK);
-        DrawRectangle(raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize, RAYWHITE);
-        DrawText(raylibName, raylibLogoTextX, raylibLogoTextY, raylibLogoFontSize, BLACK);
+        game.renderRaylibLogo();
+        // DrawRectangle(raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize, BLACK);
+        // DrawRectangle(raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize, RAYWHITE);
+        // DrawText(raylibName, raylibLogoTextX, raylibLogoTextY, raylibLogoFontSize, BLACK);
         DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
     EndDrawing();
 }
@@ -142,24 +126,13 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
         
-        // TODO: Draw your game screen here
         world.render();
-
-        DrawRectangle(70, 90, 200, 200, BLACK);
-        DrawRectangle(70 + 16, 90 + 16, 200 - 32, 200 - 32, RAYWHITE);
-        DrawText("raylib", 70 + 200 - MeasureText("raylib", 40) - 32, 90 + 200 - 40 - 24, 40, BLACK);
-
         game.render();
-        // if ((frameCounter/20)%2) DrawText("are you ready?", 160, 500, 50, BLACK);
-        
-        // DrawRectangleLinesEx((Rectangle){ 0, 0, screenWidth, screenHeight }, 16, BLACK);
-        
     EndTextureMode();
 
 	BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // display.render(renderCommands);
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
@@ -253,7 +226,7 @@ Clay_RenderCommandArray App::update() {
     }
 
     if (appScreen == State::AppScreen::GAME) {        
-    	game.update();
+    	game.update(state, inputEvent);
     	world.update();
     }
 

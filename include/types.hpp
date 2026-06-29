@@ -58,6 +58,7 @@ namespace State {
     enum Game {
         START,
         PLAY,
+        HOLD,
         OVER,
         END
     };

@@ -3,8 +3,51 @@
 #include "types.hpp"
 #include <raylib.h>
 
-void Game::update(){
+void Game::load() {
+    loadRaylibLogo();
+}
 
+void Game::updateRaylibLogo() {
+    raylibLogoPos.x += raylibLogoDir.x;
+    raylibLogoPos.y += raylibLogoDir.y;
+
+    if (raylibLogoPos.x < 0 || raylibLogoPos.x + 200 > screen.width()) {
+        raylibLogoDir.x *= -1.0f;
+    } 
+
+    if (raylibLogoPos.y < 0 || raylibLogoPos.y + 200 > screen.height()) {
+        raylibLogoDir.y *= -1.0f;
+    }
+
+    float raylibLogoInnerX = raylibLogoPos.x + raylibLogoBorder;
+    float raylibLogoInnerY = raylibLogoPos.y + raylibLogoBorder;
+    
+    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
+    float raylibLogoTextX = raylibLogoPos.x + raylibLogoSize - raylibLogoTextSize - 2.0f*raylibLogoBorder;
+    float raylibLogoTextY = raylibLogoPos.y + raylibLogoSize - raylibLogoFontSize - 1.5f*raylibLogoBorder;
+
+    raylibLogoOuterRec = { raylibLogoPos.x, raylibLogoPos.y, raylibLogoSize, raylibLogoSize };
+    raylibLogoInnerRec = { raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize };
+    raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
+}
+
+void Game::loadRaylibLogo() {
+
+    float raylibLogoX = static_cast<float>(screen.halfWidth())-raylibLogoSize/2.0f;
+    float raylibLogoY = static_cast<float>(screen.height()-raylibLogoSize-20);
+    float raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
+    float raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
+
+    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
+    float raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2.0f*raylibLogoBorder;
+    float raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - 1.5f*raylibLogoBorder;
+
+    raylibLogoOuterRec = { raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize };
+    raylibLogoInnerRec = { raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize };
+    raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
+}
+
+void Game::update(State::App appState, InputEvent inputEvent){
     // if(!IsWindowFullscreen() && IsWindowResized()){
     //     auto now = std::chrono::steady_clock::now();
     //     if (now - lastResize > RESIZE_COOLDOWN) {
@@ -14,11 +57,12 @@ void Game::update(){
 
     // toggle pause menu
     // if(IsKeyPressed(KEY_ESCAPE)){
-    //     if(state == State::Game::PAUSE) {
-    //         state = State::Game::PLAY;
-    //         HideCursor();
-    //         return;
-    //     }
+    if(appState == State::App::PAUSE) {
+        state = State::Game::HOLD;
+        return;
+    } else if (state == State::Game::HOLD) {
+        state = State::Game::PLAY;
+    }
         
     //     if(state == State::Game::PLAY) {
     //         state = State::Game::PAUSE;
@@ -35,8 +79,11 @@ void Game::update(){
     // }
 
     if(state == State::Game::PLAY){
-        // world.update();
-        // display.update(world);
+        updateRaylibLogo();
+
+        if (inputEvent.id == Event::Input::PRIMARY_UP && INTERSECTS(inputEvent.position, raylibLogoOuterRec)) {
+            TraceLog(LOG_INFO, "LOGO CLICK");
+        }
     }
 
     if(state == State::Game::START){
@@ -48,7 +95,15 @@ void Game::update(){
     }
 }
 
+void Game::renderRaylibLogo() const {
+    DrawRectangleRec(raylibLogoOuterRec, BLACK);
+    DrawRectangleRec(raylibLogoInnerRec, RAYWHITE);
+    DrawText(raylibName, raylibLogoTextPos.x, raylibLogoTextPos.y, raylibLogoFontSize, BLACK);
+}
+
 void Game::render() const {
+
+    renderRaylibLogo();
     // BeginDrawing();
         // ClearBackground(BLACK);
         // world.render();
@@ -58,11 +113,6 @@ void Game::render() const {
         //     DrawCircleV(GetMousePosition(), 40, YELLOW);
         // }
     // EndDrawing();
-}
-
-void Game::load(){
-    // world.load();
-    // display.load();
 }
 
 void Game::unload(){
