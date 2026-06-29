@@ -76,6 +76,12 @@ typedef struct InputEvent {
     Vector2 position;
 } InputEvent;
 
+typedef struct GameState {
+    int raylibLogoClicks;
+    int raylibLogoBounces;
+    int raylibLogoCorners;
+} GameState;
+
 // typedef struct TimerEvent {
 //     uint16_t id;
 //     Event::Timer state;

@@ -11,12 +11,19 @@ void Game::updateRaylibLogo() {
     raylibLogoPos.x += raylibLogoDir.x;
     raylibLogoPos.y += raylibLogoDir.y;
 
+    bool hasBounced = false;
     if (raylibLogoPos.x < 0 || raylibLogoPos.x + 200 > screen.width()) {
         raylibLogoDir.x *= -1.0f;
+        gameState.raylibLogoBounces++;
+        hasBounced = true;
     } 
 
     if (raylibLogoPos.y < 0 || raylibLogoPos.y + 200 > screen.height()) {
         raylibLogoDir.y *= -1.0f;
+        gameState.raylibLogoBounces++;
+        if (hasBounced) {
+            gameState.raylibLogoCorners++;
+        }
     }
 
     float raylibLogoInnerX = raylibLogoPos.x + raylibLogoBorder;
@@ -47,19 +54,13 @@ void Game::loadRaylibLogo() {
     raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
 }
 
-void Game::update(State::App appState, InputEvent inputEvent){
-    // if(!IsWindowFullscreen() && IsWindowResized()){
-    //     auto now = std::chrono::steady_clock::now();
-    //     if (now - lastResize > RESIZE_COOLDOWN) {
-    //         resize();
-    //     }
-    // }
+GameState Game::update(State::App appState, InputEvent inputEvent){
 
     // toggle pause menu
     // if(IsKeyPressed(KEY_ESCAPE)){
     if(appState == State::App::PAUSE) {
         state = State::Game::HOLD;
-        return;
+        return gameState;
     } else if (state == State::Game::HOLD) {
         state = State::Game::PLAY;
     }
@@ -83,6 +84,7 @@ void Game::update(State::App appState, InputEvent inputEvent){
 
         if (inputEvent.id == Event::Input::PRIMARY_UP && INTERSECTS(inputEvent.position, raylibLogoOuterRec)) {
             TraceLog(LOG_INFO, "LOGO CLICK");
+            gameState.raylibLogoClicks++;
         }
     }
 
@@ -91,8 +93,10 @@ void Game::update(State::App appState, InputEvent inputEvent){
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT) || GetKeyPressed() != 0){
             state = State::Game::PLAY;
         }
-        return;
+        return gameState;
     }
+
+    return gameState;
 }
 
 void Game::renderRaylibLogo() const {
@@ -102,82 +106,9 @@ void Game::renderRaylibLogo() const {
 }
 
 void Game::render() const {
-
     renderRaylibLogo();
-    // BeginDrawing();
-        // ClearBackground(BLACK);
-        // world.render();
-        // display.render();
-
-        // if(state == PLAY){
-        //     DrawCircleV(GetMousePosition(), 40, YELLOW);
-        // }
-    // EndDrawing();
 }
 
 void Game::unload(){
-    // world.unload();
-    // display.unload();
+
 }
-
-// void Game::loop(void* self) {
-//     Game* game = static_cast<Game*>(self);
-//     #ifdef __EMSCRIPTEN__
-//     if (!game->isRunning()) return;
-//     #endif
-//     game->update();
-//     game->render();
-// }
-
-// void Game::run() {
-//     resize();
-//     #ifdef __EMSCRIPTEN__
-//         // no target FPS (3rd param) for performance
-//         emscripten_set_main_loop_arg(loop, this, 0, 1);
-//     #else
-//         SetTargetFPS(TARGET_FPS);
-//         while (!WindowShouldClose() && isRunning()) {
-//             loop(this);
-//         }
-//     #endif
-// }
-
-// const bool Game::isRunning() const {
-//     return state != END;
-// }
-
-// #if __EMSCRIPTEN__
-// EM_JS(int, getWindowWidth, (), {
-//     return window.document.querySelector('canvas').clientWidth;
-// });
-
-// EM_JS(int, getWindowHeight, (), {
-//     return window.document.querySelector('canvas').clientHeight;
-// });
-// #endif
-
-// void Game::resize() {
-//     #if __EMSCRIPTEN__
-//         // add padding to fit other web elements 
-//         int width = getWindowWidth() - WINDOW_PAD;
-//         int height = getWindowHeight() - WINDOW_PAD;
-//     #else
-//         int width = GetScreenWidth();
-//         int height = GetScreenHeight();
-//     #endif
-
-//     if(screenHeight != height || screenWidth != width || state == BEGIN){
-//         screenWidth = width; 
-//         display.screenWidth = width;
-//         world.screenWidth = width;
-//         screenHeight = height;
-//         display.screenHeight = height;
-//         world.screenHeight = height;
-//     #if __EMSCRIPTEN__
-//         SetWindowSize(screenWidth, screenHeight);
-//     #endif
-//     }
-
-//     lastResize = std::chrono::steady_clock::now();
-//     TraceLog(LOG_INFO, "Window resized %dx%d", screenWidth, screenHeight);
-// }

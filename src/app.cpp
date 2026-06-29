@@ -47,24 +47,9 @@ void App::renderLogo() const {
     int logoX = static_cast<int>(screen.halfWidth())-logoSize/2;
     int logoY = static_cast<int>(screen.halfHeight())-logoFontSize/2;
 
-    // const char* raylibName = "raylib";
-    // constexpr int raylibLogoFontSize = 40;
-    // int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
-    // constexpr int raylibLogoSize = 200;
-    // constexpr int raylibLogoBorder = 16;
-    // int raylibLogoX = static_cast<int>(screen.halfWidth())-raylibLogoSize/2;
-    // int raylibLogoY = static_cast<int>(screen.height())-raylibLogoSize-20;
-    // constexpr int raylibLogoInnerSize = raylibLogoSize - 2*raylibLogoBorder;
-    // int raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
-    // int raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
-    // int raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2*raylibLogoBorder;
-    // int raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - static_cast<int>(1.5f*raylibLogoBorder);
     BeginDrawing();
         ClearBackground(RAYWHITE);
         game.renderRaylibLogo();
-        // DrawRectangle(raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize, BLACK);
-        // DrawRectangle(raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize, RAYWHITE);
-        // DrawText(raylibName, raylibLogoTextX, raylibLogoTextY, raylibLogoFontSize, BLACK);
         DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
     EndDrawing();
 }
@@ -190,20 +175,23 @@ Clay_RenderCommandArray App::update() {
             displayRender = &Display::render;
             appScreen = State::AppScreen::MAIN;
         } else if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
-            displayLayout = &Display::layoutPauseMenu;
-            displayUpdate = &Display::updateNull;
-            displayRender = &Display::renderNull;
+            state = State::App::RUN;
             appScreen = State::AppScreen::GAME;
+            displayLayout = &Display::layoutHUD;
+            displayUpdate = &Display::updateNull;
+            displayRender = &Display::render;
         }
     }
 
     if(inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
             state = State::App::RUN;
+            displayLayout = &Display::layoutHUD;
             displayUpdate = &Display::updateNull;
-            displayRender = &Display::renderNull;
+            displayRender = &Display::render;
         } else if (state == State::App::RUN) {
             state = State::App::PAUSE;
+            displayLayout = &Display::layoutPauseMenu;
             displayUpdate = &Display::update;
             displayRender = &Display::render;
         }
@@ -212,26 +200,25 @@ Clay_RenderCommandArray App::update() {
     if (state == State::App::PAUSE) {
         if (displayAction == Action::Display::RESUME_GAME) {
             state = State::App::RUN;
+            displayLayout = &Display::layoutHUD;
             displayUpdate = &Display::updateNull;
-            displayRender = &Display::renderNull;            
+            displayRender = &Display::render;            
         }
     }
 
     if (displayAction == Action::Display::QUIT_APP) {
         state = State::App::HALT;
-// #ifdef __EMSCRIPTEN__
-//         emscripten_cancel_main_loop();
-// #endif
         return Clay_RenderCommandArray({ 0, 0, nullptr });
     }
 
+    GameState gameState = GameState{0};
     if (appScreen == State::AppScreen::GAME) {        
-    	game.update(state, inputEvent);
+    	gameState = game.update(state, inputEvent);
     	world.update();
     }
 
     Clay_BeginLayout();
-    (display.*displayLayout)();
+    (display.*displayLayout)(gameState);
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
 #ifndef __EMSCRIPTEN__

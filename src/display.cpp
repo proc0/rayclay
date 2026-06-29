@@ -2,10 +2,10 @@
 #include "display.hpp"
 #include "types.hpp"
 
-#include "raylib.h"
-#include "raymath.h"
+#include <raylib.h>
+#include <raymath.h>
 #include "stdint.h"
-#include "string.h"
+#include <string>
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -513,7 +513,7 @@ Action::Display Display::update(const InputEvent& inputEvent) {
     return buttonAction;
 }
 
-void Display::layoutPauseMenu() {
+void Display::layoutPauseMenu(GameState gameState) {
     CLAY(CLAY_ID("ContainerPauseMenu"), { 
         .layout = { 
             .sizing = { 
@@ -576,7 +576,7 @@ void Display::layoutPauseMenu() {
     buttonAction = Action::Display::DO_NOTHING;
 }
 
-void Display::layoutMainMenu() {
+void Display::layoutMainMenu(GameState gameState) {
     CLAY(CLAY_ID("ContainerMainMenu"), { 
         .layout = { 
             .sizing = { 
@@ -638,7 +638,29 @@ void Display::layoutMainMenu() {
     buttonAction = Action::Display::DO_NOTHING;
 }
 
-void Display::layout() {
+void Display::layoutHUD(GameState gameState) {
+    CLAY(CLAY_ID("HUDContainer"), { 
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0), 
+                .height = CLAY_SIZING_GROW(0) 
+            }, 
+            .padding = { 16, 16, 16, 16 }, 
+            .childGap = 16 
+        }, 
+        .backgroundColor = Clay_Color({ 200, 200, 200, 0 })
+    }) {
+        std::string numClicks = std::to_string(gameState.raylibLogoClicks);
+        const char* numClicksStr = numClicks.c_str();
+        // Clay_String numCl = CLAY_STRING(numClicksStr);
+        CLAY_TEXT(Clay_String({ .isStaticallyAllocated = true, .length = static_cast<int32_t>(numClicks.length()), .chars = (numClicksStr) }), CLAY_TEXT_CONFIG({ 
+            .textColor = Clay_Color({255,255,255,255}),
+            .fontSize = 24,
+        }));
+    }
+}
+
+void Display::layout(GameState gameState) {
 
     CLAY(CLAY_ID("OuterContainer"), { 
     	.layout = { 

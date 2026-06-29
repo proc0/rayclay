@@ -73,6 +73,7 @@ class Game {
     Rectangle raylibLogoInnerRec;
     Vector2 raylibLogoTextPos;
 
+    GameState gameState = GameState{0};
     const Screen& screen;
     State::Game state = State::Game::START;
 
@@ -85,6 +86,6 @@ public:
     void renderRaylibLogo() const;
     void resize();
     void unload();
-    void update(State::App, InputEvent);
+    GameState update(State::App, InputEvent);
     void updateRaylibLogo();
 };

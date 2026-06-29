@@ -31,7 +31,7 @@ class App : ScreenListener {
 
     void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::render;
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
-    void (Display::*displayLayout)() = &Display::layoutMainMenu;
+    void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
 
 	State::App state = State::App::LOAD;
     State::AppScreen appScreen = State::AppScreen::INTRO;

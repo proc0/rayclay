@@ -100,9 +100,10 @@ public:
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
-    void layout();
-    void layoutMainMenu();
-    void layoutPauseMenu();
+    void layout(GameState);
+    void layoutMainMenu(GameState);
+    void layoutPauseMenu(GameState);
+    void layoutHUD(GameState);
     Action::Display update(const InputEvent& inputEvent);
     Action::Display updateNull(const InputEvent& inputEvent);
     void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText, Action::Display action);
