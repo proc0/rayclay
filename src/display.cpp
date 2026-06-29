@@ -650,10 +650,9 @@ void Display::layoutHUD(GameState gameState) {
         }, 
         .backgroundColor = Clay_Color({ 200, 200, 200, 0 })
     }) {
-        std::string numClicks = std::to_string(gameState.raylibLogoClicks);
-        const char* numClicksStr = numClicks.c_str();
-        // Clay_String numCl = CLAY_STRING(numClicksStr);
-        CLAY_TEXT(Clay_String({ .isStaticallyAllocated = true, .length = static_cast<int32_t>(numClicks.length()), .chars = (numClicksStr) }), CLAY_TEXT_CONFIG({ 
+        // std::string numClicks = std::format("{}", gameState.raylibLogoClicks);
+        // Clay_String numCl = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(numClicks.length()), .chars = numClicks.c_str() };
+        CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
             .textColor = Clay_Color({255,255,255,255}),
             .fontSize = 24,
         }));
