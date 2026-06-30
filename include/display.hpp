@@ -95,8 +95,8 @@ public:
     ~Display() = default;
 
     void load();
-    void render(Clay_RenderCommandArray& renderCommands) const;
-    void renderNull(Clay_RenderCommandArray& renderCommands) const;
+    void render(Clay_RenderCommandArray&& renderCommands) const;
+    void renderNull(Clay_RenderCommandArray&& renderCommands) const;
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;

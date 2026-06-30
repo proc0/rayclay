@@ -31,8 +31,9 @@ void App::load() {
 	world.load();
 
     screen.listen(this);
-    screen.listen(&world);
     screen.listen(&display);
+    screen.listen(&world);
+    screen.listen(&game);
 
     // Render texture to draw, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally
@@ -107,7 +108,7 @@ void App::intro(void* self) {
 #endif
 }
 
-void App::render(Clay_RenderCommandArray& renderCommands) const {
+void App::render(Clay_RenderCommandArray&& renderCommands) const {
     BeginTextureMode(target);
         ClearBackground(RAYWHITE);
         
@@ -121,15 +122,15 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
-        (display.*displayRender)(renderCommands);
+        (display.*displayRender)(std::move(renderCommands));
 	EndDrawing();
 }
 
 void App::run(void* self) {
     App* app = static_cast<App*>(self);
 
-    Clay_RenderCommandArray renderCommands = app->update();
-    app->render(renderCommands);
+    // Clay_RenderCommandArray renderCommands = app->update();
+    app->render(app->update());
 }
 
 void App::start() {
@@ -183,7 +184,7 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
-    if(inputEvent.id == Event::Input::KEY_ESCAPE){
+    if(appScreen == State::AppScreen::GAME && inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
             state = State::App::RUN;
             displayLayout = &Display::layoutHUD;
@@ -250,6 +251,10 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
 
 void App::onScreenResize(int width, int height) {
     TraceLog(LOG_INFO, "APP RESIZE");
+    if (appScreen == State::AppScreen::INTRO) {
+        game.loadRaylibLogo();
+    }
+    
     UnloadRenderTexture(target);
     target = LoadRenderTexture(screen.width(), screen.height());
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);

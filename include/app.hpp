@@ -29,7 +29,7 @@ class App : ScreenListener {
 	World world = World(screen);
     Game game = Game(screen);
 
-    void (Display::*displayRender)(Clay_RenderCommandArray& renderCommands) const = &Display::render;
+    void (Display::*displayRender)(Clay_RenderCommandArray&& renderCommands) const = &Display::render;
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
     void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
 
@@ -44,7 +44,7 @@ public:
     void renderLogo() const;
     void renderTitle() const;
     static void intro(void* self);
-    void render(Clay_RenderCommandArray& renderCommands) const;
+    void render(Clay_RenderCommandArray&& renderCommands) const;
     static void run(void* self);
     void start();
     Clay_RenderCommandArray update();

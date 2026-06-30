@@ -61,7 +61,7 @@
 //     void update();
 // };
 
-class Game {
+class Game : public ScreenListener {
     const char* raylibName = "raylib";
     const int raylibLogoFontSize = 40;
     const float raylibLogoSize = 200;
@@ -88,4 +88,5 @@ public:
     void unload();
     GameState update(State::App, InputEvent);
     void updateRaylibLogo();
+    void onScreenResize(int height, int width);
 };

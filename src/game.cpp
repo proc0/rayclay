@@ -12,13 +12,13 @@ void Game::updateRaylibLogo() {
     raylibLogoPos.y += raylibLogoDir.y;
 
     bool hasBounced = false;
-    if (raylibLogoPos.x < 0 || raylibLogoPos.x + 200 > screen.width()) {
+    if (raylibLogoPos.x < 0 || raylibLogoPos.x + raylibLogoOuterRec.width > screen.width()) {
         raylibLogoDir.x *= -1.0f;
         gameState.raylibLogoBounces++;
         hasBounced = true;
     } 
 
-    if (raylibLogoPos.y < 0 || raylibLogoPos.y + 200 > screen.height()) {
+    if (raylibLogoPos.y < 0 || raylibLogoPos.y + raylibLogoOuterRec.width > screen.height()) {
         raylibLogoDir.y *= -1.0f;
         gameState.raylibLogoBounces++;
         if (hasBounced) {
@@ -107,6 +107,10 @@ void Game::renderRaylibLogo() const {
 
 void Game::render() const {
     renderRaylibLogo();
+}
+
+void Game::onScreenResize(int height, int width) {
+    // loadRaylibLogo();
 }
 
 void Game::unload(){

@@ -127,10 +127,10 @@ void Display::load(){
     monkTexture = LoadTexture(PATH_ASSET("monk.png"));
 }
 
-void Display::renderNull(Clay_RenderCommandArray& renderCommands) const {
+void Display::renderNull(Clay_RenderCommandArray&& renderCommands) const {
 }
 
-void Display::render(Clay_RenderCommandArray& renderCommands) const {
+void Display::render(Clay_RenderCommandArray&& renderCommands) const {
     for (int j = 0; j < renderCommands.length; j++)
     {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
