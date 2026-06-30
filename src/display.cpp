@@ -5,7 +5,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include "stdint.h"
-#include <string>
+#include <cstring>
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -643,19 +643,64 @@ void Display::layoutHUD(GameState gameState) {
         .layout = { 
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0), 
-                .height = CLAY_SIZING_GROW(0) 
+                // .height = CLAY_SIZING_GROW(0) 
             }, 
             .padding = { 16, 16, 16, 16 }, 
-            .childGap = 16 
+            .childGap = 16
         }, 
         .backgroundColor = Clay_Color({ 200, 200, 200, 0 })
     }) {
-        // std::string numClicks = std::format("{}", gameState.raylibLogoClicks);
-        // Clay_String numCl = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(numClicks.length()), .chars = numClicks.c_str() };
-        CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
-            .textColor = Clay_Color({255,255,255,255}),
-            .fontSize = 24,
-        }));
+        CLAY(CLAY_ID("LeftCounter"), {
+            .layout = {
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0), 
+                },
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+            },
+        }) {            
+            // std::string&& numClicks = std::format("COUNTER: {}", gameState.raylibLogoClicks);
+            const char* numClicksText = TextFormat("COUNTER: %d", gameState.raylibLogoClicks);
+            Clay_String numClicksClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numClicksText)), .chars = numClicksText };
+            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
+            CLAY_TEXT(numClicksClayString, CLAY_TEXT_CONFIG({
+                .textColor = Clay_Color({255,255,255,255}),
+                .fontSize = 48,
+            }));
+        }
+
+        CLAY(CLAY_ID("CenterCounter"), {
+            .layout = {
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0), 
+                }, 
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+            },
+        }) {    
+            const char* numBouncesText = TextFormat("BOUNCES: %d", gameState.raylibLogoBounces);
+            Clay_String numBouncesClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numBouncesText)), .chars = numBouncesText };
+            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
+            CLAY_TEXT(numBouncesClayString, CLAY_TEXT_CONFIG({ 
+                .textColor = Clay_Color({255,255,255,255}),
+                .fontSize = 48,
+            }));
+        }
+
+        CLAY(CLAY_ID("RightCounter"), {
+            .layout = {
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0), 
+                }, 
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+            },
+        }) {    
+            const char* numCornersText = TextFormat("CORNERS: %d", gameState.raylibLogoCorners);
+            Clay_String numCornersClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numCornersText)), .chars = numCornersText };
+            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
+            CLAY_TEXT(numCornersClayString, CLAY_TEXT_CONFIG({ 
+                .textColor = Clay_Color({255,255,255,255}),
+                .fontSize = 48,
+            }));
+        }
     }
 }
 
