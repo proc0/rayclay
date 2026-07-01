@@ -86,9 +86,12 @@ public:
         { "ButtonMainMenu", Action::Display::MAIN_MENU },
         { "ButtonGameLoad", Action::Display::LOAD_GAME },
         { "ButtonOptions", Action::Display::OPTIONS },
+        { "ButtonConfirm", Action::Display::CONFIRM_RETURN_MAIN },
+        { "ButtonCancel", Action::Display::CANCEL_RETURN_MAIN },
         { "ButtonQuit", Action::Display::QUIT_APP }
     };
-    bool showOverlay = 0;
+    // bool showOverlay = 0;
+    bool showReturnMainMenuConfirmation = 0;
     uint32_t activeTabId = 0;
 
     Display(const Screen& screen): screen(screen) {};
@@ -100,13 +103,15 @@ public:
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
-    void layout(GameState);
+
+    // void layout(GameState);
     void layoutMainMenu(GameState);
     void layoutPauseMenu(GameState);
     void layoutHUD(GameState);
+    
     Action::Display update(const InputEvent& inputEvent);
     Action::Display updateNull(const InputEvent& inputEvent);
-    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText, Action::Display action);
+    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void onScreenResize(int width, int height);

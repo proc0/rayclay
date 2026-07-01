@@ -169,13 +169,15 @@ Clay_RenderCommandArray App::update() {
     Action::Display displayAction = (display.*displayUpdate)(inputEvent);
 
     if (displayAction != Action::Display::DO_NOTHING) {        
-        if (appScreen == State::AppScreen::GAME && displayAction == Action::Display::MAIN_MENU) {
-            state = State::App::RUN;
-            displayLayout = &Display::layoutMainMenu;
-            displayUpdate = &Display::update;
-            displayRender = &Display::render;
-            appScreen = State::AppScreen::MAIN;
-        } else if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
+        // if (appScreen == State::AppScreen::GAME && displayAction == Action::Display::MAIN_MENU) {
+        //     state = State::App::RUN;
+        //     displayLayout = &Display::layoutMainMenu;
+        //     displayUpdate = &Display::update;
+        //     displayRender = &Display::render;
+        //     appScreen = State::AppScreen::MAIN;
+        // } else 
+
+        if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
             state = State::App::RUN;
             appScreen = State::AppScreen::GAME;
             displayLayout = &Display::layoutHUD;
@@ -204,6 +206,17 @@ Clay_RenderCommandArray App::update() {
             displayLayout = &Display::layoutHUD;
             displayUpdate = &Display::updateNull;
             displayRender = &Display::render;            
+        } else if (displayAction == Action::Display::MAIN_MENU) {
+            display.showReturnMainMenuConfirmation = true;
+        } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
+            display.showReturnMainMenuConfirmation = false;
+            state = State::App::RUN;
+            displayLayout = &Display::layoutMainMenu;
+            displayUpdate = &Display::update;
+            displayRender = &Display::render;
+            appScreen = State::AppScreen::MAIN;
+        } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
+            display.showReturnMainMenuConfirmation = false;
         }
     }
 

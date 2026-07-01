@@ -10,6 +10,8 @@ namespace Action {
         OPTIONS,
         RESUME_GAME,
         MAIN_MENU,
+        CONFIRM_RETURN_MAIN,
+        CANCEL_RETURN_MAIN,
         QUIT_APP,
     };
 }
