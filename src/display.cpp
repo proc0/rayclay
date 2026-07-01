@@ -1060,6 +1060,15 @@ void Display::layoutHUD(GameState gameState) {
 
 //             } // main content
 
+
+
+
+
+
+//TODO: separate into ScrollBar method
+
+
+
 // 	        Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
 // 	        if (scrollData.found && scrollData.scrollContainerDimensions.height < scrollData.contentDimensions.height) {
 // 	            CLAY(CLAY_ID("ScrollBar"), {

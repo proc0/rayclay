@@ -168,22 +168,12 @@ Clay_RenderCommandArray App::update() {
     // to switch in here. Pause/Menu screen has an update, in-game UI update?
     Action::Display displayAction = (display.*displayUpdate)(inputEvent);
 
-    if (displayAction != Action::Display::DO_NOTHING) {        
-        // if (appScreen == State::AppScreen::GAME && displayAction == Action::Display::MAIN_MENU) {
-        //     state = State::App::RUN;
-        //     displayLayout = &Display::layoutMainMenu;
-        //     displayUpdate = &Display::update;
-        //     displayRender = &Display::render;
-        //     appScreen = State::AppScreen::MAIN;
-        // } else 
-
-        if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
-            state = State::App::RUN;
-            appScreen = State::AppScreen::GAME;
-            displayLayout = &Display::layoutHUD;
-            displayUpdate = &Display::updateNull;
-            displayRender = &Display::render;
-        }
+    if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
+        state = State::App::RUN;
+        appScreen = State::AppScreen::GAME;
+        displayLayout = &Display::layoutHUD;
+        displayUpdate = &Display::updateNull;
+        displayRender = &Display::render;
     }
 
     if(appScreen == State::AppScreen::GAME && inputEvent.id == Event::Input::KEY_ESCAPE){
@@ -207,6 +197,8 @@ Clay_RenderCommandArray App::update() {
             displayUpdate = &Display::updateNull;
             displayRender = &Display::render;            
         } else if (displayAction == Action::Display::MAIN_MENU) {
+            //TODO: refactor into display.showConfirmation(<confirmationType>)
+            // and do a switch case in Display to toggle whatever is needed
             display.showReturnMainMenuConfirmation = true;
         } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
             display.showReturnMainMenuConfirmation = false;
@@ -256,8 +248,6 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
 
     CloseAudioDevice();
     CloseWindow();
-
-    delete app;
 
     return nullptr;
 }

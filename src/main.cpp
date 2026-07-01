@@ -7,5 +7,7 @@ int main(void){
     app->start();
     app->unload(0, 0, app);
 
+    delete app;
+
     return 0;
 }
