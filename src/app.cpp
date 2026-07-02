@@ -68,7 +68,7 @@ void App::renderTitle() const {
     int subtitleX = static_cast<int>(screen.halfWidth())-subtitleSize/2;
     int subtitleY = static_cast<int>(screen.height()-screen.height()/4)-subtitleFontSize/2;
     BeginDrawing();
-        ClearBackground(GRAY);
+        ClearBackground(BLANK);
         DrawText(gameTitle, titleX, titleY, titleFontSize, RAYWHITE);
         DrawText(subtitle, subtitleX, subtitleY, subtitleFontSize, RAYWHITE);
     EndDrawing();
@@ -110,14 +110,14 @@ void App::intro(void* self) {
 
 void App::render(Clay_RenderCommandArray&& renderCommands) const {
     BeginTextureMode(target);
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLANK);
         
-        world.render();
-        game.render();
+        (world.*worldRender)();
+        (game.*gameRender)();
     EndTextureMode();
 
 	BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLANK);
 
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
@@ -171,19 +171,30 @@ Clay_RenderCommandArray App::update() {
     if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
         state = State::App::RUN;
         appScreen = State::AppScreen::GAME;
+        
+        worldRender = &World::render;
+        worldUpdate = &World::update;
+
+        gameRender = &Game::render;
+        gameUpdate = &Game::update;
+
         displayLayout = &Display::layoutHUD;
         displayUpdate = &Display::updateNull;
         displayRender = &Display::render;
+
     }
 
     if(appScreen == State::AppScreen::GAME && inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
             state = State::App::RUN;
+
             displayLayout = &Display::layoutHUD;
             displayUpdate = &Display::updateNull;
             displayRender = &Display::render;
+
         } else if (state == State::App::RUN) {
             state = State::App::PAUSE;
+
             displayLayout = &Display::layoutPauseMenu;
             displayUpdate = &Display::update;
             displayRender = &Display::render;
@@ -203,6 +214,13 @@ Clay_RenderCommandArray App::update() {
         } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
             display.showReturnMainMenuConfirmation = false;
             state = State::App::RUN;
+        
+            worldRender = &World::renderMain;
+            worldUpdate = &World::updateMain;
+
+            gameRender = &Game::renderMain;
+            gameUpdate = &Game::updateMain;
+
             displayLayout = &Display::layoutMainMenu;
             displayUpdate = &Display::update;
             displayRender = &Display::render;

@@ -54,6 +54,14 @@ void Game::loadRaylibLogo() {
     raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
 }
 
+GameState Game::updateNull(State::App appState, InputEvent inputEvent){
+    return gameState;
+}
+
+GameState Game::updateMain(State::App appState, InputEvent inputEvent){
+    return gameState;
+}
+
 GameState Game::update(State::App appState, InputEvent inputEvent){
 
     // toggle pause menu
@@ -103,6 +111,14 @@ void Game::renderRaylibLogo() const {
     DrawRectangleRec(raylibLogoOuterRec, BLACK);
     DrawRectangleRec(raylibLogoInnerRec, RAYWHITE);
     DrawText(raylibName, raylibLogoTextPos.x, raylibLogoTextPos.y, raylibLogoFontSize, BLACK);
+}
+
+void Game::renderNull() const {
+
+}
+
+void Game::renderMain() const {
+
 }
 
 void Game::render() const {

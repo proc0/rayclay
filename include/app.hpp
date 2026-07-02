@@ -21,17 +21,23 @@ class App : ScreenListener {
         .rotation = 0.0f,
         .zoom = 1.0f
     };
-    RenderTexture2D target;  // Render texture to render our game
+    RenderTexture2D target;
 
 	Screen screen = Screen(camera);
     Display display = Display(screen);
-    // std::unique_ptr<Display> display = std::make_unique<Display>(screen);
+
 	World world = World(screen);
     Game game = Game(screen);
 
     void (Display::*displayRender)(Clay_RenderCommandArray&& renderCommands) const = &Display::render;
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
     void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
+
+    void (Game::*gameRender)() const = &Game::renderMain;
+    GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
+
+    void (World::*worldRender)() const = &World::renderMain;
+    void (World::*worldUpdate)() = &World::updateMain;
 
 	State::App state = State::App::LOAD;
     State::AppScreen appScreen = State::AppScreen::INTRO;

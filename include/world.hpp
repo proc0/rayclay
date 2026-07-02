@@ -16,7 +16,11 @@ public:
     
     int count();
     void load();
+    void renderNull() const;
+    void renderMain() const;
     void render() const;
+    void updateNull();
+    void updateMain();
     void update();
     void unload();
     void onScreenResize(int width, int height);

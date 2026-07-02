@@ -82,10 +82,14 @@ public:
     ~Game() = default;
     void load();
     void loadRaylibLogo();
+    void renderNull() const;
+    void renderMain() const;
     void render() const;
     void renderRaylibLogo() const;
     void resize();
     void unload();
+    GameState updateNull(State::App, InputEvent);
+    GameState updateMain(State::App, InputEvent);
     GameState update(State::App, InputEvent);
     void updateRaylibLogo();
     void onScreenResize(int height, int width);
