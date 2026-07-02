@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 #include <chrono>
 #include <functional>
 #include <queue>
 #include <unordered_set>
+#include <assert.h>
 
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
@@ -33,9 +35,13 @@ class Timer {
 
 public:
 
-	TimerId schedule(std::chrono::milliseconds delay, std::function<void()> callback) {
+	TimerId schedule(uint64_t delay, std::function<void()> callback) {
+	    assert(delay > 0);
+
+	    auto delayMs = std::chrono::milliseconds(delay);
+
 	    auto id = nextId++;
-	    auto expiry = Clock::now() + delay;
+	    auto expiry = Clock::now() + delayMs;
 
     	runningTimers.emplace(id);
 

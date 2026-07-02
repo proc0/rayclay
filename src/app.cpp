@@ -10,7 +10,6 @@
 #include <emscripten/html5.h>
 #endif
 #include <raylib.h>
-#include <chrono>
 
 void App::load() {
 #if DEBUG == 0
@@ -135,7 +134,7 @@ void App::run(void* self) {
 
 void App::start() {
     // set intro timer
-    timer.schedule(std::chrono::milliseconds(INTRO_TIME_MS), nullptr);
+    timer.schedule(INTRO_TIME_MS, nullptr);
 	
 #ifdef __EMSCRIPTEN__
     // no target FPS (3rd param) to allow browser to optimize frame rate
