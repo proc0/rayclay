@@ -35,7 +35,7 @@ public:
 	bool isToggleTracking = false;
 	bool isDoneTracking = false;
 
-	std::vector<ScreenListener*> listeners;
+	std::vector<Layer*> listeners;
 
 	Screen(Camera2D& camera):
 		camera(camera),
@@ -55,7 +55,7 @@ public:
 	// Vector2 project(b2Vec2 point) const;
 	// Rectangle project(Rectangle area) const;
 	// b2Vec2 inject(Vector2 point) const;
-	void listen(ScreenListener* listener);
+	void enlist(Layer* listener);
 	void resize(int newWidth, int newHeight);
 	float scale(float value) const;
 	Rectangle scale(Rectangle area) const;

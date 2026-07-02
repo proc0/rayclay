@@ -19,7 +19,7 @@ void Screen::load() {
     });
 }
 
-void Screen::listen(ScreenListener* listener) {
+void Screen::enlist(Layer* listener) {
     listeners.push_back(listener);
 }
 

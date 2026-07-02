@@ -11,7 +11,7 @@
 
 #include "clay.h"
 
-class App : ScreenListener {
+class App : Layer {
 	Input input;
     Timer timer;
 

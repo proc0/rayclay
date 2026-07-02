@@ -30,10 +30,10 @@ void App::load() {
 	game.load();
 	world.load();
 
-    screen.listen(this);
-    screen.listen(&display);
-    screen.listen(&world);
-    screen.listen(&game);
+    screen.enlist(this);
+    screen.enlist(&display);
+    screen.enlist(&world);
+    screen.enlist(&game);
 
     // Render texture to draw, enables screen scaling
     // NOTE: If screen is scaled, mouse input should be scaled proportionally

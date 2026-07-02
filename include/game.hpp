@@ -61,7 +61,7 @@
 //     void update();
 // };
 
-class Game : public ScreenListener {
+class Game : public Layer {
     const char* raylibName = "raylib";
     const int raylibLogoFontSize = 40;
     const float raylibLogoSize = 200;

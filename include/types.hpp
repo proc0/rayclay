@@ -89,8 +89,8 @@ typedef struct GameState {
 //     Event::Timer state;
 // } TimerEvent;
 
-class ScreenListener {
+class Layer {
 public:
-    virtual ~ScreenListener() = default;
+    virtual ~Layer() = default;
     virtual void resize(int width, int height) = 0;
 };

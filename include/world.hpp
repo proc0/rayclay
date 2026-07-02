@@ -5,7 +5,7 @@
 
 #include <raylib.h>
 
-class World : public ScreenListener {
+class World : public Layer {
     int count_ = 0;
     Sound splat;
     const Screen& screen;

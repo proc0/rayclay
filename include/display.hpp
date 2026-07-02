@@ -62,7 +62,7 @@ typedef struct DisplayButtonContext {
 static inline char *temp_render_buffer;
 static inline int temp_render_buffer_len;
 
-class Display : public ScreenListener {
+class Display : public Layer {
     Shader overlayShader;
     Camera Raylib_camera;
     Font fonts[2];
