@@ -80,17 +80,23 @@ class Game : public ScreenListener {
 public:
     Game(const Screen& screen): screen(screen) {}
     ~Game() = default;
+
     void load();
     void loadRaylibLogo();
+
     void renderNull() const;
+    void (Game::*render)() const = &Game::renderNull;
+    void renderGame() const;
     void renderMain() const;
-    void render() const;
     void renderRaylibLogo() const;
-    void resize();
-    void unload();
+
     GameState updateNull(State::App, InputEvent);
+    GameState (Game::*update)(State::App, InputEvent) = &Game::updateNull;
     GameState updateMain(State::App, InputEvent);
-    GameState update(State::App, InputEvent);
+    GameState updateGame(State::App, InputEvent);
     void updateRaylibLogo();
-    void onScreenResize(int height, int width);
+
+    void changeState(State::AppScreen);
+    void resize(int height, int width);
+    void unload();
 };

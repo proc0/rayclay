@@ -111,7 +111,7 @@ void Screen::update(InputEvent input) {
         if (timeResize - timeLastResize > timeResizeRate) {
             resize(newWidth, newHeight);
             for (auto* listener : listeners) {
-                listener->onScreenResize(newWidth, newHeight);
+                listener->resize(newWidth, newHeight);
             }
         }
     }

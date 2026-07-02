@@ -7,6 +7,22 @@ void Game::load() {
     loadRaylibLogo();
 }
 
+void Game::loadRaylibLogo() {
+
+    float raylibLogoX = static_cast<float>(screen.halfWidth())-raylibLogoSize/2.0f;
+    float raylibLogoY = static_cast<float>(screen.height()-raylibLogoSize-20);
+    float raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
+    float raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
+
+    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
+    float raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2.0f*raylibLogoBorder;
+    float raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - 1.5f*raylibLogoBorder;
+
+    raylibLogoOuterRec = { raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize };
+    raylibLogoInnerRec = { raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize };
+    raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
+}
+
 void Game::updateRaylibLogo() {
     raylibLogoPos.x += raylibLogoDir.x;
     raylibLogoPos.y += raylibLogoDir.y;
@@ -38,22 +54,6 @@ void Game::updateRaylibLogo() {
     raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
 }
 
-void Game::loadRaylibLogo() {
-
-    float raylibLogoX = static_cast<float>(screen.halfWidth())-raylibLogoSize/2.0f;
-    float raylibLogoY = static_cast<float>(screen.height()-raylibLogoSize-20);
-    float raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
-    float raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
-
-    int raylibLogoTextSize = MeasureText(raylibName, raylibLogoFontSize);
-    float raylibLogoTextX = raylibLogoX + raylibLogoSize - raylibLogoTextSize - 2.0f*raylibLogoBorder;
-    float raylibLogoTextY = raylibLogoY + raylibLogoSize - raylibLogoFontSize - 1.5f*raylibLogoBorder;
-
-    raylibLogoOuterRec = { raylibLogoX, raylibLogoY, raylibLogoSize, raylibLogoSize };
-    raylibLogoInnerRec = { raylibLogoInnerX, raylibLogoInnerY, raylibLogoInnerSize, raylibLogoInnerSize };
-    raylibLogoTextPos = { raylibLogoTextX, raylibLogoTextY };
-}
-
 GameState Game::updateNull(State::App appState, InputEvent inputEvent){
     return gameState;
 }
@@ -62,7 +62,7 @@ GameState Game::updateMain(State::App appState, InputEvent inputEvent){
     return gameState;
 }
 
-GameState Game::update(State::App appState, InputEvent inputEvent){
+GameState Game::updateGame(State::App appState, InputEvent inputEvent){
 
     // toggle pause menu
     // if(IsKeyPressed(KEY_ESCAPE)){
@@ -121,11 +121,26 @@ void Game::renderMain() const {
 
 }
 
-void Game::render() const {
+void Game::renderGame() const {
     renderRaylibLogo();
 }
 
-void Game::onScreenResize(int height, int width) {
+void Game::changeState(State::AppScreen appScreen) {
+    switch(appScreen) {
+        case State::AppScreen::MAIN:
+            update = &Game::updateMain;
+            render = &Game::renderMain;
+            break;
+        case State::AppScreen::GAME:
+            update = &Game::updateGame;
+            render = &Game::renderGame;
+            break;
+        default:
+            update = &Game::updateNull;
+    };
+}
+
+void Game::resize(int height, int width) {
     // loadRaylibLogo();
 }
 

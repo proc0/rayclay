@@ -1122,7 +1122,7 @@ void Display::handleError(Clay_ErrorData errorData) {
     Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->screen.width()), static_cast<float>(self->screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
 }
 
-void Display::onScreenResize(int width, int height) {
+void Display::resize(int width, int height) {
     // if (width < 720) {
     //     sidebarWidth = CLAY_SIZING_FIXED(150);
     // } else {

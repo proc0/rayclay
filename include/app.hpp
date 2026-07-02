@@ -34,7 +34,7 @@ class App : ScreenListener {
     void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
 
     void (Game::*gameRender)() const = &Game::renderMain;
-    GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
+    // GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
 
     void (World::*worldRender)() const = &World::renderMain;
     void (World::*worldUpdate)() = &World::updateMain;
@@ -55,5 +55,5 @@ public:
     void start();
     Clay_RenderCommandArray update();
     static const char* unload(int eventType, const void *reserved, void *self);
-    void onScreenResize(int width, int height);
+    void resize(int width, int height);
 };

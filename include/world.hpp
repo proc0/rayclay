@@ -23,5 +23,5 @@ public:
     void updateMain();
     void update();
     void unload();
-    void onScreenResize(int width, int height);
+    void resize(int width, int height);
 };

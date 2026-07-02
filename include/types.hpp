@@ -92,5 +92,5 @@ typedef struct GameState {
 class ScreenListener {
 public:
     virtual ~ScreenListener() = default;
-    virtual void onScreenResize(int width, int height) = 0;
+    virtual void resize(int width, int height) = 0;
 };

@@ -114,6 +114,6 @@ public:
     void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
-    void onScreenResize(int width, int height);
+    void resize(int width, int height);
     void unload();
 };

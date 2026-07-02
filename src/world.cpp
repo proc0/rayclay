@@ -57,6 +57,6 @@ void World::unload(){
     UnloadSound(splat);
 }
 
-void World::onScreenResize(int width, int height) {
+void World::resize(int width, int height) {
     TraceLog(LOG_INFO, "HELLO FROM WORLD RESIZE %i %i", width, height);
 }

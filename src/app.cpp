@@ -113,7 +113,7 @@ void App::render(Clay_RenderCommandArray&& renderCommands) const {
         ClearBackground(BLANK);
         
         (world.*worldRender)();
-        (game.*gameRender)();
+        (game.*game.render)();
     EndTextureMode();
 
 	BeginDrawing();
@@ -175,8 +175,9 @@ Clay_RenderCommandArray App::update() {
         worldRender = &World::render;
         worldUpdate = &World::update;
 
-        gameRender = &Game::render;
-        gameUpdate = &Game::update;
+        // gameRender = &Game::render;
+        // gameUpdate = &Game::update;
+        game.changeState(appScreen);
 
         displayLayout = &Display::layoutHUD;
         displayUpdate = &Display::updateNull;
@@ -214,17 +215,18 @@ Clay_RenderCommandArray App::update() {
         } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
             display.showReturnMainMenuConfirmation = false;
             state = State::App::RUN;
+            appScreen = State::AppScreen::MAIN;
         
             worldRender = &World::renderMain;
             worldUpdate = &World::updateMain;
 
-            gameRender = &Game::renderMain;
-            gameUpdate = &Game::updateMain;
+            // gameRender = &Game::renderMain;
+            // gameUpdate = &Game::updateMain;
+            game.changeState(appScreen);
 
             displayLayout = &Display::layoutMainMenu;
             displayUpdate = &Display::update;
             displayRender = &Display::render;
-            appScreen = State::AppScreen::MAIN;
         } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
             display.showReturnMainMenuConfirmation = false;
         }
@@ -237,7 +239,7 @@ Clay_RenderCommandArray App::update() {
 
     GameState gameState = GameState{0};
     if (appScreen == State::AppScreen::GAME) {        
-    	gameState = game.update(state, inputEvent);
+    	gameState = (game.*game.update)(state, inputEvent);
     	world.update();
     }
 
@@ -270,7 +272,7 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     return nullptr;
 }
 
-void App::onScreenResize(int width, int height) {
+void App::resize(int width, int height) {
     TraceLog(LOG_INFO, "APP RESIZE");
     if (appScreen == State::AppScreen::INTRO) {
         game.loadRaylibLogo();
