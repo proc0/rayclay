@@ -79,7 +79,6 @@ class Display : public Layer {
     int colorLoc;
 
 public:
-    Action::Display buttonAction = Action::Display::DO_NOTHING;
     const std::unordered_map<std::string, Action::Display> buttonActions = {
         { "ButtonGameNew", Action::Display::NEW_GAME },
         { "ButtonGameResume", Action::Display::RESUME_GAME },
@@ -90,8 +89,11 @@ public:
         { "ButtonCancel", Action::Display::CANCEL_RETURN_MAIN },
         { "ButtonQuit", Action::Display::QUIT_APP }
     };
+
+    Action::Display buttonAction = Action::Display::DO_NOTHING;
+    Event::Display displayEvent = Event::Display::NO_EVENT;
     // bool showOverlay = 0;
-    bool showReturnMainMenuConfirmation = 0;
+    // bool showReturnMainMenuConfirmation = 0;
     uint32_t activeTabId = 0;
 
     Display(const Screen& screen): screen(screen) {};
@@ -115,5 +117,7 @@ public:
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void resize(int width, int height);
+    void beginEvent(Event::Display);
+    void clearEvent();
     void unload();
 };

@@ -33,7 +33,7 @@ class App : Layer {
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
     void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
 
-    void (Game::*gameRender)() const = &Game::renderMain;
+    // void (Game::*gameRender)() const = &Game::renderMain;
     // GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
 
     void (World::*worldRender)() const = &World::renderMain;

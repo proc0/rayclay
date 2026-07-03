@@ -557,7 +557,7 @@ void Display::layoutPauseMenu(GameState gameState) {
                 SetMouseCursor(MOUSE_CURSOR_DEFAULT);
             }
 
-            if (showReturnMainMenuConfirmation) {
+            if (displayEvent == Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
                 CLAY(CLAY_ID("PauseMenuConfirmationDialogue"), {
                     .layout = { 
                         .sizing = { 
@@ -1103,6 +1103,14 @@ void Display::layoutHUD(GameState gameState) {
 //     } // container
 
 // }
+
+void Display::beginEvent(Event::Display event) {
+    displayEvent = event;
+}
+
+void Display::clearEvent() {
+    displayEvent = Event::Display::NO_EVENT;
+}
 
 void Display::handleError(Clay_ErrorData errorData) {
     TraceLog(LOG_INFO, "%s", errorData.errorText.chars);

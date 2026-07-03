@@ -210,9 +210,11 @@ Clay_RenderCommandArray App::update() {
         } else if (displayAction == Action::Display::MAIN_MENU) {
             //TODO: refactor into display.showConfirmation(<confirmationType>)
             // and do a switch case in Display to toggle whatever is needed
-            display.showReturnMainMenuConfirmation = true;
+            // display.showReturnMainMenuConfirmation = true;
+            display.beginEvent(Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
         } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
-            display.showReturnMainMenuConfirmation = false;
+            // display.showReturnMainMenuConfirmation = false;
+            display.clearEvent();
             state = State::App::RUN;
             appScreen = State::AppScreen::MAIN;
         
@@ -227,7 +229,8 @@ Clay_RenderCommandArray App::update() {
             displayUpdate = &Display::update;
             displayRender = &Display::render;
         } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
-            display.showReturnMainMenuConfirmation = false;
+            // display.showReturnMainMenuConfirmation = false;
+            display.clearEvent();
         }
     }
 

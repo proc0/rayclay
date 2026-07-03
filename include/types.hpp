@@ -40,6 +40,11 @@ namespace Event {
         RUNNING,
         FINISHED
     };
+
+    enum Display {
+        NO_EVENT,
+        SHOW_RETURN_MAIN_MENU_CONFIRMATION,
+    };
 }
 
 namespace State {
