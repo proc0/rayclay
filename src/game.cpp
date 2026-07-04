@@ -9,8 +9,8 @@ void Game::load() {
 
 void Game::loadRaylibLogo() {
 
-    float raylibLogoX = static_cast<float>(screen.halfWidth())-raylibLogoSize/2.0f;
-    float raylibLogoY = static_cast<float>(screen.height()-raylibLogoSize-20);
+    float raylibLogoX = static_cast<float>(window.halfWidth())-raylibLogoSize/2.0f;
+    float raylibLogoY = static_cast<float>(window.height()-raylibLogoSize-20);
     float raylibLogoInnerX = raylibLogoX + raylibLogoBorder;
     float raylibLogoInnerY = raylibLogoY + raylibLogoBorder;
 
@@ -28,13 +28,13 @@ void Game::updateRaylibLogo() {
     raylibLogoPos.y += raylibLogoDir.y;
 
     bool hasBounced = false;
-    if (raylibLogoPos.x < 0 || raylibLogoPos.x + raylibLogoOuterRec.width > screen.width()) {
+    if (raylibLogoPos.x < 0 || raylibLogoPos.x + raylibLogoOuterRec.width > window.width()) {
         raylibLogoDir.x *= -1.0f;
         gameState.raylibLogoBounces++;
         hasBounced = true;
     } 
 
-    if (raylibLogoPos.y < 0 || raylibLogoPos.y + raylibLogoOuterRec.width > screen.height()) {
+    if (raylibLogoPos.y < 0 || raylibLogoPos.y + raylibLogoOuterRec.width > window.height()) {
         raylibLogoDir.y *= -1.0f;
         gameState.raylibLogoBounces++;
         if (hasBounced) {

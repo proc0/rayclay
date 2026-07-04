@@ -1,7 +1,7 @@
 #include "world.hpp"
 
 #include "config.h"
-#include "defaults.hpp"
+// #include "defaults.hpp"
 
 #include <string>
 
@@ -22,11 +22,11 @@ void World::renderNull() const {
 }
 
 void World::renderMain() const {
-    DrawRectangleGradientH(0, 0, screen.width(), screen.height(), GREEN, PINK);
+    DrawRectangleGradientH(0, 0, window.width(), window.height(), GREEN, PINK);
 }
 
 void World::render() const {
-    DrawRectangleGradientH(0, 0, screen.width(), screen.height(), BLUE, ORANGE);
+    DrawRectangleGradientH(0, 0, window.width(), window.height(), BLUE, ORANGE);
 }
 
 void World::updateNull(){

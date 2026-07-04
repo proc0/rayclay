@@ -3,7 +3,7 @@
 #include "types.hpp"
 #include "input.hpp"
 #include "timer.hpp"
-#include "screen.hpp"
+#include "window.hpp"
 #include "game.hpp"
 #include "world.hpp"
 
@@ -23,11 +23,11 @@ class App : Layer {
     };
     RenderTexture2D target;
 
-	Screen screen = Screen(camera);
-    Display display = Display(screen);
+	Window window = Window(camera);
+    Display display = Display(window);
 
-	World world = World(screen);
-    Game game = Game(screen);
+	World world = World(window);
+    Game game = Game(window);
 
     void (Display::*displayRender)(Clay_RenderCommandArray&& renderCommands) const = &Display::render;
     Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;

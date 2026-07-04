@@ -9,7 +9,7 @@
 #include <raylib.h>
 #include <chrono>
 
-class Screen {
+class Window {
 	Camera2D& camera;
     Vector2 originDelta = { 0.0f, 0.0f };
     float const unitRatio = ROUND4(UNIT_RATIO);
@@ -37,7 +37,7 @@ public:
 
 	std::vector<Layer*> listeners;
 
-	Screen(Camera2D& camera):
+	Window(Camera2D& camera):
 		camera(camera),
 		x(SCREEN_WIDTH),
 		y(SCREEN_HEIGHT),
@@ -45,7 +45,7 @@ public:
 		halfY(SCREEN_HEIGHT/2),
 		unit(SCREEN_UNIT) {};
 	// fps(TARGET_FPS) {};
-	~Screen() = default;
+	~Window() = default;
 
 	void load();
 	// float adapt(float value) const;

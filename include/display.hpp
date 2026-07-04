@@ -1,6 +1,6 @@
 #pragma once
 
-#include "screen.hpp"
+#include "window.hpp"
 #include "types.hpp"
 
 #include "clay.h" // IWYU pragma: export
@@ -75,7 +75,7 @@ class Display : public Layer {
     uint32_t buttonHoverId = 0;
     Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
-    const Screen& screen;
+    const Window& window;
     int colorLoc;
 
 public:
@@ -96,7 +96,7 @@ public:
     // bool showReturnMainMenuConfirmation = 0;
     uint32_t activeTabId = 0;
 
-    Display(const Screen& screen): screen(screen) {};
+    Display(const Window& window): window(window) {};
     ~Display() = default;
 
     void load();

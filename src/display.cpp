@@ -112,7 +112,7 @@ void Display::load(){
     // 3. Create arena [clay.h:2150-2158]
     arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
     // 4. Initialize Clay [clay.h:2186-2188]
-    Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(screen.width()), static_cast<float>(screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
+    Clay_Initialize(arena, Clay_Dimensions({ static_cast<float>(window.width()), static_cast<float>(window.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
 
     fonts[0] = LoadFontEx(PATH_ASSET("RobotoMono-Medium.ttf"), 48, 0, 400);
     SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
@@ -1127,7 +1127,7 @@ void Display::handleError(Clay_ErrorData errorData) {
     uint64_t memorySize = Clay_MinMemorySize();
     void* memory = malloc(memorySize);
     self->arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
-    Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->screen.width()), static_cast<float>(self->screen.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
+    Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->window.width()), static_cast<float>(self->window.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
 }
 
 void Display::resize(int width, int height) {

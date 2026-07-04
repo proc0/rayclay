@@ -1,6 +1,6 @@
 #pragma once
 
-#include "screen.hpp"
+#include "window.hpp"
 #include "types.hpp"
 
 #include <raylib.h>
@@ -8,10 +8,10 @@
 class World : public Layer {
     int count_ = 0;
     Sound splat;
-    const Screen& screen;
+    const Window& window;
 
 public:
-    World(const Screen& screen): screen(screen) {};
+    World(const Window& window): window(window) {};
     ~World() = default;
     
     int count();

@@ -1,4 +1,4 @@
-#include "screen.hpp"
+#include "window.hpp"
 
 #include "defaults.hpp"
 #include "types.hpp"
@@ -9,9 +9,7 @@
 #include <raylib.h>
 #include <raymath.h>
 
-
-
-void Screen::load() {
+void Window::load() {
     // initialize the screen size for Web
     update({ 
         .id = Event::Input::IDLE,
@@ -19,22 +17,22 @@ void Screen::load() {
     });
 }
 
-void Screen::enlist(Layer* listener) {
+void Window::enlist(Layer* listener) {
     listeners.push_back(listener);
 }
 
-// float Screen::adapt(float value) const {
+// float Window::adapt(float value) const {
 //     return value * unit;
 // }
 
-// Vector2 Screen::adapt(b2Vec2 area) const {
+// Vector2 Window::adapt(b2Vec2 area) const {
 //     return {
 //         area.x * unit,
 //         area.y * unit
 //     };
 // }
 
-Rectangle Screen::center(Rectangle area) const {
+Rectangle Window::center(Rectangle area) const {
     return {
         x/2.0f - area.width/2.0f,
         y/2.0f - area.height/2.0f,
@@ -43,7 +41,7 @@ Rectangle Screen::center(Rectangle area) const {
     };
 }
 
-Rectangle Screen::center(Rectangle area, Vector2 offset) const {
+Rectangle Window::center(Rectangle area, Vector2 offset) const {
     return {
         x/2.0f - area.width/2.0f + offset.x,
         y/2.0f - area.height/2.0f + offset.y,
@@ -52,18 +50,18 @@ Rectangle Screen::center(Rectangle area, Vector2 offset) const {
     };
 }
 
-// float Screen::convert(float value) const {
+// float Window::convert(float value) const {
 //     return value * unit/SCREEN_UNIT;
 // }
 
-// Vector2 Screen::convert(b2Vec2 area) const {
+// Vector2 Window::convert(b2Vec2 area) const {
 //     return {
 //         area.x * unit/SCREEN_UNIT,
 //         area.y * unit/SCREEN_UNIT
 //     };
 // }
 
-// Rectangle Screen::project(Rectangle area) const {
+// Rectangle Window::project(Rectangle area) const {
 //     return {
 //         halfX + area.x * unit,
 //         halfY - area.y * unit,
@@ -72,14 +70,14 @@ Rectangle Screen::center(Rectangle area, Vector2 offset) const {
 //     };
 // }
 
-// Vector2 Screen::project(b2Vec2 point) const {
+// Vector2 Window::project(b2Vec2 point) const {
 //     return {
 //         halfX + point.x * unit,
 //         halfY - point.y * unit
 //     };
 // }
 
-// b2Vec2 Screen::inject(Vector2 point) const {
+// b2Vec2 Window::inject(Vector2 point) const {
 //     return {
 //         ((point.x  - camera.offset.x - halfX) / unit),
 //         ((halfY - point.y + camera.offset.y) / unit)
@@ -96,7 +94,7 @@ EM_JS(int, getWindowHeight, (), {
 });
 #endif
 
-void Screen::update(InputEvent input) {
+void Window::update(InputEvent input) {
     // fps = GetFPS();
     #if __EMSCRIPTEN__
         int newWidth = getWindowWidth();
@@ -136,8 +134,7 @@ void Screen::update(InputEvent input) {
     }
 }
 
-
-void Screen::resize(int newWidth, int newHeight) {
+void Window::resize(int newWidth, int newHeight) {
     // calculate ratio based on screen diagonal
     ratio = ROUND4(sqrtf(powf(newWidth, 2.0f) + powf(newHeight, 2.0f))/unitRatio);
     x = newWidth;
@@ -150,11 +147,11 @@ void Screen::resize(int newWidth, int newHeight) {
     TraceLog(LOG_INFO, "SCREEN resized %ix%i - UNIT: %f", newWidth, newHeight, unit);
 }
 
-float Screen::scale(float value) const {
+float Window::scale(float value) const {
     return value*ratio;
 }
 
-Rectangle Screen::scale(Rectangle area) const {
+Rectangle Window::scale(Rectangle area) const {
     // float ratio = x/static_cast<float>(SCREEN_WIDTH);
     return {
         area.x * ratio,
@@ -164,7 +161,7 @@ Rectangle Screen::scale(Rectangle area) const {
     };
 }
 
-Vector2 Screen::scale(Vector2 point) const {
+Vector2 Window::scale(Vector2 point) const {
     // float ratio = x/static_cast<float>(SCREEN_WIDTH);
     return {
         point.x * ratio,
@@ -172,11 +169,11 @@ Vector2 Screen::scale(Vector2 point) const {
     };
 }
 
-void Screen::toggleTrack() {
+void Window::toggleTrack() {
     isToggleTracking = true;
 }
 
-void Screen::track(InputEvent input) {
+void Window::track(InputEvent input) {
     // TODO: move middle mouse button to Input, refactor
     bool beginTrack = isToggleTracking ? input.id == Event::Input::PRIMARY : IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE);
     bool continueTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_DOWN : IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
@@ -199,11 +196,11 @@ void Screen::track(InputEvent input) {
     }
 }
 
-bool Screen::tracking() const {
+bool Window::tracking() const {
     return isToggleTracking || isTracking;
 }
 
-bool Screen::doneTracking() {
+bool Window::doneTracking() {
     if (isDoneTracking) {
         isDoneTracking = false;
         return true;
@@ -211,7 +208,7 @@ bool Screen::doneTracking() {
     return false;
 }
 
-void Screen::zoom(bool increase) {
+void Window::zoom(bool increase) {
     float amount = 0.1f;
     if (increase) {
         unit += amount*ratio;
@@ -222,18 +219,18 @@ void Screen::zoom(bool increase) {
     }
 }
 
-int Screen::width() const {
+int Window::width() const {
     return x;
 }
 
-int Screen::height() const {
+int Window::height() const {
     return y;
 }
 
-int Screen::halfWidth() const {
+int Window::halfWidth() const {
     return halfX;
 }
 
-int Screen::halfHeight() const {
+int Window::halfHeight() const {
     return halfY;
 }

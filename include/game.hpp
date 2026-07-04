@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 #include "defaults.hpp"
-#include "screen.hpp"
+#include "window.hpp"
 
 #include <raylib.h>
 
@@ -19,11 +19,11 @@ class Game : public Layer {
     Vector2 raylibLogoTextPos;
 
     GameState gameState = GameState{0};
-    const Screen& screen;
+    const Window& window;
     State::Game state = State::Game::START;
 
 public:
-    Game(const Screen& screen): screen(screen) {}
+    Game(const Window& window): window(window) {}
     ~Game() = default;
 
     void load();
