@@ -36,8 +36,8 @@ class App : Layer {
     // void (Game::*gameRender)() const = &Game::renderMain;
     // GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
 
-    void (World::*worldRender)() const = &World::renderMain;
-    void (World::*worldUpdate)() = &World::updateMain;
+    // void (World::*worldRender)() const = &World::renderMain;
+    // void (World::*worldUpdate)() = &World::updateMain;
 
 	State::App state = State::App::LOAD;
     State::AppScreen appScreen = State::AppScreen::INTRO;

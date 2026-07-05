@@ -122,9 +122,9 @@ void Display::load(){
 
     initOverlay();
 
-    profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
-    parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
-    monkTexture = LoadTexture(PATH_ASSET("monk.png"));
+    // profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
+    // parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
+    // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
 }
 
 void Display::renderNull(Clay_RenderCommandArray& renderCommands) const {
@@ -1192,7 +1192,7 @@ void Display::unload(){
 
     free(arena.memory);
 
-    UnloadTexture(parchmentTexture);
-    UnloadTexture(profilePicture);
-    UnloadTexture(monkTexture);
+    // UnloadTexture(parchmentTexture);
+    // UnloadTexture(profilePicture);
+    // UnloadTexture(monkTexture);
 }

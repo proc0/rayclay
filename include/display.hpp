@@ -66,14 +66,14 @@ class Display : public Layer {
     Shader overlayShader;
     Camera Raylib_camera;
     Font fonts[2];
-    Texture2D profilePicture;
-    Texture2D parchmentTexture;
-    Texture2D monkTexture;
+    // Texture2D profilePicture;
+    // Texture2D parchmentTexture;
+    // Texture2D monkTexture;
     Clay_Arena arena = {};
     ScrollbarData scrollbarData = {0};
     
     uint32_t buttonHoverId = 0;
-    Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
+    // Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
     const Window& window;
     int colorLoc;
@@ -105,7 +105,7 @@ public:
     void disableColorOverlay() const;
 
     void renderNull(Clay_RenderCommandArray& renderCommands) const;
-    void (Display::*render)(Clay_RenderCommandArray& renderCommands) const;
+    void (Display::*render)(Clay_RenderCommandArray& renderCommands) const = &Display::renderNull;
     void renderRaylib(Clay_RenderCommandArray& renderCommands) const;
 
     // void layout(GameState);

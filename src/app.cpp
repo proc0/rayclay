@@ -185,7 +185,6 @@ Clay_RenderCommandArray App::update() {
             // displayLayout = &Display::layoutHUD;
             // displayUpdate = &Display::updateNull;
             // displayRender = &Display::render;
-            return Clay_RenderCommandArray({ 0, 0, nullptr });
 
         } else if (displayAction == Action::Display::QUIT_APP) {
             state = State::App::HALT;
