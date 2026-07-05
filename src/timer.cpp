@@ -2,7 +2,16 @@
 
 #include <assert.h>
 
-TimerId Timer::schedule(uint64_t delay, std::function<void()> callback) {
+bool Timer::isRunning(TimerId id) {
+    auto runningId = runningIds.find(id);
+    return runningId != runningIds.end();
+}
+
+bool Timer::isEmpty() {
+    return stoppedIds.empty() && runningIds.empty();
+}
+
+TimerId Timer::schedule(int delay, Trigger callback) {
     assert(delay > 0);
 
     auto id = nextId++;
@@ -25,16 +34,7 @@ void Timer::stop(TimerId id) {
 	stoppedIds.emplace(id);
 }
 
-bool Timer::isRunning(TimerId id) {
-    auto runningId = runningIds.find(id);
-    return runningId != runningIds.end();
-}
-
-bool Timer::isEmpty() {
-    return stoppedIds.empty() && runningIds.empty();
-}
-
-void Timer::updateNull() {}
+void Timer::updateUnit() {}
 
 void Timer::updateTimer() {
     auto now = Clock::now();
@@ -55,7 +55,7 @@ void Timer::updateTimer() {
         runningIds.erase(event.id);
 
         if (timers.empty()) {
-        	update = &Timer::updateNull;
+        	update = &Timer::updateUnit;
         }
     }
 }
