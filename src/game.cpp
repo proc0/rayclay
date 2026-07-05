@@ -125,7 +125,7 @@ void Game::renderGame() const {
     renderRaylibLogo();
 }
 
-void Game::changeState(State::AppScreen appScreen) {
+void Game::transition(State::AppScreen appScreen) {
     switch(appScreen) {
         case State::AppScreen::MAIN:
             update = &Game::updateMain;

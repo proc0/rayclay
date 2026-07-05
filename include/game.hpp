@@ -41,7 +41,7 @@ public:
     GameState updateGame(State::App, InputEvent);
     void updateRaylibLogo();
 
-    void changeState(State::AppScreen);
+    void transition(State::AppScreen);
     void resize(int height, int width);
     void unload();
 };

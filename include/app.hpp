@@ -29,9 +29,9 @@ class App : Layer {
 	World world = World(window);
     Game game = Game(window);
 
-    void (Display::*displayRender)(Clay_RenderCommandArray&& renderCommands) const = &Display::render;
-    Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
-    void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
+    // void (Display::*displayRender)(Clay_RenderCommandArray&& renderCommands) const = &Display::render;
+    // Action::Display (Display::*displayUpdate)(const InputEvent& inputEvent) = &Display::update;
+    // void (Display::*displayLayout)(GameState) = &Display::layoutMainMenu;
 
     // void (Game::*gameRender)() const = &Game::renderMain;
     // GameState (Game::*gameUpdate)(State::App, InputEvent) = &Game::updateMain;
@@ -50,7 +50,7 @@ public:
     void renderLogo() const;
     void renderTitle() const;
     static void intro(void* self);
-    void render(Clay_RenderCommandArray&& renderCommands) const;
+    void render(Clay_RenderCommandArray& renderCommands) const;
     static void run(void* self);
     void start();
     Clay_RenderCommandArray update();

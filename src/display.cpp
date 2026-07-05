@@ -127,10 +127,10 @@ void Display::load(){
     monkTexture = LoadTexture(PATH_ASSET("monk.png"));
 }
 
-void Display::renderNull(Clay_RenderCommandArray&& renderCommands) const {
+void Display::renderNull(Clay_RenderCommandArray& renderCommands) const {
 }
 
-void Display::render(Clay_RenderCommandArray&& renderCommands) const {
+void Display::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     for (int j = 0; j < renderCommands.length; j++)
     {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
@@ -462,7 +462,7 @@ Action::Display Display::updateNull(const InputEvent& inputEvent) {
     return Action::Display::DO_NOTHING;
 }
 
-Action::Display Display::update(const InputEvent& inputEvent) {
+Action::Display Display::updateMenu(const InputEvent& inputEvent) {
 
     bool isMouseDown = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN;
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
@@ -513,7 +513,11 @@ Action::Display Display::update(const InputEvent& inputEvent) {
     return buttonAction;
 }
 
-void Display::layoutPauseMenu(GameState gameState) {
+void Display::menuNull() {
+    buttonAction = Action::Display::DO_NOTHING;
+}
+
+void Display::menuPause() {
     CLAY(CLAY_ID("ContainerPauseMenu"), { 
         .layout = { 
             .sizing = { 
@@ -639,7 +643,7 @@ void Display::layoutPauseMenu(GameState gameState) {
     buttonAction = Action::Display::DO_NOTHING;
 }
 
-void Display::layoutMainMenu(GameState gameState) {
+void Display::menuMain() {
     CLAY(CLAY_ID("ContainerMainMenu"), { 
         .layout = { 
             .sizing = { 
@@ -701,7 +705,9 @@ void Display::layoutMainMenu(GameState gameState) {
     buttonAction = Action::Display::DO_NOTHING;
 }
 
-void Display::layoutHUD(GameState gameState) {
+void Display::headsUpNull(GameState gameState) {}
+
+void Display::headsUpGame(GameState gameState) {
     CLAY(CLAY_ID("HUDContainer"), { 
         .layout = { 
             .sizing = { 
@@ -1138,6 +1144,42 @@ void Display::resize(int width, int height) {
     // }
 
 	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
+}
+
+void Display::transition(State::App appState, State::AppScreen appScreen) {
+    switch(appScreen) {
+        case State::AppScreen::MAIN:
+            menu = &Display::menuMain;
+            headsUp = &Display::headsUpNull;
+            update = &Display::updateMenu;
+            render = &Display::renderRaylib;
+            break;
+        case State::AppScreen::GAME:
+            render = &Display::renderRaylib;
+            switch(appState) {
+                case State::App::PAUSE:
+                    menu = &Display::menuPause;
+                    headsUp = &Display::headsUpNull;
+                    update = &Display::updateMenu;
+                    break;
+                case State::App::RUN:
+                    menu = &Display::menuNull;
+                    headsUp = &Display::headsUpGame;
+                    update = &Display::updateMenu;
+                    break;
+                default:
+                    menu = &Display::menuNull;
+                    headsUp = &Display::headsUpNull;
+                    update = &Display::updateNull;
+            }
+
+            break;
+        default:
+            menu = &Display::menuNull;
+            headsUp = &Display::headsUpNull;
+            update = &Display::updateNull;
+            render = &Display::renderNull;
+    };
 }
 
 void Display::unload(){

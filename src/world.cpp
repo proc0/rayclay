@@ -25,7 +25,7 @@ void World::renderMain() const {
     DrawRectangleGradientH(0, 0, window.width(), window.height(), GREEN, PINK);
 }
 
-void World::render() const {
+void World::renderGame() const {
     DrawRectangleGradientH(0, 0, window.width(), window.height(), BLUE, ORANGE);
 }
 
@@ -37,7 +37,7 @@ void World::updateMain(){
 
 }
 
-void World::update(){
+void World::updateGame(){
 
     if(IsKeyPressed(KEY_SPACE)){
         count_++;
@@ -51,6 +51,22 @@ void World::update(){
             HideCursor();
         }
     }
+}
+
+void World::transition(State::AppScreen appScreen) {
+    switch(appScreen) {
+        case State::AppScreen::MAIN:
+            update = &World::updateMain;
+            render = &World::renderMain;
+            break;
+        case State::AppScreen::GAME:
+            update = &World::updateGame;
+            render = &World::renderGame;
+            break;
+        default:
+            update = &World::updateNull;
+            render = &World::renderNull;
+    };
 }
 
 void World::unload(){

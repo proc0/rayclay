@@ -100,24 +100,34 @@ public:
     ~Display() = default;
 
     void load();
-    void render(Clay_RenderCommandArray&& renderCommands) const;
-    void renderNull(Clay_RenderCommandArray&& renderCommands) const;
     void initOverlay();
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
 
+    void renderNull(Clay_RenderCommandArray& renderCommands) const;
+    void (Display::*render)(Clay_RenderCommandArray& renderCommands) const;
+    void renderRaylib(Clay_RenderCommandArray& renderCommands) const;
+
     // void layout(GameState);
-    void layoutMainMenu(GameState);
-    void layoutPauseMenu(GameState);
-    void layoutHUD(GameState);
+    void menuNull();
+    void (Display::*menu)() = &Display::menuNull;
+    void menuMain();
+    void menuPause();
+
+    void headsUpNull(GameState);
+    void (Display::*headsUp)(GameState) = &Display::headsUpNull;
+    void headsUpGame(GameState);
     
-    Action::Display update(const InputEvent& inputEvent);
     Action::Display updateNull(const InputEvent& inputEvent);
+    Action::Display (Display::*update)(const InputEvent& inputEvent) = &Display::updateNull;
+    Action::Display updateMenu(const InputEvent& inputEvent);
+
     void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void resize(int width, int height);
     void beginEvent(Event::Display);
     void clearEvent();
+    void transition(State::App, State::AppScreen);
     void unload();
 };

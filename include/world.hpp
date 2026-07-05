@@ -16,12 +16,18 @@ public:
     
     int count();
     void load();
+    
     void renderNull() const;
+    void (World::*render)() const = &World::renderNull;
     void renderMain() const;
-    void render() const;
+    void renderGame() const;
+
     void updateNull();
+    void (World::*update)() = &World::updateNull;
     void updateMain();
-    void update();
+    void updateGame();
+    
+    void transition(State::AppScreen);
     void unload();
     void resize(int width, int height);
 };

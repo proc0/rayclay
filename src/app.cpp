@@ -91,6 +91,8 @@ void App::intro(void* self) {
         if(app->input.updateAnyKey()) {
             app->state = State::App::RUN;
             app->appScreen = State::AppScreen::MAIN;
+            app->display.transition(app->state, app->appScreen);
+            app->world.transition(app->appScreen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -107,11 +109,11 @@ void App::intro(void* self) {
 #endif
 }
 
-void App::render(Clay_RenderCommandArray&& renderCommands) const {
+void App::render(Clay_RenderCommandArray& renderCommands) const {
     BeginTextureMode(target);
         ClearBackground(BLANK);
         
-        (world.*worldRender)();
+        (world.*world.render)();
         (game.*game.render)();
     EndTextureMode();
 
@@ -121,15 +123,15 @@ void App::render(Clay_RenderCommandArray&& renderCommands) const {
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
-        (display.*displayRender)(std::move(renderCommands));
+        (display.*display.render)(renderCommands);
 	EndDrawing();
 }
 
 void App::run(void* self) {
     App* app = static_cast<App*>(self);
 
-    // Clay_RenderCommandArray renderCommands = app->update();
-    app->render(app->update());
+    Clay_RenderCommandArray renderCommands = app->update();
+    app->render(renderCommands);
 }
 
 void App::start() {
@@ -159,54 +161,68 @@ void App::start() {
 
 Clay_RenderCommandArray App::update() {
     timer.update();
-
     InputEvent inputEvent = input.update();
     window.update(inputEvent);
 
     // TODO: create multiple display.update<Type> depending on the situation
     // to switch in here. Pause/Menu window has an update, in-game UI update?
-    Action::Display displayAction = (display.*displayUpdate)(inputEvent);
+    Action::Display displayAction = (display.*display.update)(inputEvent);
 
-    if (appScreen == State::AppScreen::MAIN && displayAction == Action::Display::NEW_GAME) {
-        state = State::App::RUN;
-        appScreen = State::AppScreen::GAME;
-        
-        worldRender = &World::render;
-        worldUpdate = &World::update;
+    if (appScreen == State::AppScreen::MAIN) {
 
-        // gameRender = &Game::render;
-        // gameUpdate = &Game::update;
-        game.changeState(appScreen);
+        if(displayAction == Action::Display::NEW_GAME) {
+            state = State::App::RUN;
+            appScreen = State::AppScreen::GAME;
+            
+            // worldRender = &World::render;
+            // worldUpdate = &World::update;
+            world.transition(appScreen);
+            // gameRender = &Game::render;
+            // gameUpdate = &Game::update;
+            game.transition(appScreen);
+            display.transition(state, appScreen);
 
-        displayLayout = &Display::layoutHUD;
-        displayUpdate = &Display::updateNull;
-        displayRender = &Display::render;
+            // displayLayout = &Display::layoutHUD;
+            // displayUpdate = &Display::updateNull;
+            // displayRender = &Display::render;
+            return Clay_RenderCommandArray({ 0, 0, nullptr });
 
-    }
+        } else if (displayAction == Action::Display::QUIT_APP) {
+            state = State::App::HALT;
+
+            return Clay_RenderCommandArray({ 0, 0, nullptr });
+        }            
+    } 
+
 
     if(appScreen == State::AppScreen::GAME && inputEvent.id == Event::Input::KEY_ESCAPE){
         if(state == State::App::PAUSE) {
+            TraceLog(LOG_INFO, "UNPAUSE");
             state = State::App::RUN;
 
-            displayLayout = &Display::layoutHUD;
-            displayUpdate = &Display::updateNull;
-            displayRender = &Display::render;
+            display.transition(state, appScreen);
+            // displayLayout = &Display::layoutHUD;
+            // displayUpdate = &Display::updateNull;
+            // displayRender = &Display::render;
 
         } else if (state == State::App::RUN) {
+            TraceLog(LOG_INFO, "PAUSE");
             state = State::App::PAUSE;
-
-            displayLayout = &Display::layoutPauseMenu;
-            displayUpdate = &Display::update;
-            displayRender = &Display::render;
+            display.transition(state, appScreen);
+            // displayLayout = &Display::layoutPauseMenu;
+            // displayUpdate = &Display::update;
+            // displayRender = &Display::render;
         }
     }
 
-    if (state == State::App::PAUSE) {
+    if (appScreen == State::AppScreen::GAME && state == State::App::PAUSE) {
         if (displayAction == Action::Display::RESUME_GAME) {
+            TraceLog(LOG_INFO, "UNPAUSE");
             state = State::App::RUN;
-            displayLayout = &Display::layoutHUD;
-            displayUpdate = &Display::updateNull;
-            displayRender = &Display::render;            
+            display.transition(state, appScreen);
+            // displayLayout = &Display::layoutHUD;
+            // displayUpdate = &Display::updateNull;
+            // displayRender = &Display::render;            
         } else if (displayAction == Action::Display::MAIN_MENU) {
             //TODO: refactor into display.showConfirmation(<confirmationType>)
             // and do a switch case in Display to toggle whatever is needed
@@ -218,35 +234,37 @@ Clay_RenderCommandArray App::update() {
             state = State::App::RUN;
             appScreen = State::AppScreen::MAIN;
         
-            worldRender = &World::renderMain;
-            worldUpdate = &World::updateMain;
+            // worldRender = &World::renderMain;
+            // worldUpdate = &World::updateMain;
+            world.transition(appScreen);
 
             // gameRender = &Game::renderMain;
             // gameUpdate = &Game::updateMain;
-            game.changeState(appScreen);
+            game.transition(appScreen);
 
-            displayLayout = &Display::layoutMainMenu;
-            displayUpdate = &Display::update;
-            displayRender = &Display::render;
+            display.transition(state, appScreen);
+            // displayLayout = &Display::layoutMainMenu;
+            // displayUpdate = &Display::update;
+            // displayRender = &Display::render;
         } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
             // display.showReturnMainMenuConfirmation = false;
             display.clearEvent();
+        } else if (displayAction == Action::Display::QUIT_APP) {
+            state = State::App::HALT;
+            return Clay_RenderCommandArray({ 0, 0, nullptr });
         }
     }
 
-    if (displayAction == Action::Display::QUIT_APP) {
-        state = State::App::HALT;
-        return Clay_RenderCommandArray({ 0, 0, nullptr });
-    }
 
-    GameState gameState = GameState{0};
-    if (appScreen == State::AppScreen::GAME) {        
-    	gameState = (game.*game.update)(state, inputEvent);
-    	world.update();
-    }
 
     Clay_BeginLayout();
-    (display.*displayLayout)(gameState);
+    // if (appScreen == State::AppScreen::GAME) {        
+    	GameState gameState = (game.*game.update)(state, inputEvent);
+    	(world.*world.update)();
+        (display.*display.headsUp)(gameState);
+    // } else {
+        (display.*display.menu)();
+    // }
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
 #ifndef __EMSCRIPTEN__
