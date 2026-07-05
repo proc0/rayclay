@@ -75,36 +75,40 @@ void App::renderTitle() const {
 
 void App::intro(void* self) {
     App* app = static_cast<App*>(self);
-    app->timer.update();
+    app->runIntro();
+}
 
-    app->window.update({ .id = Event::Input::IDLE, .position = Vector2({}) });
+void App::runIntro() {
+    (timer.*timer.update)();
+
+    window.update({ .id = Event::Input::IDLE, .position = Vector2({}) });
     
-    if (app->appScreen == State::AppScreen::INTRO) {
-        if(app->input.updateAnyKey() || app->timer.isEmpty()) {
-            app->appScreen = State::AppScreen::TITLE;
+    if (appScreen == State::AppScreen::INTRO) {
+        if(input.updateAnyKey() || timer.isEmpty()) {
+            appScreen = State::AppScreen::TITLE;
         }
 
-        app->renderLogo();
-    } else if (app->appScreen == State::AppScreen::TITLE) {
-        app->renderTitle();
+        renderLogo();
+    } else if (appScreen == State::AppScreen::TITLE) {
+        renderTitle();
 
-        if(app->input.updateAnyKey()) {
-            app->state = State::App::RUN;
-            app->appScreen = State::AppScreen::MAIN;
-            app->display.transition(app->state, app->appScreen);
-            app->world.transition(app->appScreen);
+        if(input.updateAnyKey()) {
+            state = State::App::RUN;
+            appScreen = State::AppScreen::MAIN;
+            display.transition(state, appScreen);
+            world.transition(appScreen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
             emscripten_cancel_main_loop();
-            emscripten_set_main_loop_arg(app->run, app, 0, 0);
+            emscripten_set_main_loop_arg(run, app, 0, 0);
 #endif
         }
     }
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
-        app->state = State::App::HALT;
+        state = State::App::HALT;
     }
 #endif
 }
@@ -160,13 +164,65 @@ void App::start() {
 }
 
 Clay_RenderCommandArray App::update() {
-    timer.update();
+    (timer.*timer.update)();
     InputEvent inputEvent = input.update();
     window.update(inputEvent);
 
-    // TODO: create multiple display.update<Type> depending on the situation
-    // to switch in here. Pause/Menu window has an update, in-game UI update?
     Action::Display displayAction = (display.*display.update)(inputEvent);
+
+    if(appScreen == State::AppScreen::GAME) {
+        if(inputEvent.id == Event::Input::KEY_ESCAPE){
+            if(state == State::App::PAUSE) {
+                TraceLog(LOG_INFO, "UNPAUSE");
+                state = State::App::RUN;
+
+                display.transition(state, appScreen);
+
+            } else if (state == State::App::RUN) {
+                TraceLog(LOG_INFO, "PAUSE");
+                state = State::App::PAUSE;
+
+                display.transition(state, appScreen);
+            }
+        } else if (state == State::App::PAUSE) {
+
+            if (displayAction == Action::Display::RESUME_GAME) {
+                TraceLog(LOG_INFO, "UNPAUSE");
+                state = State::App::RUN;
+            
+                display.transition(state, appScreen);          
+            
+            } else if (displayAction == Action::Display::MAIN_MENU) {
+            
+                display.beginEvent(Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
+            
+            } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
+                display.clearEvent();
+                state = State::App::RUN;
+                appScreen = State::AppScreen::MAIN;
+
+                world.transition(appScreen);
+                game.transition(appScreen);
+                display.transition(state, appScreen);
+
+            } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
+
+                display.clearEvent();
+            
+            } else if (displayAction == Action::Display::QUIT_APP) {
+                state = State::App::HALT;
+                
+                return Clay_RenderCommandArray({ 0, 0, nullptr });
+            }
+        }
+    } 
+
+    Clay_BeginLayout();
+	GameState gameState = (game.*game.update)(state, inputEvent);
+	(world.*world.update)();
+    (display.*display.headsUp)(gameState);
+    (display.*display.menu)();
+    Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
     if (appScreen == State::AppScreen::MAIN) {
 
@@ -174,97 +230,14 @@ Clay_RenderCommandArray App::update() {
             state = State::App::RUN;
             appScreen = State::AppScreen::GAME;
             
-            // worldRender = &World::render;
-            // worldUpdate = &World::update;
             world.transition(appScreen);
-            // gameRender = &Game::render;
-            // gameUpdate = &Game::update;
             game.transition(appScreen);
             display.transition(state, appScreen);
 
-            // displayLayout = &Display::layoutHUD;
-            // displayUpdate = &Display::updateNull;
-            // displayRender = &Display::render;
-
         } else if (displayAction == Action::Display::QUIT_APP) {
             state = State::App::HALT;
-
-            return Clay_RenderCommandArray({ 0, 0, nullptr });
         }            
-    } 
-
-
-    if(appScreen == State::AppScreen::GAME && inputEvent.id == Event::Input::KEY_ESCAPE){
-        if(state == State::App::PAUSE) {
-            TraceLog(LOG_INFO, "UNPAUSE");
-            state = State::App::RUN;
-
-            display.transition(state, appScreen);
-            // displayLayout = &Display::layoutHUD;
-            // displayUpdate = &Display::updateNull;
-            // displayRender = &Display::render;
-
-        } else if (state == State::App::RUN) {
-            TraceLog(LOG_INFO, "PAUSE");
-            state = State::App::PAUSE;
-            display.transition(state, appScreen);
-            // displayLayout = &Display::layoutPauseMenu;
-            // displayUpdate = &Display::update;
-            // displayRender = &Display::render;
-        }
     }
-
-    if (appScreen == State::AppScreen::GAME && state == State::App::PAUSE) {
-        if (displayAction == Action::Display::RESUME_GAME) {
-            TraceLog(LOG_INFO, "UNPAUSE");
-            state = State::App::RUN;
-            display.transition(state, appScreen);
-            // displayLayout = &Display::layoutHUD;
-            // displayUpdate = &Display::updateNull;
-            // displayRender = &Display::render;            
-        } else if (displayAction == Action::Display::MAIN_MENU) {
-            //TODO: refactor into display.showConfirmation(<confirmationType>)
-            // and do a switch case in Display to toggle whatever is needed
-            // display.showReturnMainMenuConfirmation = true;
-            display.beginEvent(Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
-        } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
-            // display.showReturnMainMenuConfirmation = false;
-            display.clearEvent();
-            state = State::App::RUN;
-            appScreen = State::AppScreen::MAIN;
-        
-            // worldRender = &World::renderMain;
-            // worldUpdate = &World::updateMain;
-            world.transition(appScreen);
-
-            // gameRender = &Game::renderMain;
-            // gameUpdate = &Game::updateMain;
-            game.transition(appScreen);
-
-            display.transition(state, appScreen);
-            // displayLayout = &Display::layoutMainMenu;
-            // displayUpdate = &Display::update;
-            // displayRender = &Display::render;
-        } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
-            // display.showReturnMainMenuConfirmation = false;
-            display.clearEvent();
-        } else if (displayAction == Action::Display::QUIT_APP) {
-            state = State::App::HALT;
-            return Clay_RenderCommandArray({ 0, 0, nullptr });
-        }
-    }
-
-
-
-    Clay_BeginLayout();
-    // if (appScreen == State::AppScreen::GAME) {        
-    	GameState gameState = (game.*game.update)(state, inputEvent);
-    	(world.*world.update)();
-        (display.*display.headsUp)(gameState);
-    // } else {
-        (display.*display.menu)();
-    // }
-    Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {

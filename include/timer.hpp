@@ -50,6 +50,9 @@ public:
     	}
 
 	    timers.push({id, expiry, callback});
+
+	    update = &Timer::updateTimer;
+	    
 	    return id;
 	}
 
@@ -68,7 +71,11 @@ public:
 	    return cancelledTimers.empty() && runningTimers.empty();
     }
 
-	void update() {
+    void updateNull() {}
+
+    void (Timer::*update)() = &Timer::updateNull;
+	
+	void updateTimer() {
 	    auto now = Clock::now();
 
 	    while (!timers.empty() && timers.top().expiry <= now) {
@@ -84,6 +91,10 @@ public:
 
 	        event.callback();
             runningTimers.erase(event.id);
+
+            if (timers.empty()) {
+            	update = &Timer::updateNull;
+            }
 	    }
 	}
 };

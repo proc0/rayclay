@@ -52,6 +52,7 @@ public:
     static void intro(void* self);
     void render(Clay_RenderCommandArray& renderCommands) const;
     static void run(void* self);
+    void runIntro();
     void start();
     Clay_RenderCommandArray update();
     static const char* unload(int eventType, const void *reserved, void *self);
