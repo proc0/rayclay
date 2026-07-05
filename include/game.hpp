@@ -42,6 +42,6 @@ public:
     void updateRaylibLogo();
 
     void transition(State::AppScreen);
-    void resize(int height, int width);
+    void resize(int height, int width) override;
     void unload();
 };

@@ -56,5 +56,5 @@ public:
     void start();
     Clay_RenderCommandArray update();
     static const char* unload(int eventType, const void *reserved, void *self);
-    void resize(int width, int height);
+    void resize(int width, int height) override;
 };

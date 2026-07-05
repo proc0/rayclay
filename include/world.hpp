@@ -29,5 +29,5 @@ public:
     
     void transition(State::AppScreen);
     void unload();
-    void resize(int width, int height);
+    void resize(int width, int height) override;
 };

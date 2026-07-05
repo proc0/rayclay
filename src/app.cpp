@@ -124,6 +124,7 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
 	BeginDrawing();
         ClearBackground(BLANK);
 
+        // TODO: memoize params in resize() 
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
