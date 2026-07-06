@@ -5,19 +5,14 @@
 
 #include <string>
 
-int World::count() {
-    return count_;
-}
-
 void World::load(){
     std::string pathAssets = DIR_ASSETS;
     const char* pathSoundSplat = pathAssets.append("/").append(URI_SOUND_SPLAT).c_str();
 
     splat = LoadSound(pathSoundSplat);
-    count_ = 0;
 }
 
-void World::renderNull() const {
+void World::renderUnit() const {
 
 }
 
@@ -29,7 +24,7 @@ void World::renderGame() const {
     DrawRectangleGradientH(0, 0, window.width(), window.height(), BLUE, ORANGE);
 }
 
-void World::updateNull(){
+void World::updateUnit(){
 
 }
 
@@ -40,7 +35,6 @@ void World::updateMain(){
 void World::updateGame(){
 
     if(IsKeyPressed(KEY_SPACE)){
-        count_++;
         PlaySound(splat);
     }
     
@@ -64,8 +58,8 @@ void World::transition(State::AppScreen appScreen) {
             render = &World::renderGame;
             break;
         default:
-            update = &World::updateNull;
-            render = &World::renderNull;
+            update = &World::updateUnit;
+            render = &World::renderUnit;
     };
 }
 
