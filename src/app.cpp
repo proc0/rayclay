@@ -35,7 +35,7 @@ void App::load() {
 
     // Render texture to draw, enables window scaling
     // NOTE: If window is scaled, mouse input should be scaled proportionally
-    target = LoadRenderTexture(window.width(), window.height());
+    target = LoadRenderTexture(window.width, window.height);
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }
 
@@ -43,8 +43,8 @@ void App::renderLogo() const {
     const char* logoName = "proc0";
     int logoFontSize = 108;
     float logoSize = MeasureText(logoName, logoFontSize);
-    int logoX = static_cast<int>(window.halfWidth())-logoSize/2;
-    int logoY = static_cast<int>(window.halfHeight())-logoFontSize/2;
+    int logoX = window.halfWidth - logoSize/2;
+    int logoY = window.halfHeight - logoFontSize/2;
 
     BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -57,14 +57,14 @@ void App::renderTitle() const {
     const char* gameTitle = "GAME TITLE";
     int titleFontSize = 128;
     float titleSize = MeasureText(gameTitle, titleFontSize);
-    int titleX = static_cast<int>(window.halfWidth())-titleSize/2;
-    int titleY = static_cast<int>(window.halfHeight())-titleFontSize/2;
+    int titleX = window.halfWidth - titleSize/2;
+    int titleY = window.halfHeight - titleFontSize/2;
 
     const char* subtitle = "Press any key";
     int subtitleFontSize = 32;
     float subtitleSize = MeasureText(subtitle, subtitleFontSize);
-    int subtitleX = static_cast<int>(window.halfWidth())-subtitleSize/2;
-    int subtitleY = static_cast<int>(window.height()-window.height()/4)-subtitleFontSize/2;
+    int subtitleX = window.halfWidth - subtitleSize/2;
+    int subtitleY = static_cast<int>(window.height - window.height*0.25f - subtitleFontSize*0.5f);
     BeginDrawing();
         ClearBackground(BLANK);
         DrawText(gameTitle, titleX, titleY, titleFontSize, RAYWHITE);
@@ -269,6 +269,6 @@ void App::resize(int width, int height) {
     }
     
     UnloadRenderTexture(target);
-    target = LoadRenderTexture(window.width(), window.height());
+    target = LoadRenderTexture(window.width, window.height);
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }

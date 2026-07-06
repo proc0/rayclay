@@ -17,11 +17,11 @@ void World::renderUnit() const {
 }
 
 void World::renderMain() const {
-    DrawRectangleGradientH(0, 0, window.width(), window.height(), GREEN, PINK);
+    DrawRectangleGradientH(0, 0, window.width, window.height, GREEN, PINK);
 }
 
 void World::renderGame() const {
-    DrawRectangleGradientH(0, 0, window.width(), window.height(), BLUE, ORANGE);
+    DrawRectangleGradientH(0, 0, window.width, window.height, BLUE, ORANGE);
 }
 
 void World::updateUnit(){

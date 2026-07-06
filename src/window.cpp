@@ -34,8 +34,8 @@ void Window::enlist(Layer* listener) {
 
 Rectangle Window::center(Rectangle area) const {
     return {
-        x/2.0f - area.width/2.0f,
-        y/2.0f - area.height/2.0f,
+        diagonal.x*0.5f - area.width*0.5f,
+        diagonal.y*0.5f - area.height*0.5f,
         area.width,
         area.height
     };
@@ -43,8 +43,8 @@ Rectangle Window::center(Rectangle area) const {
 
 Rectangle Window::center(Rectangle area, Vector2 offset) const {
     return {
-        x/2.0f - area.width/2.0f + offset.x,
-        y/2.0f - area.height/2.0f + offset.y,
+        diagonal.x*0.5f - area.width*0.5f + offset.x,
+        diagonal.y*0.5f - area.height*0.5f + offset.y,
         area.width,
         area.height
     };
@@ -104,13 +104,14 @@ void Window::update(InputEvent input) {
         int newHeight = GetScreenHeight();
     #endif
 
-    if(newWidth != x || newHeight != y){
-        auto timeResize = std::chrono::steady_clock::now();
-        if (timeResize - timeLastResize > timeResizeRate) {
+    if(newWidth != diagonal.x || newHeight != diagonal.y){
+        if (!timer.isRunning(resizeTimerId)) {
             resize(newWidth, newHeight);
             for (auto* listener : listeners) {
                 listener->resize(newWidth, newHeight);
             }
+
+            resizeTimerId = timer.schedule(SCREEN_RESIZE_RATE, nullptr);
         }
     }
 
@@ -137,12 +138,24 @@ void Window::update(InputEvent input) {
 void Window::resize(int newWidth, int newHeight) {
     // calculate ratio based on screen diagonal
     ratio = ROUND4(sqrtf(powf(newWidth, 2.0f) + powf(newHeight, 2.0f))/unitRatio);
-    x = newWidth;
-    y = newHeight;
-    halfX = newWidth/2;
-    halfY = newHeight/2;
+
+    width = newWidth;
+    height = newHeight;
+    widthf = static_cast<float>(newWidth);
+    heightf = static_cast<float>(newHeight);
+    halfWidthf = widthf*0.5f;
+    halfHeightf = heightf*0.5f;
+    halfWidth = static_cast<int>(halfWidthf);
+    halfHeight = static_cast<int>(halfHeightf);
+
+    diagonal = { widthf, heightf };
+    extent = { halfWidthf, halfHeightf };
+    // x = newWidth;
+    // y = newHeight;
+    // halfX = newWidth/2;
+    // halfY = newHeight/2;
     unit = SCREEN_UNIT*ratio + zoomUnit*ratio;
-    timeLastResize = std::chrono::steady_clock::now();
+    // timeLastResize = std::chrono::steady_clock::now();
 
     TraceLog(LOG_INFO, "SCREEN resized %ix%i - UNIT: %f", newWidth, newHeight, unit);
 }
@@ -180,11 +193,11 @@ void Window::track(InputEvent input) {
     bool endTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_UP : IsMouseButtonReleased(MOUSE_BUTTON_MIDDLE);
 
     if (beginTrack) {
-        Vector2 origin = { static_cast<float>(halfX) + camera.offset.x, static_cast<float>(halfY) + camera.offset.y };
+        Vector2 origin = { extent.x + camera.offset.x, extent.y + camera.offset.y };
         originDelta = Vector2Subtract(origin, input.position);
     } else if (continueTrack) {
-        camera.offset.x = input.position.x - static_cast<float>(halfX) + originDelta.x;
-        camera.offset.y = input.position.y - static_cast<float>(halfY) + originDelta.y;
+        camera.offset.x = input.position.x - extent.x + originDelta.x;
+        camera.offset.y = input.position.y - extent.y + originDelta.y;
         offset.x = camera.offset.x;
         offset.y = camera.offset.y;
     } else if (endTrack) {
@@ -219,18 +232,18 @@ void Window::zoom(bool increase) {
     }
 }
 
-int Window::width() const {
-    return x;
-}
+// int Window::width() const {
+//     return x;
+// }
 
-int Window::height() const {
-    return y;
-}
+// int Window::height() const {
+//     return y;
+// }
 
-int Window::halfWidth() const {
-    return halfX;
-}
+// int Window::halfWidth() const {
+//     return halfX;
+// }
 
-int Window::halfHeight() const {
-    return halfY;
-}
+// int Window::halfHeight() const {
+//     return halfY;
+// }

@@ -23,7 +23,7 @@ class App : Layer {
     };
     RenderTexture2D target;
 
-	Window window = Window(camera);
+	Window window = Window(camera, timer);
     Surface surface = Surface(window);
 
 	World world = World(window);

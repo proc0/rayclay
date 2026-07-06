@@ -4,10 +4,10 @@
 #include "macros.hpp"
 #include "types.hpp"
 #include "defaults.hpp"
+#include "timer.hpp"
 
 // #include <box2d/types.h>
 #include <raylib.h>
-#include <chrono>
 
 //TODO: refactor to use timer instead
 //TODO: provide a way to use float or int width or height
@@ -15,39 +15,57 @@
 
 class Window {
 	Camera2D& camera;
+	Timer& timer;
+	TimerId resizeTimerId;
+
     Vector2 originDelta = { 0.0f, 0.0f };
+    Vector2 diagonal = { SCREEN_WIDTH, SCREEN_HEIGHT };
+    Vector2 extent = { SCREEN_WIDTH*0.5f, SCREEN_HEIGHT*0.5f };
+
     float const unitRatio = ROUND4(UNIT_RATIO);
-	int x;
-	int y;
-	// resize debounce, prevents too many calls for Web
-    std::chrono::milliseconds const timeResizeRate = std::chrono::milliseconds(SCREEN_RESIZE_RATE);
-    std::chrono::steady_clock::time_point timeLastResize = std::chrono::steady_clock::now();
-	int halfX;
-	int halfY;
+
+	std::vector<Layer*> listeners;
+
+
+	// int x;
+	// int y;
+	// // resize debounce, prevents too many calls for Web
+    // // std::chrono::milliseconds const timeResizeRate = std::chrono::milliseconds(SCREEN_RESIZE_RATE);
+    // // std::chrono::steady_clock::time_point timeLastResize = std::chrono::steady_clock::now();
+	// int halfX;
+	// int halfY;
+
 
 public:
     Vector2 offset = { 0.0f, 0.0f };
-	float unit;
+	float unit = SCREEN_UNIT;
 	float zoomUnit = 0.0f;
     float ratio = 1.0f;
+
+    int width = SCREEN_WIDTH;
+    int height = SCREEN_HEIGHT;
+    float widthf = static_cast<float>(SCREEN_WIDTH);
+    float heightf = static_cast<float>(SCREEN_HEIGHT);
+    float halfWidthf = widthf*0.5f;
+    float halfHeightf = heightf*0.5f;
+    int halfWidth = static_cast<int>(SCREEN_WIDTH*0.5f);
+    int halfHeight = static_cast<int>(SCREEN_HEIGHT*0.5f);
 	// int fps;
-	int width() const;
-	int height() const;
-	int halfWidth() const;
-	int halfHeight() const;
+	// int width() const;
+	// int height() const;
+	// int halfWidth() const;
+	// int halfHeight() const;
 	bool isTracking = false;
 	bool isToggleTracking = false;
 	bool isDoneTracking = false;
 
-	std::vector<Layer*> listeners;
 
-	Window(Camera2D& camera):
-		camera(camera),
-		x(SCREEN_WIDTH),
-		y(SCREEN_HEIGHT),
-		halfX(SCREEN_WIDTH/2),
-		halfY(SCREEN_HEIGHT/2),
-		unit(SCREEN_UNIT) {};
+	Window(Camera2D& camera, Timer& timer) : camera(camera), timer(timer) {};
+		// x(SCREEN_WIDTH),
+		// y(SCREEN_HEIGHT),
+		// halfX(SCREEN_WIDTH/2),
+		// halfY(SCREEN_HEIGHT/2),
+		// unit(SCREEN_UNIT) {};
 	// fps(TARGET_FPS) {};
 	~Window() = default;
 
