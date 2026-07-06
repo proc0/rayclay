@@ -9,6 +9,10 @@
 #include <raylib.h>
 #include <chrono>
 
+//TODO: refactor to use timer instead
+//TODO: provide a way to use float or int width or height
+//TODO: refactor width/height to be easier to use, make it public, figure out if getter/setter is needed or not
+
 class Window {
 	Camera2D& camera;
     Vector2 originDelta = { 0.0f, 0.0f };

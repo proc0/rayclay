@@ -14,11 +14,11 @@
 #define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(roundf(color.r)), static_cast<float>(roundf(color.g)), static_cast<float>(roundf(color.b)), static_cast<float>(roundf(color.a)) })
 #define RAYLIB_VECTOR2_TO_CLAY_VECTOR2(vector) Clay_Vector2({ .x = vector.x, .y = vector.y })
 
-#define DISPLAY_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
-#define DISPLAY_BUTTON_COLOR_BG_HL Clay_Color({ 0, 0, 0, 130 })
-#define DISPLAY_BUTTON_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
-#define DISPLAY_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
-#define DISPLAY_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
+#define SURFACE_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
+#define SURFACE_BUTTON_COLOR_BG_HL Clay_Color({ 0, 0, 0, 130 })
+#define SURFACE_BUTTON_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
+#define SURFACE_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
+#define SURFACE_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
 
 typedef enum
 {
@@ -51,7 +51,7 @@ typedef struct
 
 typedef struct DisplayButtonContext {
     void* self;
-    Action::Display action;
+    Action::Surface action;
 } DisplayButtonContext;
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
@@ -62,7 +62,7 @@ typedef struct DisplayButtonContext {
 static inline char *temp_render_buffer;
 static inline int temp_render_buffer_len;
 
-class Display : public Layer {
+class Surface : public Layer {
     Shader overlayShader;
     Camera Raylib_camera;
     Font fonts[2];
@@ -79,25 +79,25 @@ class Display : public Layer {
     int colorLoc;
 
 public:
-    const std::unordered_map<std::string, Action::Display> buttonActions = {
-        { "ButtonGameNew", Action::Display::NEW_GAME },
-        { "ButtonGameResume", Action::Display::RESUME_GAME },
-        { "ButtonMainMenu", Action::Display::MAIN_MENU },
-        { "ButtonGameLoad", Action::Display::LOAD_GAME },
-        { "ButtonOptions", Action::Display::OPTIONS },
-        { "ButtonConfirm", Action::Display::CONFIRM_RETURN_MAIN },
-        { "ButtonCancel", Action::Display::CANCEL_RETURN_MAIN },
-        { "ButtonQuit", Action::Display::QUIT_APP }
+    const std::unordered_map<std::string, Action::Surface> buttonActions = {
+        { "ButtonGameNew", Action::Surface::NEW_GAME },
+        { "ButtonGameResume", Action::Surface::RESUME_GAME },
+        { "ButtonMainMenu", Action::Surface::MAIN_MENU },
+        { "ButtonGameLoad", Action::Surface::LOAD_GAME },
+        { "ButtonOptions", Action::Surface::OPTIONS },
+        { "ButtonConfirm", Action::Surface::CONFIRM_RETURN_MAIN },
+        { "ButtonCancel", Action::Surface::CANCEL_RETURN_MAIN },
+        { "ButtonQuit", Action::Surface::QUIT_APP }
     };
 
-    Action::Display buttonAction = Action::Display::DO_NOTHING;
-    Event::Display displayEvent = Event::Display::NO_EVENT;
+    Action::Surface buttonAction = Action::Surface::DO_NOTHING;
+    Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
     // bool showOverlay = 0;
     // bool showReturnMainMenuConfirmation = 0;
     uint32_t activeTabId = 0;
 
-    Display(const Window& window): window(window) {};
-    ~Display() = default;
+    Surface(const Window& window): window(window) {};
+    ~Surface() = default;
 
     void load();
     void initOverlay();
@@ -105,28 +105,28 @@ public:
     void disableColorOverlay() const;
 
     void renderNull(Clay_RenderCommandArray& renderCommands) const;
-    void (Display::*render)(Clay_RenderCommandArray& renderCommands) const = &Display::renderNull;
+    void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderNull;
     void renderRaylib(Clay_RenderCommandArray& renderCommands) const;
 
     // void layout(GameState);
     void menuNull();
-    void (Display::*menu)() = &Display::menuNull;
+    void (Surface::*menu)() = &Surface::menuNull;
     void menuMain();
     void menuPause();
 
-    void headsUpNull(GameState);
-    void (Display::*headsUp)(GameState) = &Display::headsUpNull;
-    void headsUpGame(GameState);
+    void displayUnit(GameState);
+    void (Surface::*display)(GameState) = &Surface::displayUnit;
+    void displayGame(GameState);
     
-    Action::Display updateNull(const InputEvent& inputEvent);
-    Action::Display (Display::*update)(const InputEvent& inputEvent) = &Display::updateNull;
-    Action::Display updateMenu(const InputEvent& inputEvent);
+    Action::Surface updateNull(const InputEvent& inputEvent);
+    Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateNull;
+    Action::Surface updateMenu(const InputEvent& inputEvent);
 
     void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void resize(int width, int height);
-    void beginEvent(Event::Display);
+    void beginEvent(Event::Surface);
     void clearEvent();
     void transition(State::App, State::AppScreen);
     void unload();

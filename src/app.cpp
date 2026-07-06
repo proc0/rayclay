@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "defaults.hpp"
-#include "display.hpp"
+#include "surface.hpp"
 #include "types.hpp"
 
 #ifdef __EMSCRIPTEN__
@@ -24,13 +24,12 @@ void App::load() {
     SetExitKey(KEY_NULL);
 
 	window.load();
-    display.load();
-
-	game.load();
+    surface.load();
 	world.load();
+	game.load();
 
     window.enlist(this);
-    window.enlist(&display);
+    window.enlist(&surface);
     window.enlist(&world);
     window.enlist(&game);
 
@@ -95,7 +94,7 @@ void App::runIntro() {
         if(input.updateAnyKey()) {
             state = State::App::RUN;
             appScreen = State::AppScreen::MAIN;
-            display.transition(state, appScreen);
+            surface.transition(state, appScreen);
             world.transition(appScreen);
 
 #ifdef __EMSCRIPTEN__
@@ -128,7 +127,7 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
         DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
             { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
-        (display.*display.render)(renderCommands);
+        (surface.*surface.render)(renderCommands);
 	EndDrawing();
 }
 
@@ -169,7 +168,7 @@ Clay_RenderCommandArray App::update() {
     InputEvent inputEvent = input.update();
     window.update(inputEvent);
 
-    Action::Display displayAction = (display.*display.update)(inputEvent);
+    Action::Surface surfaceAction = (surface.*surface.update)(inputEvent);
 
     if(appScreen == State::AppScreen::GAME) {
         if(inputEvent.id == Event::Input::KEY_ESCAPE){
@@ -177,40 +176,40 @@ Clay_RenderCommandArray App::update() {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
 
-                display.transition(state, appScreen);
+                surface.transition(state, appScreen);
 
             } else if (state == State::App::RUN) {
                 TraceLog(LOG_INFO, "PAUSE");
                 state = State::App::PAUSE;
 
-                display.transition(state, appScreen);
+                surface.transition(state, appScreen);
             }
         } else if (state == State::App::PAUSE) {
 
-            if (displayAction == Action::Display::RESUME_GAME) {
+            if (surfaceAction == Action::Surface::RESUME_GAME) {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
             
-                display.transition(state, appScreen);          
+                surface.transition(state, appScreen);          
             
-            } else if (displayAction == Action::Display::MAIN_MENU) {
+            } else if (surfaceAction == Action::Surface::MAIN_MENU) {
             
-                display.beginEvent(Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
+                surface.beginEvent(Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
             
-            } else if (displayAction == Action::Display::CONFIRM_RETURN_MAIN) {
-                display.clearEvent();
+            } else if (surfaceAction == Action::Surface::CONFIRM_RETURN_MAIN) {
+                surface.clearEvent();
                 state = State::App::RUN;
                 appScreen = State::AppScreen::MAIN;
 
                 world.transition(appScreen);
                 game.transition(appScreen);
-                display.transition(state, appScreen);
+                surface.transition(state, appScreen);
 
-            } else if (displayAction == Action::Display::CANCEL_RETURN_MAIN) {
+            } else if (surfaceAction == Action::Surface::CANCEL_RETURN_MAIN) {
 
-                display.clearEvent();
+                surface.clearEvent();
             
-            } else if (displayAction == Action::Display::QUIT_APP) {
+            } else if (surfaceAction == Action::Surface::QUIT_APP) {
                 state = State::App::HALT;
                 
                 return Clay_RenderCommandArray({ 0, 0, nullptr });
@@ -221,21 +220,21 @@ Clay_RenderCommandArray App::update() {
     Clay_BeginLayout();
 	GameState gameState = (game.*game.update)(state, inputEvent);
 	(world.*world.update)();
-    (display.*display.headsUp)(gameState);
-    (display.*display.menu)();
+    (surface.*surface.display)(gameState);
+    (surface.*surface.menu)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
     if (appScreen == State::AppScreen::MAIN) {
 
-        if(displayAction == Action::Display::NEW_GAME) {
+        if(surfaceAction == Action::Surface::NEW_GAME) {
             state = State::App::RUN;
             appScreen = State::AppScreen::GAME;
             
             world.transition(appScreen);
             game.transition(appScreen);
-            display.transition(state, appScreen);
+            surface.transition(state, appScreen);
 
-        } else if (displayAction == Action::Display::QUIT_APP) {
+        } else if (surfaceAction == Action::Surface::QUIT_APP) {
             state = State::App::HALT;
         }            
     }
@@ -252,12 +251,11 @@ Clay_RenderCommandArray App::update() {
 const char* App::unload(int eventType, const void *reserved, void *self) {
     App* app = static_cast<App*>(self);
     
-    UnloadRenderTexture(app->target);
-
-    app->display.unload();
-
-	app->world.unload();
 	app->game.unload();
+	app->world.unload();
+    app->surface.unload();
+
+    UnloadRenderTexture(app->target);
 
     CloseAudioDevice();
     CloseWindow();
@@ -266,7 +264,6 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
 }
 
 void App::resize(int width, int height) {
-    TraceLog(LOG_INFO, "APP RESIZE");
     if (appScreen == State::AppScreen::INTRO) {
         game.loadRaylibLogo();
     }

@@ -1,5 +1,5 @@
 #define CLAY_IMPLEMENTATION
-#include "display.hpp"
+#include "surface.hpp"
 #include "types.hpp"
 
 #include <raylib.h>
@@ -10,7 +10,6 @@
 #include "stdlib.h"
 
 #include "config.h"
-
 
 static inline Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
     // Measure string size for Font
@@ -104,7 +103,7 @@ Ray getScreenToWorldPointWithZDistance(Vector2 position, Camera camera, int scre
     return ray;
 }
 
-void Display::load(){
+void Surface::load(){
     // 1. Query minimum memory required for default element limits
     uint64_t memorySize = Clay_MinMemorySize();
     // 2. Allocate memory (malloc, stack, or custom allocator)
@@ -127,10 +126,10 @@ void Display::load(){
     // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
 }
 
-void Display::renderNull(Clay_RenderCommandArray& renderCommands) const {
+void Surface::renderNull(Clay_RenderCommandArray& renderCommands) const {
 }
 
-void Display::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
+void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     for (int j = 0; j < renderCommands.length; j++)
     {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
@@ -290,7 +289,7 @@ void Display::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
-void Display::initOverlay() {
+void Surface::initOverlay() {
 #ifdef __EMSCRIPTEN__
     // GLSL ES 2.0 shader for WebGL 1.0 used by Emscripten for Web
     const char* overlayShaderCode = "precision mediump float\n"
@@ -333,7 +332,7 @@ void Display::initOverlay() {
     colorLoc = GetShaderLocation(overlayShader, "overlayColor");
 }
 
-// void Display::setColorOverlay(Color color) const {
+// void Surface::setColorOverlay(Color color) const {
 //     overlayEnabled = true;
 //     float colorFloat[4] = {
 //         static_cast<float>(color.r)/255.0f,
@@ -346,7 +345,7 @@ void Display::initOverlay() {
 //     BeginShaderMode(overlayShader);
 // }
 
-// void Display::disableColorOverlay() const {
+// void Surface::disableColorOverlay() const {
 //     if (overlayEnabled) {
 //         EndShaderMode();
 //         overlayEnabled = false;
@@ -356,24 +355,24 @@ void Display::initOverlay() {
 // }
 
 void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    Display* display = static_cast<Display*>(userData);
+    Surface* self = static_cast<Surface*>(userData);
     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
         std::string idStr(elementId.stringId.chars);
-        auto displayActionMatch = display->buttonActions.find(idStr.c_str());
+        auto result = self->buttonActions.find(idStr.c_str());
 
-        Action::Display displayAction = Action::Display::DO_NOTHING;
-        if (displayActionMatch != display->buttonActions.end()) {
-            displayAction = displayActionMatch->second;
+        Action::Surface action = Action::Surface::DO_NOTHING;
+        if (result != self->buttonActions.end()) {
+            action = result->second;
         } else {
-            TraceLog(LOG_ERROR, "UI DISPLAY ERROR: Button ID not found.");
+            TraceLog(LOG_ERROR, "SURFACE ERROR: Button ID not found.");
         }
 
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-    	display->buttonAction = displayAction;
+    	self->buttonAction = action;
     }
 }
 
-void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& buttonText) {
+void Surface::buttonSimple(const Clay_ElementId& elementId, const Clay_String& buttonText) {
 	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE);
 
     CLAY(elementId, { 
@@ -384,17 +383,17 @@ void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& b
             .padding = CLAY_PADDING_ALL(8),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
-        .backgroundColor = Clay_Hovered() ? DISPLAY_BUTTON_COLOR_BG_HL : DISPLAY_BUTTON_COLOR_BG,
+        .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
         .border = { 
             .color = Clay_Color({ 220, 220, 220, 255 }), 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
-        Clay_Color textColor = DISPLAY_BUTTON_COLOR_FG;
+        Clay_Color textColor = SURFACE_BUTTON_COLOR_FG;
         if (Clay_Hovered() && buttonHoverId != elementId.id) {
             buttonHoverId = elementId.id;
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-            textColor = DISPLAY_BUTTON_COLOR_FG_HL;
+            textColor = SURFACE_BUTTON_COLOR_FG_HL;
         }
     	Clay_OnHover(handleButtonClick, this);
         CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = textColor, .fontSize = 24 }));
@@ -403,13 +402,13 @@ void Display::buttonSimple(const Clay_ElementId& elementId, const Clay_String& b
 
 
 void handleButtonTabClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    Display* display = static_cast<Display*>(userData);
+    Surface* self = static_cast<Surface*>(userData);
     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
-        display->activeTabId = elementId.id;
+        self->activeTabId = elementId.id;
     }
 }
 
-void Display::buttonTab(const Clay_ElementId& elementId, const Clay_String& buttonText) {
+void Surface::buttonTab(const Clay_ElementId& elementId, const Clay_String& buttonText) {
     CLAY(elementId, { 
         .layout = {
             .sizing = { 
@@ -458,11 +457,11 @@ static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_Tr
 //     return targetState;
 // }
 
-Action::Display Display::updateNull(const InputEvent& inputEvent) {
-    return Action::Display::DO_NOTHING;
+Action::Surface Surface::updateNull(const InputEvent& inputEvent) {
+    return Action::Surface::DO_NOTHING;
 }
 
-Action::Display Display::updateMenu(const InputEvent& inputEvent) {
+Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
     bool isMouseDown = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN;
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
@@ -507,17 +506,17 @@ Action::Display Display::updateMenu(const InputEvent& inputEvent) {
         // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
     }
 
-    // Action::Display lastButtonAction = buttonAction;
-    // buttonAction = Action::Display::DO_NOTHING;
+    // Action::Surface lastButtonAction = buttonAction;
+    // buttonAction = Action::Surface::DO_NOTHING;
 
     return buttonAction;
 }
 
-void Display::menuNull() {
-    buttonAction = Action::Display::DO_NOTHING;
+void Surface::menuNull() {
+    buttonAction = Action::Surface::DO_NOTHING;
 }
 
-void Display::menuPause() {
+void Surface::menuPause() {
     CLAY(CLAY_ID("ContainerPauseMenu"), { 
         .layout = { 
             .sizing = { 
@@ -538,7 +537,7 @@ void Display::menuPause() {
                 .childGap = 16,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
-            .backgroundColor = DISPLAY_MENU_COLOR_BG,
+            .backgroundColor = SURFACE_MENU_COLOR_BG,
             .floating = { 
                 .offset = {0, 0}, 
                 .zIndex = 1, 
@@ -561,7 +560,7 @@ void Display::menuPause() {
                 SetMouseCursor(MOUSE_CURSOR_DEFAULT);
             }
 
-            if (displayEvent == Event::Display::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
+            if (surfaceEvent == Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
                 CLAY(CLAY_ID("PauseMenuConfirmationDialogue"), {
                     .layout = { 
                         .sizing = { 
@@ -628,7 +627,7 @@ void Display::menuPause() {
             // solution is to either add .transition to each text element in Clay, or allow the parent
             // to somehow force fade the children text nodes in it if a transition property is set.
             CLAY_TEXT(CLAY_STRING("Pause Menu"), CLAY_TEXT_CONFIG({ 
-                .textColor = DISPLAY_BUTTON_COLOR_FG,
+                .textColor = SURFACE_BUTTON_COLOR_FG,
                 .fontSize = 24,
             }));
 
@@ -640,10 +639,10 @@ void Display::menuPause() {
         }
     }
 
-    buttonAction = Action::Display::DO_NOTHING;
+    buttonAction = Action::Surface::DO_NOTHING;
 }
 
-void Display::menuMain() {
+void Surface::menuMain() {
     CLAY(CLAY_ID("ContainerMainMenu"), { 
         .layout = { 
             .sizing = { 
@@ -664,7 +663,7 @@ void Display::menuMain() {
                 .childGap = 16,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            .backgroundColor = DISPLAY_MENU_COLOR_BG,
+            .backgroundColor = SURFACE_MENU_COLOR_BG,
             .floating = { 
                 .offset = {0, 0}, 
                 .zIndex = 1, 
@@ -691,7 +690,7 @@ void Display::menuMain() {
             // solution is to either add .transition to each text element in Clay, or allow the parent
             // to somehow force fade the children text nodes in it if a transition property is set.
             CLAY_TEXT(CLAY_STRING("Main Menu"), CLAY_TEXT_CONFIG({ 
-                .textColor = DISPLAY_BUTTON_COLOR_FG,
+                .textColor = SURFACE_BUTTON_COLOR_FG,
                 .fontSize = 24,
             }));
 
@@ -702,12 +701,12 @@ void Display::menuMain() {
         }
     }
 
-    buttonAction = Action::Display::DO_NOTHING;
+    buttonAction = Action::Surface::DO_NOTHING;
 }
 
-void Display::headsUpNull(GameState gameState) {}
+void Surface::displayUnit(GameState gameState) {}
 
-void Display::headsUpGame(GameState gameState) {
+void Surface::displayGame(GameState gameState) {
     CLAY(CLAY_ID("HUDContainer"), { 
         .layout = { 
             .sizing = { 
@@ -773,7 +772,7 @@ void Display::headsUpGame(GameState gameState) {
     }
 }
 
-// void Display::layout(GameState gameState) {
+// void Surface::layout(GameState gameState) {
 
 //     CLAY(CLAY_ID("OuterContainer"), { 
 //     	.layout = { 
@@ -1110,17 +1109,17 @@ void Display::headsUpGame(GameState gameState) {
 
 // }
 
-void Display::beginEvent(Event::Display event) {
-    displayEvent = event;
+void Surface::beginEvent(Event::Surface event) {
+    surfaceEvent = event;
 }
 
-void Display::clearEvent() {
-    displayEvent = Event::Display::NO_EVENT;
+void Surface::clearEvent() {
+    surfaceEvent = Event::Surface::NO_EVENT;
 }
 
-void Display::handleError(Clay_ErrorData errorData) {
+void Surface::handleError(Clay_ErrorData errorData) {
     TraceLog(LOG_INFO, "%s", errorData.errorText.chars);
-    Display* self = static_cast<Display*>(errorData.userData);
+    Surface* self = static_cast<Surface*>(errorData.userData);
 
     if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
         // reinitializeClay = true;
@@ -1136,7 +1135,7 @@ void Display::handleError(Clay_ErrorData errorData) {
     Clay_Initialize(self->arena, Clay_Dimensions({ static_cast<float>(self->window.width()), static_cast<float>(self->window.height()) }), Clay_ErrorHandler({ .errorHandlerFunction = self->handleError, .userData = self }));
 }
 
-void Display::resize(int width, int height) {
+void Surface::resize(int width, int height) {
     // if (width < 720) {
     //     sidebarWidth = CLAY_SIZING_FIXED(150);
     // } else {
@@ -1146,43 +1145,43 @@ void Display::resize(int width, int height) {
 	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
 }
 
-void Display::transition(State::App appState, State::AppScreen appScreen) {
+void Surface::transition(State::App appState, State::AppScreen appScreen) {
     switch(appScreen) {
         case State::AppScreen::MAIN:
-            menu = &Display::menuMain;
-            headsUp = &Display::headsUpNull;
-            update = &Display::updateMenu;
-            render = &Display::renderRaylib;
+            menu = &Surface::menuMain;
+            display = &Surface::displayUnit;
+            update = &Surface::updateMenu;
+            render = &Surface::renderRaylib;
             break;
         case State::AppScreen::GAME:
-            render = &Display::renderRaylib;
+            render = &Surface::renderRaylib;
             switch(appState) {
                 case State::App::PAUSE:
-                    menu = &Display::menuPause;
-                    headsUp = &Display::headsUpNull;
-                    update = &Display::updateMenu;
+                    menu = &Surface::menuPause;
+                    display = &Surface::displayUnit;
+                    update = &Surface::updateMenu;
                     break;
                 case State::App::RUN:
-                    menu = &Display::menuNull;
-                    headsUp = &Display::headsUpGame;
-                    update = &Display::updateMenu;
+                    menu = &Surface::menuNull;
+                    display = &Surface::displayGame;
+                    update = &Surface::updateMenu;
                     break;
                 default:
-                    menu = &Display::menuNull;
-                    headsUp = &Display::headsUpNull;
-                    update = &Display::updateNull;
+                    menu = &Surface::menuNull;
+                    display = &Surface::displayUnit;
+                    update = &Surface::updateNull;
             }
 
             break;
         default:
-            menu = &Display::menuNull;
-            headsUp = &Display::headsUpNull;
-            update = &Display::updateNull;
-            render = &Display::renderNull;
+            menu = &Surface::menuNull;
+            display = &Surface::displayUnit;
+            update = &Surface::updateNull;
+            render = &Surface::renderNull;
     };
 }
 
-void Display::unload(){
+void Surface::unload(){
     if(temp_render_buffer) free(temp_render_buffer);
     temp_render_buffer_len = 0;
 

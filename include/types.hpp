@@ -3,7 +3,7 @@
 #include <raylib.h>
 
 namespace Action {
-    enum Display {
+    enum Surface {
         DO_NOTHING,
         NEW_GAME,
         LOAD_GAME,
@@ -41,7 +41,7 @@ namespace Event {
         FINISHED
     };
 
-    enum Display {
+    enum Surface {
         NO_EVENT,
         SHOW_RETURN_MAIN_MENU_CONFIRMATION,
     };
