@@ -33,9 +33,15 @@ void App::load() {
     window.enlist(&world);
     window.enlist(&game);
 
+    loadTarget();
+}
+
+void App::loadTarget() {
     // Render texture to draw, enables window scaling
     // NOTE: If window is scaled, mouse input should be scaled proportionally
     target = LoadRenderTexture(window.width, window.height);
+    targetSource = { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) };
+    targetDestination = { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) };
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }
 
@@ -82,20 +88,20 @@ void App::runIntro() {
 
     window.update({ .id = Event::Input::IDLE, .position = Vector2({}) });
     
-    if (appScreen == State::AppScreen::INTRO) {
+    if (screen == State::Screen::INTRO) {
         if(input.updateAnyKey() || timer.isEmpty()) {
-            appScreen = State::AppScreen::TITLE;
+            screen = State::Screen::TITLE;
         }
 
         renderLogo();
-    } else if (appScreen == State::AppScreen::TITLE) {
+    } else if (screen == State::Screen::TITLE) {
         renderTitle();
 
         if(input.updateAnyKey()) {
             state = State::App::RUN;
-            appScreen = State::AppScreen::MAIN;
-            surface.transition(state, appScreen);
-            world.transition(appScreen);
+            screen = State::Screen::MAIN;
+            surface.transition(state, screen);
+            world.transition(screen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -122,11 +128,9 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
 
 	BeginDrawing();
         ClearBackground(BLANK);
-
-        // TODO: memoize params in resize() 
-        DrawTexturePro(target.texture, { 0, 0, static_cast<float>(target.texture.width), -static_cast<float>(target.texture.height) }, 
-            { 0, 0, static_cast<float>(target.texture.width), static_cast<float>(target.texture.height) }, Vector2({}), 0.0f, WHITE);
         
+        DrawTexturePro(target.texture, targetSource, targetDestination, Vector2({}), 0.0f, WHITE);
+
         (surface.*surface.render)(renderCommands);
 	EndDrawing();
 }
@@ -164,25 +168,33 @@ void App::start() {
 }
 
 Clay_RenderCommandArray App::update() {
+
+#ifndef __EMSCRIPTEN__
+    if (WindowShouldClose()) {
+        state = State::App::HALT;
+        return Clay_RenderCommandArray({ 0, 0, nullptr });
+    }
+#endif
+
     (timer.*timer.update)();
     InputEvent inputEvent = input.update();
     window.update(inputEvent);
 
     Action::Surface surfaceAction = (surface.*surface.update)(inputEvent);
 
-    if(appScreen == State::AppScreen::GAME) {
+    if(screen == State::Screen::GAME) {
         if(inputEvent.id == Event::Input::KEY_ESCAPE){
             if(state == State::App::PAUSE) {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
 
-                surface.transition(state, appScreen);
+                surface.transition(state, screen);
 
             } else if (state == State::App::RUN) {
                 TraceLog(LOG_INFO, "PAUSE");
                 state = State::App::PAUSE;
 
-                surface.transition(state, appScreen);
+                surface.transition(state, screen);
             }
         } else if (state == State::App::PAUSE) {
 
@@ -190,7 +202,7 @@ Clay_RenderCommandArray App::update() {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
             
-                surface.transition(state, appScreen);          
+                surface.transition(state, screen);          
             
             } else if (surfaceAction == Action::Surface::MAIN_MENU) {
             
@@ -199,11 +211,11 @@ Clay_RenderCommandArray App::update() {
             } else if (surfaceAction == Action::Surface::CONFIRM_RETURN_MAIN) {
                 surface.clearEvent();
                 state = State::App::RUN;
-                appScreen = State::AppScreen::MAIN;
+                screen = State::Screen::MAIN;
 
-                world.transition(appScreen);
-                game.transition(appScreen);
-                surface.transition(state, appScreen);
+                world.transition(screen);
+                game.transition(screen);
+                surface.transition(state, screen);
 
             } else if (surfaceAction == Action::Surface::CANCEL_RETURN_MAIN) {
 
@@ -211,11 +223,23 @@ Clay_RenderCommandArray App::update() {
             
             } else if (surfaceAction == Action::Surface::QUIT_APP) {
                 state = State::App::HALT;
-                
                 return Clay_RenderCommandArray({ 0, 0, nullptr });
             }
         }
-    } 
+    } else if (screen == State::Screen::MAIN) {
+        if(surfaceAction == Action::Surface::NEW_GAME) {
+            state = State::App::RUN;
+            screen = State::Screen::GAME;
+            
+            world.transition(screen);
+            game.transition(screen);
+            surface.transition(state, screen);
+
+        } else if (surfaceAction == Action::Surface::QUIT_APP) {
+            state = State::App::HALT;
+            return Clay_RenderCommandArray({ 0, 0, nullptr });
+        }            
+    }
 
     Clay_BeginLayout();
 	GameState gameState = (game.*game.update)(state, inputEvent);
@@ -224,28 +248,16 @@ Clay_RenderCommandArray App::update() {
     (surface.*surface.menu)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
-    if (appScreen == State::AppScreen::MAIN) {
-
-        if(surfaceAction == Action::Surface::NEW_GAME) {
-            state = State::App::RUN;
-            appScreen = State::AppScreen::GAME;
-            
-            world.transition(appScreen);
-            game.transition(appScreen);
-            surface.transition(state, appScreen);
-
-        } else if (surfaceAction == Action::Surface::QUIT_APP) {
-            state = State::App::HALT;
-        }            
-    }
-
-#ifndef __EMSCRIPTEN__
-    if (WindowShouldClose()) {
-        state = State::App::HALT;
-    }
-#endif
-
     return renderCommands;
+}
+
+void App::resize(int width, int height) {
+    if (screen == State::Screen::INTRO) {
+        game.loadRaylibLogo();
+    }
+    
+    UnloadRenderTexture(target);
+    loadTarget();
 }
 
 const char* App::unload(int eventType, const void *reserved, void *self) {
@@ -263,12 +275,3 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     return nullptr;
 }
 
-void App::resize(int width, int height) {
-    if (appScreen == State::AppScreen::INTRO) {
-        game.loadRaylibLogo();
-    }
-    
-    UnloadRenderTexture(target);
-    target = LoadRenderTexture(window.width, window.height);
-    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
-}

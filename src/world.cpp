@@ -47,13 +47,13 @@ void World::updateGame(){
     }
 }
 
-void World::transition(State::AppScreen appScreen) {
-    switch(appScreen) {
-        case State::AppScreen::MAIN:
+void World::transition(State::Screen screen) {
+    switch(screen) {
+        case State::Screen::MAIN:
             update = &World::updateMain;
             render = &World::renderMain;
             break;
-        case State::AppScreen::GAME:
+        case State::Screen::GAME:
             update = &World::updateGame;
             render = &World::renderGame;
             break;

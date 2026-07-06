@@ -55,8 +55,7 @@ namespace State {
         HALT
     };
 
-    //TODO: rename to Screen
-    enum AppScreen {
+    enum Screen {
         INTRO,
         TITLE,
         MAIN,

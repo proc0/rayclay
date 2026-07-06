@@ -110,11 +110,12 @@ void Window::update(InputEvent input) {
             for (auto* listener : listeners) {
                 listener->resize(newWidth, newHeight);
             }
-
+            // debounce resize event for Web
             resizeTimerId = timer.schedule(SCREEN_RESIZE_RATE, nullptr);
         }
     }
 
+    // TODO: move middle mouse button to Input, refactor
     // zooming and panning
     Vector2 mouseWheel = GetMouseWheelMoveV();
     
@@ -150,14 +151,9 @@ void Window::resize(int newWidth, int newHeight) {
 
     diagonal = { widthf, heightf };
     extent = { halfWidthf, halfHeightf };
-    // x = newWidth;
-    // y = newHeight;
-    // halfX = newWidth/2;
-    // halfY = newHeight/2;
     unit = SCREEN_UNIT*ratio + zoomUnit*ratio;
-    // timeLastResize = std::chrono::steady_clock::now();
 
-    TraceLog(LOG_INFO, "SCREEN resized %ix%i - UNIT: %f", newWidth, newHeight, unit);
+    TraceLog(LOG_INFO, "WINDOW resized %ix%i - UNIT: %f", newWidth, newHeight, unit);
 }
 
 float Window::scale(float value) const {
@@ -231,19 +227,3 @@ void Window::zoom(bool increase) {
         zoomUnit -= amount;
     }
 }
-
-// int Window::width() const {
-//     return x;
-// }
-
-// int Window::height() const {
-//     return y;
-// }
-
-// int Window::halfWidth() const {
-//     return halfX;
-// }
-
-// int Window::halfHeight() const {
-//     return halfY;
-// }

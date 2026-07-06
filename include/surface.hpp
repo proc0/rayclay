@@ -128,6 +128,6 @@ public:
     void resize(int width, int height);
     void beginEvent(Event::Surface);
     void clearEvent();
-    void transition(State::App, State::AppScreen);
+    void transition(State::App, State::Screen);
     void unload();
 };

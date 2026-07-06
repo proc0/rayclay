@@ -22,6 +22,8 @@ class App : Layer {
         .zoom = 1.0f
     };
     RenderTexture2D target;
+    Rectangle targetSource;
+    Rectangle targetDestination;
 
 	Window window = Window(camera, timer);
     Surface surface = Surface(window);
@@ -30,13 +32,14 @@ class App : Layer {
     Game game = Game(window);
 
 	State::App state = State::App::LOAD;
-    State::AppScreen appScreen = State::AppScreen::INTRO;
+    State::Screen screen = State::Screen::INTRO;
 
 public:
 	App() {};
     ~App() = default;
 
     void load();
+    void loadTarget();
     void renderLogo() const;
     void renderTitle() const;
     static void intro(void* self);

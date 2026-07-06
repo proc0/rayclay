@@ -27,6 +27,6 @@ public:
     void updateGame();
     
     void resize(int width, int height) override;
-    void transition(State::AppScreen);
+    void transition(State::Screen);
     void unload();
 };

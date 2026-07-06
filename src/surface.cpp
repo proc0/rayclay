@@ -1145,15 +1145,15 @@ void Surface::resize(int width, int height) {
 	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
 }
 
-void Surface::transition(State::App appState, State::AppScreen appScreen) {
-    switch(appScreen) {
-        case State::AppScreen::MAIN:
+void Surface::transition(State::App appState, State::Screen screen) {
+    switch(screen) {
+        case State::Screen::MAIN:
             menu = &Surface::menuMain;
             display = &Surface::displayUnit;
             update = &Surface::updateMenu;
             render = &Surface::renderRaylib;
             break;
-        case State::AppScreen::GAME:
+        case State::Screen::GAME:
             render = &Surface::renderRaylib;
             switch(appState) {
                 case State::App::PAUSE:
