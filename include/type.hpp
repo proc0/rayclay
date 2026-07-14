@@ -78,19 +78,19 @@ namespace State {
     };
 }
 
-typedef struct InputEvent {
+struct InputEvent {
     Event::Input id;
     Vector2 position;
-} InputEvent;
+};
 
 #define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })
 
-typedef struct GameState {
+struct GameState {
     // int raylibLogoClicks;
     // int raylibLogoBounces;
     // int raylibLogoCorners;
     State::Game state;
-} GameState;
+};
 
 // typedef struct TimerEvent {
 //     uint16_t id;

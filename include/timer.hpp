@@ -13,21 +13,21 @@ using Duration = std::chrono::milliseconds;
 using Trigger = std::function<void()>;
 using TimerId = uint64_t;
 
-typedef struct TimerEvent {
+struct TimerEvent {
     TimerId id;
     TimePoint expiry;
     Trigger callback;
-    // Priority queue is a Max-Heap by default, 
-    // overload '>' for Min-Heap (earliest time first).
+    // priority queue is max-heap by default, 
+    // overload '>' for min-heap (earliest time first)
     bool operator>(const TimerEvent& other) const {
         return expiry > other.expiry;
     }
-} TimerEvent;
+};
 
 class Timer {
     std::unordered_set<TimerId> runningIds;
     std::unordered_set<TimerId> stoppedIds;
-    // Min-Heap to keep the soonest timer at the top
+    // min-heap to keep the soonest timer at the top
     std::priority_queue<TimerEvent, std::vector<TimerEvent>, std::greater<TimerEvent>> timers;
     
     TimerId nextId = 0;

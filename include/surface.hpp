@@ -20,39 +20,36 @@
 #define SURFACE_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
 #define SURFACE_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
 
-typedef enum
-{
+enum CustomLayoutElementType {
     CUSTOM_LAYOUT_ELEMENT_TYPE_3D_MODEL
-} CustomLayoutElementType;
+};
 
-typedef struct
-{
+struct CustomLayoutElement_3DModel {
     Model model;
     float scale;
     Vector3 position;
     Matrix rotation;
-} CustomLayoutElement_3DModel;
+};
 
-typedef struct
-{
+struct CustomLayoutElement {
     CustomLayoutElementType type;
     union {
         CustomLayoutElement_3DModel model;
     } customData;
-} CustomLayoutElement;
+};
 
-typedef struct
-{
+struct ScrollbarData {
     Clay_Vector2 clickOrigin;
     Clay_Vector2 positionOrigin;
     float scrollY;
     bool mouseDown;
-} ScrollbarData;
+};
 
-typedef struct DisplayButtonContext {
+struct DisplayButtonContext {
     void* self;
     Action::Surface action;
-} DisplayButtonContext;
+};
+
 // TODO: this should be a member but the render method should be const
 // needs to somehow read this to start/end shaderMode for overlay
 // static inline bool overlayEnabled = false;
@@ -89,7 +86,6 @@ public:
         { "ButtonCancel", Action::Surface::CANCEL_RETURN_MAIN },
         { "ButtonQuit", Action::Surface::QUIT_APP }
     };
-
     Action::Surface buttonAction = Action::Surface::DO_NOTHING;
     Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
     // bool showOverlay = 0;
