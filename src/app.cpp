@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "defaults.hpp"
-#include "types.hpp"
+#include "type.hpp"
 
 #include "raylib.h"
 

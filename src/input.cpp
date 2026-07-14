@@ -1,5 +1,5 @@
 #include "input.hpp"
-#include "types.hpp"
+#include "type.hpp"
 
 #include <raylib.h>
 

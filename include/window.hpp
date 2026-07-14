@@ -1,7 +1,7 @@
 #pragma once
 
 #include "macros.hpp"
-#include "types.hpp"
+#include "type.hpp"
 #include "defaults.hpp"
 #include "timer.hpp"
 

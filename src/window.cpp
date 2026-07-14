@@ -1,7 +1,7 @@
 #include "window.hpp"
 
 #include "defaults.hpp"
-#include "types.hpp"
+#include "type.hpp"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>

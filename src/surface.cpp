@@ -1,6 +1,6 @@
 #define CLAY_IMPLEMENTATION
 #include "surface.hpp"
-#include "types.hpp"
+#include "type.hpp"
 
 #include <raylib.h>
 #include <raymath.h>

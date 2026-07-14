@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include "type.hpp"
 #include "timer.hpp"
 #include "input.hpp"
 #include "window.hpp"

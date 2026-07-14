@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include "type.hpp"
 #include "window.hpp"
 
 #include "raylib.h"
@@ -8,7 +8,7 @@
 class Logo : public Layer {
     const char* logoName = "proc0";
     int logoFontSize = 108;
-    
+
     const char* rlLogoName = "raylib";
     const int rlLogoFontSize = 40;
     const float rlLogoSize = 200;
