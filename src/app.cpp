@@ -78,8 +78,14 @@ void App::intro(void* self) {
 }
 
 void App::runIntro() {
-    (timer.*timer.update)();
 
+#ifndef __EMSCRIPTEN__
+    if (WindowShouldClose()) {
+        state = State::App::HALT;
+    }
+#endif
+
+    (timer.*timer.update)();
     window.update(DEFAULT_INPUT);
     
     if (screen == State::Screen::INTRO) {
@@ -88,7 +94,7 @@ void App::runIntro() {
         }
 
         BeginDrawing();
-        logo.render();
+            logo.render();
         EndDrawing();
 
     } else if (screen == State::Screen::TITLE) {
@@ -106,30 +112,21 @@ void App::runIntro() {
         }
 
         BeginDrawing();
-        game.renderTitle();
+            game.renderTitle();
         EndDrawing();
     }
-
-#ifndef __EMSCRIPTEN__
-    if (WindowShouldClose()) {
-        state = State::App::HALT;
-    }
-#endif
 }
 
 void App::render(Clay_RenderCommandArray& renderCommands) const {
     BeginTextureMode(target);
         ClearBackground(BLANK);
-        
         (world.*world.render)();
         (game.*game.render)();
     EndTextureMode();
 
 	BeginDrawing();
         ClearBackground(BLANK);
-        
         DrawTexturePro(target.texture, targetSource, targetDestination, Vector2({}), 0.0f, WHITE);
-
         (surface.*surface.render)(renderCommands);
 	EndDrawing();
 }
