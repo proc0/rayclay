@@ -1,11 +1,11 @@
 #pragma once
 
-#include "window.hpp"
 #include "types.hpp"
+#include "window.hpp"
 
 #include "clay.h" // IWYU pragma: export
+#include "raylib.h"
 
-#include <raylib.h>
 #include <string>
 #include <unordered_map>
 

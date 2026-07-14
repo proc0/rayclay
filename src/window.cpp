@@ -21,16 +21,9 @@ void Window::enlist(Layer* listener) {
     listeners.push_back(listener);
 }
 
-// float Window::adapt(float value) const {
-//     return value * unit;
-// }
-
-// Vector2 Window::adapt(b2Vec2 area) const {
-//     return {
-//         area.x * unit,
-//         area.y * unit
-//     };
-// }
+float Window::adapt(float value) const {
+    return value * unit;
+}
 
 Rectangle Window::center(Rectangle area) const {
     return {
@@ -50,39 +43,9 @@ Rectangle Window::center(Rectangle area, Vector2 offset) const {
     };
 }
 
-// float Window::convert(float value) const {
-//     return value * unit/SCREEN_UNIT;
-// }
-
-// Vector2 Window::convert(b2Vec2 area) const {
-//     return {
-//         area.x * unit/SCREEN_UNIT,
-//         area.y * unit/SCREEN_UNIT
-//     };
-// }
-
-// Rectangle Window::project(Rectangle area) const {
-//     return {
-//         halfX + area.x * unit,
-//         halfY - area.y * unit,
-//         adapt(area.width),
-//         adapt(area.height)
-//     };
-// }
-
-// Vector2 Window::project(b2Vec2 point) const {
-//     return {
-//         halfX + point.x * unit,
-//         halfY - point.y * unit
-//     };
-// }
-
-// b2Vec2 Window::inject(Vector2 point) const {
-//     return {
-//         ((point.x  - camera.offset.x - halfX) / unit),
-//         ((halfY - point.y + camera.offset.y) / unit)
-//     };
-// }
+float Window::convert(float value) const {
+    return value * unit/SCREEN_UNIT;
+}
 
 #if __EMSCRIPTEN__
 EM_JS(int, getWindowWidth, (), {

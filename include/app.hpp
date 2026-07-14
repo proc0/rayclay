@@ -1,14 +1,14 @@
 #pragma once
 
 #include "types.hpp"
-#include "input.hpp"
 #include "timer.hpp"
+#include "input.hpp"
 #include "window.hpp"
-#include "game.hpp"
 #include "world.hpp"
+#include "game.hpp"
+#include "logo.hpp"
 
 #include "surface.hpp"
-
 #include "clay.h"
 
 class App : Layer {
@@ -30,7 +30,8 @@ class App : Layer {
 
 	World world = World(window);
     Game game = Game(window);
-
+    Logo logo = Logo(window);
+    
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;
 
@@ -40,14 +41,18 @@ public:
 
     void load();
     void loadTarget();
-    void renderLogo() const;
-    void renderTitle() const;
-    static void intro(void* self);
-    void render(Clay_RenderCommandArray& renderCommands) const;
-    static void run(void* self);
-    void runIntro();
     void start();
+    
+    // void renderLogo() const;
+    void renderTitle() const;
+    
+    void render(Clay_RenderCommandArray& renderCommands) const;
     Clay_RenderCommandArray update();
+    
+    void runIntro();
+    static void intro(void* self);
+    static void run(void* self);
     static const char* unload(int eventType, const void *reserved, void *self);
+    
     void resize(int width, int height) override;
 };

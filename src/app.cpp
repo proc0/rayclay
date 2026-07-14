@@ -2,14 +2,14 @@
 
 #include "config.h"
 #include "defaults.hpp"
-#include "surface.hpp"
 #include "types.hpp"
+
+#include "raylib.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #endif
-#include <raylib.h>
 
 void App::load() {
 #if DEBUG == 0
@@ -27,11 +27,13 @@ void App::load() {
     surface.load();
 	world.load();
 	game.load();
+    logo.load();
 
     window.enlist(this);
     window.enlist(&surface);
     window.enlist(&world);
     window.enlist(&game);
+    window.enlist(&logo);
 
     loadTarget();
 }
@@ -45,19 +47,87 @@ void App::loadTarget() {
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 }
 
-void App::renderLogo() const {
-    const char* logoName = "proc0";
-    int logoFontSize = 108;
-    float logoSize = MeasureText(logoName, logoFontSize);
-    int logoX = window.halfWidth - logoSize/2;
-    int logoY = window.halfHeight - logoFontSize/2;
+void App::start() {
+    // set intro timer
+    timer.schedule(INTRO_TIME_MS, nullptr);
+    
+#ifdef __EMSCRIPTEN__
+    // no target FPS (3rd param) to allow browser to optimize frame rate
+    // set simulate infinite loop (4th param) to 0 to let the rest of the function execute
+    // emscripten_set_main_loop_arg(run, this, 0, 0);
+    // if any performance issues on Web, skip intro and set this to run
+    emscripten_set_main_loop_arg(intro, this, 0, 1);
+    // unload assets before quitting app on Web
+    emscripten_set_beforeunload_callback(this, unload);
+#else
+    SetTargetFPS(TARGET_FPS);
 
-    BeginDrawing();
-        ClearBackground(RAYWHITE);
-        game.renderRaylibLogo();
-        DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
-    EndDrawing();
+    while (state != State::App::RUN && state != State::App::HALT) {
+        intro(this);
+    }
+
+    while (state != State::App::HALT) {
+        run(this);
+    }
+#endif
 }
+
+void App::intro(void* self) {
+    App* app = static_cast<App*>(self);
+    app->runIntro();
+}
+
+void App::runIntro() {
+    (timer.*timer.update)();
+
+    window.update(DEFAULT_INPUT);
+    
+    if (screen == State::Screen::INTRO) {
+        if(input.updateAnyKey() || timer.isEmpty()) {
+            screen = State::Screen::TITLE;
+        }
+
+        BeginDrawing();
+        logo.render();
+        EndDrawing();
+
+    } else if (screen == State::Screen::TITLE) {
+        if(input.updateAnyKey()) {
+            state = State::App::RUN;
+            screen = State::Screen::MAIN;
+            surface.transition(state, screen);
+            world.transition(screen);
+
+#ifdef __EMSCRIPTEN__
+            // cancel the main loop before setting it to run
+            emscripten_cancel_main_loop();
+            emscripten_set_main_loop_arg(run, this, 0, 0);
+#endif
+        }
+
+        renderTitle();
+    }
+
+#ifndef __EMSCRIPTEN__
+    if (WindowShouldClose()) {
+        state = State::App::HALT;
+    }
+#endif
+}
+
+// void App::renderLogo() const {
+//     const char* logoName = "proc0";
+//     int logoFontSize = 108;
+//     float logoSize = MeasureText(logoName, logoFontSize);
+//     int logoX = window.halfWidth - logoSize/2;
+//     int logoY = window.halfHeight - logoFontSize/2;
+
+//     BeginDrawing();
+//         ClearBackground(RAYWHITE);
+//         game.renderRaylibLogo();
+//         DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
+//     EndDrawing();
+// }
 
 void App::renderTitle() const {
     const char* gameTitle = "GAME TITLE";
@@ -78,45 +148,6 @@ void App::renderTitle() const {
     EndDrawing();
 }
 
-void App::intro(void* self) {
-    App* app = static_cast<App*>(self);
-    app->runIntro();
-}
-
-void App::runIntro() {
-    (timer.*timer.update)();
-
-    window.update({ .id = Event::Input::IDLE, .position = Vector2({}) });
-    
-    if (screen == State::Screen::INTRO) {
-        if(input.updateAnyKey() || timer.isEmpty()) {
-            screen = State::Screen::TITLE;
-        }
-
-        renderLogo();
-    } else if (screen == State::Screen::TITLE) {
-        renderTitle();
-
-        if(input.updateAnyKey()) {
-            state = State::App::RUN;
-            screen = State::Screen::MAIN;
-            surface.transition(state, screen);
-            world.transition(screen);
-
-#ifdef __EMSCRIPTEN__
-            // cancel the main loop before setting it to run
-            emscripten_cancel_main_loop();
-            emscripten_set_main_loop_arg(run, app, 0, 0);
-#endif
-        }
-    }
-
-#ifndef __EMSCRIPTEN__
-    if (WindowShouldClose()) {
-        state = State::App::HALT;
-    }
-#endif
-}
 
 void App::render(Clay_RenderCommandArray& renderCommands) const {
     BeginTextureMode(target);
@@ -142,30 +173,6 @@ void App::run(void* self) {
     app->render(renderCommands);
 }
 
-void App::start() {
-    // set intro timer
-    timer.schedule(INTRO_TIME_MS, nullptr);
-	
-#ifdef __EMSCRIPTEN__
-    // no target FPS (3rd param) to allow browser to optimize frame rate
-    // set simulate infinite loop (4th param) to 0 to let the rest of the function execute (on Web)
-    emscripten_set_main_loop_arg(intro, this, 0, 1);
-    // set the main loop directly to run here if any performance issues on Web
-    // and set the App state to Run before running
-    // emscripten_set_main_loop_arg(run, this, 0, 0);
-    emscripten_set_beforeunload_callback(this, unload);
-#else
-    SetTargetFPS(TARGET_FPS);
-
-    while (state != State::App::RUN && state != State::App::HALT) {
-        intro(this);
-    }
-
-    while (state != State::App::HALT) {
-        run(this);
-    }
-#endif
-}
 
 Clay_RenderCommandArray App::update() {
 
@@ -251,11 +258,7 @@ Clay_RenderCommandArray App::update() {
     return renderCommands;
 }
 
-void App::resize(int width, int height) {
-    if (screen == State::Screen::INTRO) {
-        game.loadRaylibLogo();
-    }
-    
+void App::resize(int width, int height) {    
     UnloadRenderTexture(target);
     loadTarget();
 }

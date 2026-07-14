@@ -727,7 +727,7 @@ void Surface::displayGame(GameState gameState) {
             },
         }) {            
             // std::string&& numClicks = std::format("COUNTER: {}", gameState.raylibLogoClicks);
-            const char* numClicksText = TextFormat("COUNTER: %d", gameState.raylibLogoClicks);
+            const char* numClicksText = TextFormat("COUNTER: %d", 10);
             Clay_String numClicksClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numClicksText)), .chars = numClicksText };
             // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
             CLAY_TEXT(numClicksClayString, CLAY_TEXT_CONFIG({
@@ -744,7 +744,7 @@ void Surface::displayGame(GameState gameState) {
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
             },
         }) {    
-            const char* numBouncesText = TextFormat("BOUNCES: %d", gameState.raylibLogoBounces);
+            const char* numBouncesText = TextFormat("BOUNCES: %d", 10);
             Clay_String numBouncesClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numBouncesText)), .chars = numBouncesText };
             // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
             CLAY_TEXT(numBouncesClayString, CLAY_TEXT_CONFIG({ 
@@ -761,7 +761,7 @@ void Surface::displayGame(GameState gameState) {
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
             },
         }) {    
-            const char* numCornersText = TextFormat("CORNERS: %d", gameState.raylibLogoCorners);
+            const char* numCornersText = TextFormat("CORNERS: %d", 10);
             Clay_String numCornersClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numCornersText)), .chars = numCornersText };
             // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
             CLAY_TEXT(numCornersClayString, CLAY_TEXT_CONFIG({ 

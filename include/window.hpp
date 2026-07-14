@@ -1,13 +1,11 @@
 #pragma once
 
-// #include "units.hpp"
 #include "macros.hpp"
 #include "types.hpp"
 #include "defaults.hpp"
 #include "timer.hpp"
 
-// #include <box2d/types.h>
-#include <raylib.h>
+#include "raylib.h"
 
 class Window {
 	Camera2D& camera;
@@ -45,13 +43,8 @@ public:
 	~Window() = default;
 
 	void load();
-	// float adapt(float value) const;
-	// Vector2 adapt(b2Vec2 area) const;
-	// float convert(float value) const;
-	// Vector2 convert(b2Vec2 area) const;
-	// Vector2 project(b2Vec2 point) const;
-	// Rectangle project(Rectangle area) const;
-	// b2Vec2 inject(Vector2 point) const;
+	float adapt(float value) const;
+	float convert(float value) const;
 	void enlist(Layer* listener);
 	void resize(int newWidth, int newHeight);
 	float scale(float value) const;

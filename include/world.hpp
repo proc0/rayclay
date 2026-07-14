@@ -1,9 +1,9 @@
 #pragma once
 
-#include "window.hpp"
 #include "types.hpp"
+#include "window.hpp"
 
-#include <raylib.h>
+#include "raylib.h"
 
 class World : public Layer {
     Sound splat;

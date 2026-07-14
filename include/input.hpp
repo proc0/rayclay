@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 
-#include <raylib.h>
+#include "raylib.h"
 
 class Input {
     int currentGesture = GESTURE_NONE;

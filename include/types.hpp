@@ -1,6 +1,6 @@
 #pragma once
 
-#include <raylib.h>
+#include "raylib.h"
 
 namespace Action {
     enum Surface {
@@ -83,10 +83,13 @@ typedef struct InputEvent {
     Vector2 position;
 } InputEvent;
 
+#define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })
+
 typedef struct GameState {
-    int raylibLogoClicks;
-    int raylibLogoBounces;
-    int raylibLogoCorners;
+    // int raylibLogoClicks;
+    // int raylibLogoBounces;
+    // int raylibLogoCorners;
+    State::Game state;
 } GameState;
 
 // typedef struct TimerEvent {
@@ -97,5 +100,5 @@ typedef struct GameState {
 class Layer {
 public:
     virtual ~Layer() = default;
-    virtual void resize(int width, int height) = 0;
+    virtual void resize(int width, int height) {};
 };
