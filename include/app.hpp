@@ -43,9 +43,6 @@ public:
     void loadTarget();
     void start();
     
-    // void renderLogo() const;
-    void renderTitle() const;
-    
     void render(Clay_RenderCommandArray& renderCommands) const;
     Clay_RenderCommandArray update();
     

@@ -42,7 +42,7 @@ void Logo::render() const {
 }
 
 void Logo::resize(int width, int height) {
-
+    load();
 }
 
 void Logo::unload() {

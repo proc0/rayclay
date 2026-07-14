@@ -51,7 +51,7 @@ namespace State {
     enum App {
         LOAD,
         RUN,
-        PAUSE,
+        HOLD,
         HALT
     };
 
@@ -65,9 +65,9 @@ namespace State {
     enum Game {
         START,
         PLAY,
-        HOLD,
+        PAUSE,
         OVER,
-        END
+        FINISH
     };
 
     enum Pointer {

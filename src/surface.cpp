@@ -1156,7 +1156,7 @@ void Surface::transition(State::App appState, State::Screen screen) {
         case State::Screen::GAME:
             render = &Surface::renderRaylib;
             switch(appState) {
-                case State::App::PAUSE:
+                case State::App::HOLD:
                     menu = &Surface::menuPause;
                     display = &Surface::displayUnit;
                     update = &Surface::updateMenu;

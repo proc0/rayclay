@@ -105,7 +105,9 @@ void App::runIntro() {
 #endif
         }
 
-        renderTitle();
+        BeginDrawing();
+        game.renderTitle();
+        EndDrawing();
     }
 
 #ifndef __EMSCRIPTEN__
@@ -114,40 +116,6 @@ void App::runIntro() {
     }
 #endif
 }
-
-// void App::renderLogo() const {
-//     const char* logoName = "proc0";
-//     int logoFontSize = 108;
-//     float logoSize = MeasureText(logoName, logoFontSize);
-//     int logoX = window.halfWidth - logoSize/2;
-//     int logoY = window.halfHeight - logoFontSize/2;
-
-//     BeginDrawing();
-//         ClearBackground(RAYWHITE);
-//         game.renderRaylibLogo();
-//         DrawText(logoName, logoX, logoY, logoFontSize, BLACK);
-//     EndDrawing();
-// }
-
-void App::renderTitle() const {
-    const char* gameTitle = "GAME TITLE";
-    int titleFontSize = 128;
-    float titleSize = MeasureText(gameTitle, titleFontSize);
-    int titleX = window.halfWidth - titleSize/2;
-    int titleY = window.halfHeight - titleFontSize/2;
-
-    const char* subtitle = "Press any key";
-    int subtitleFontSize = 32;
-    float subtitleSize = MeasureText(subtitle, subtitleFontSize);
-    int subtitleX = window.halfWidth - subtitleSize/2;
-    int subtitleY = static_cast<int>(window.height - window.height*0.25f - subtitleFontSize*0.5f);
-    BeginDrawing();
-        ClearBackground(BLANK);
-        DrawText(gameTitle, titleX, titleY, titleFontSize, RAYWHITE);
-        DrawText(subtitle, subtitleX, subtitleY, subtitleFontSize, RAYWHITE);
-    EndDrawing();
-}
-
 
 void App::render(Clay_RenderCommandArray& renderCommands) const {
     BeginTextureMode(target);
@@ -191,7 +159,7 @@ Clay_RenderCommandArray App::update() {
 
     if(screen == State::Screen::GAME) {
         if(inputEvent.id == Event::Input::KEY_ESCAPE){
-            if(state == State::App::PAUSE) {
+            if(state == State::App::HOLD) {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
 
@@ -199,11 +167,11 @@ Clay_RenderCommandArray App::update() {
 
             } else if (state == State::App::RUN) {
                 TraceLog(LOG_INFO, "PAUSE");
-                state = State::App::PAUSE;
+                state = State::App::HOLD;
 
                 surface.transition(state, screen);
             }
-        } else if (state == State::App::PAUSE) {
+        } else if (state == State::App::HOLD) {
 
             if (surfaceAction == Action::Surface::RESUME_GAME) {
                 TraceLog(LOG_INFO, "UNPAUSE");
