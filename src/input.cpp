@@ -1,7 +1,8 @@
 #include "input.hpp"
+
 #include "type.hpp"
 
-#include <raylib.h>
+#include "raylib.h"
 
 InputEvent Input::update() {
 

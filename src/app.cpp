@@ -1,7 +1,7 @@
 #include "app.hpp"
 
-#include "config.h"
-#include "defaults.hpp"
+#include "index.h"
+#include "config.hpp"
 #include "type.hpp"
 
 #include "raylib.h"

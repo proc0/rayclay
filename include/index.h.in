@@ -6,6 +6,8 @@
 #define DATE_BUILD "@DATE_BUILD@"
 #define DIR_ASSETS "@DIR_ASSETS@"
 
+#define TITLE_HINT "Press any key to continue."
+
 #define PATH_ASSET(filename) DIR_ASSETS "/" filename
 
 #define URI_SOUND_SPLAT "splat1.wav"

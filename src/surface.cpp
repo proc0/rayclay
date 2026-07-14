@@ -1,15 +1,17 @@
 #define CLAY_IMPLEMENTATION
 #include "surface.hpp"
+
+#include "index.h"
 #include "type.hpp"
 
-#include <raylib.h>
-#include <raymath.h>
-#include "stdint.h"
-#include <cstring>
-#include "stdio.h"
-#include "stdlib.h"
+#include "raylib.h"
+#include "raymath.h"
 
-#include "config.h"
+#include <stdint.h>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 static inline Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
     // Measure string size for Font

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <raymath.h>
-
 #define TARGET_FPS 120
 // screen defaults
 #define SCREEN_WIDTH 1280
@@ -13,3 +11,4 @@
 #define UNIT_RATIO (sqrtf(powf(static_cast<float>(SCREEN_WIDTH), 2.0f) + powf(static_cast<float>(SCREEN_HEIGHT), 2.0f)))
 
 #define INTRO_TIME_MS 3000
+

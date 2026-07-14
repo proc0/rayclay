@@ -1,13 +1,14 @@
 #include "window.hpp"
 
-#include "defaults.hpp"
+#include "config.hpp"
 #include "type.hpp"
+
+#include "raylib.h"
+#include "raymath.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
-#include <raylib.h>
-#include <raymath.h>
 
 void Window::load() {
     // initialize the screen size for Web

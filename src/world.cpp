@@ -1,7 +1,7 @@
 #include "world.hpp"
 
-#include "config.h"
-// #include "defaults.hpp"
+#include "index.h"
+// #include "config.hpp"
 
 #include <string>
 

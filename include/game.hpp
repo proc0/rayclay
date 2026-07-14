@@ -1,18 +1,16 @@
 #pragma once
 
+#include "index.h"
 #include "type.hpp"
-// #include "defaults.hpp"
 #include "window.hpp"
 
-// #include "raylib.h"
-
 class Game : public Layer {
-    const char* title = "GAME TITLE";
+    const char* title = PROJECT_NAME;
     int titleFontSize = 128;
     float titleX;
     float titleY;
 
-    const char* titleHint = "Press any key";
+    const char* titleHint = TITLE_HINT;
     int titleHintFontSize = 32;
     float titleHintX;
     float titleHintY;
@@ -32,7 +30,6 @@ public:
     GameState (Game::*update)(State::App, InputEvent) = &Game::updateNull;
     
     void load();
-    void loadRaylibLogo();
 
     void renderNull() const;
     void renderGame() const;

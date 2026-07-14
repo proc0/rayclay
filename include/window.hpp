@@ -1,8 +1,8 @@
 #pragma once
 
-#include "macros.hpp"
 #include "type.hpp"
-#include "defaults.hpp"
+#include "config.hpp"
+#include "macros.hpp"
 #include "timer.hpp"
 
 #include "raylib.h"

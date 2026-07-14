@@ -16,9 +16,9 @@ option(USE_RAYLIB_LOCAL "Use a local static build" OFF)
 
 set(DIR_SOURCE "src" CACHE STRING "Project source files folder name")
 set(DIR_INCLUDE "include" CACHE STRING "Project header files folder name")
-set(DIR_ASSETS "assets" CACHE STRING "Project assets folder name")
+set(DIR_ASSETS "asset" CACHE STRING "Project assets folder name")
 set(DIR_INSTALL "dist" CACHE STRING "Project install folder name")
-set(FILE_CONFIG "config" CACHE STRING "Optional config file name in include folder")
+set(FILE_CONFIG "index" CACHE STRING "Optional config file name in include folder")
 # Generate compile_commands.json for LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #                      LOCAL LIB PATHS

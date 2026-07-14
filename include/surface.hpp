@@ -3,7 +3,7 @@
 #include "type.hpp"
 #include "window.hpp"
 
-#include "clay.h" // IWYU pragma: export
+#include "clay.h" 
 #include "raylib.h"
 
 #include <string>
