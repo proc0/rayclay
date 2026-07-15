@@ -22,6 +22,7 @@ class Surface : public Layer {
 public:
     Widget widget;
 
+    Event::Surface lastEvent = Event::Surface::NO_EVENT;
     Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
 
     Surface(const Window& window): window(window) {};

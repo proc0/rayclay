@@ -434,12 +434,22 @@ void Surface::layoutTutorial() {
     CLAY(CLAY_ID("containerTutorial"), {
         .layout = { 
          .sizing = { 
-             .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0),
+            .width = CLAY_SIZING_PERCENT(0.5f),
+            .height = CLAY_SIZING_PERCENT(0.8f),
          }, 
-         .padding = { 72, 72, 72, 72 }, 
-         .childGap = 16, 
+         .padding = { 48, 48, 48, 0 }, 
+         // .childGap = 16, 
          .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = SURFACE_MENU_COLOR_BG,
+        .floating = { 
+            .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
         },
         .clip = { 
          .vertical = true, 
@@ -449,8 +459,8 @@ void Surface::layoutTutorial() {
     }) {
         CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
             CLAY_TEXT_CONFIG({ 
-                .textColor = {0,0,0,255}, 
-                .fontSize = 48,
+                .textColor = CLAY_WHITE, 
+                .fontSize = 28,
                 .letterSpacing = 0, 
                 .lineHeight = 30,
                 .textAlignment = CLAY_TEXT_ALIGN_LEFT 
@@ -458,15 +468,37 @@ void Surface::layoutTutorial() {
 
         CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
             CLAY_TEXT_CONFIG({ 
-                .textColor = {0,0,0,255}, 
-                .fontSize = 48,
+                .textColor = CLAY_WHITE, 
+                .fontSize = 28,
                 .letterSpacing = 0, 
                 .lineHeight = 30,
                 .textAlignment = CLAY_TEXT_ALIGN_LEFT 
             }));
 
-        const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_TUTORIAL);
-        widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+        CLAY(CLAY_ID("containerTutorialConfirm"), {
+            .layout = { 
+             .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_PERCENT(0.2f),
+             }, 
+             .padding = { 48, 48, 48, 0 }, 
+             // .childGap = 16, 
+             .layoutDirection = CLAY_TOP_TO_BOTTOM 
+            },
+            // .backgroundColor = SURFACE_MENU_COLOR_BG,
+            .floating = { 
+                .offset = { 0, 0 }, 
+                .zIndex = 2, 
+                .attachPoints = { 
+                    CLAY_ATTACH_POINT_CENTER_CENTER, 
+                    CLAY_ATTACH_POINT_CENTER_BOTTOM 
+                }, 
+                .attachTo = CLAY_ATTACH_TO_PARENT 
+            },
+        }) {        
+            const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_TUTORIAL);
+            widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+        }
     }
 }
 
@@ -1075,11 +1107,13 @@ void Surface::layoutDisplayGame(GameState gameState) {
 // }
 
 void Surface::beginEvent(Event::Surface event) {
+    lastEvent = surfaceEvent;
     surfaceEvent = event;
 }
 
 void Surface::clearEvent() {
-    surfaceEvent = Event::Surface::NO_EVENT;
+    surfaceEvent = lastEvent;
+    lastEvent = Event::Surface::NO_EVENT;
 }
 
 void Surface::handleError(Clay_ErrorData errorData) {
@@ -1123,14 +1157,7 @@ void Surface::transition(State::App appState, State::Screen screen) {
 
             switch(appState) {
                 case State::App::HOLD:
-                    if (surfaceEvent == Event::Surface::SHOW_TUTORIAL) {
-                        layoutMenu = &Surface::layoutTutorial;
-                    } else {
-                        // TODO: this implicitly assumes pause on APP::HOLD
-                        // should there be explicit PAUSE state passed in
-                        // or should updateMenu or equivalent set its own state?
-                        layoutMenu = &Surface::layoutMenuPause;
-                    }
+                    layoutMenu      = &Surface::layoutMenuPause;
                     layoutDisplay   = &Surface::layoutDisplayUnit;
                     update          = &Surface::updateMenu;
                     break;

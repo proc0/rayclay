@@ -154,7 +154,11 @@ Clay_RenderCommandArray App::update() {
 
     Action::Surface surfaceAction = (surface.*surface.update)(inputEvent);
 
+    // TODO: implement app member function pointer state transitions
+    // and transition self into different functions depending on screen
     if(screen == State::Screen::GAME) {
+        // Game screen input events
+        //-----------------------------
         if(inputEvent.id == Event::Input::KEY_ESCAPE){
             if(state == State::App::HOLD) {
                 TraceLog(LOG_INFO, "UNPAUSE");
@@ -168,7 +172,9 @@ Clay_RenderCommandArray App::update() {
 
                 surface.transition(state, screen);
             }
-        } else if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
+        }
+
+        if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
             state = State::App::RUN;
             // screen = State::Screen::GAME;
             
@@ -179,7 +185,7 @@ Clay_RenderCommandArray App::update() {
             surface.transition(state, screen);
 
         } else if (state == State::App::HOLD) {
-
+            // pause button events
             if (surfaceAction == Action::Surface::RESUME_GAME) {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
@@ -209,11 +215,16 @@ Clay_RenderCommandArray App::update() {
             }
         }
     } else if (screen == State::Screen::MAIN) {
+        // Main screen input events
+        //-----------------------------
         if(surfaceAction == Action::Surface::NEW_GAME) {
             // state = State::App::RUN;
+            // TODO: confirm the screen state can move to game
+            // while tutorial window is showing, so that the game
+            // can show in the background. Might require extra state.
             screen = State::Screen::GAME;
             surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
-            
+            // transition world to start showing in background
             world.transition(screen);
             surface.transition(state, screen);
 
