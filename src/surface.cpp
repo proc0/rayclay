@@ -126,7 +126,9 @@ Ray getScreenToWorldPointWithZDistance(Vector2 position, Camera camera, int scre
 
     return ray;
 }
-    
+
+// A MALLOC'd buffer, that we keep modifying inorder to save from so many Malloc and Free Calls.
+// frees in unload method
 static inline char *temp_render_buffer;
 static inline int temp_render_buffer_len;
 
@@ -463,10 +465,10 @@ void Surface::menuPause() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
-            if (Clay_Hovered() && buttonHoverId != contentPauseMenuId.id) {
-                buttonHoverId = contentPauseMenuId.id;
-                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-            }
+            // if (Clay_Hovered() && buttonHoverId != contentPauseMenuId.id) {
+            //     buttonHoverId = contentPauseMenuId.id;
+            //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            // }
 
             if (surfaceEvent == Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
                 CLAY(CLAY_ID("PauseMenuConfirmationDialogue"), {
@@ -597,10 +599,10 @@ void Surface::menuMain() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
-            if (Clay_Hovered() && buttonHoverId != contentMainMenuId.id) {
-                buttonHoverId = contentMainMenuId.id;
-                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-            }
+            // if (Clay_Hovered() && buttonHoverId != contentMainMenuId.id) {
+            //     buttonHoverId = contentMainMenuId.id;
+            //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            // }
             // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
             // and as a result any fading on the parent leave the text unchange and looks jarring.
             // solution is to either add .transition to each text element in Clay, or allow the parent

@@ -47,10 +47,6 @@ void Widget::layoutTab(const BUTTON_ID id, const Clay_ElementId& elementId, cons
         }, 
         .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE),
     }) {
-        // if (Clay_Hovered() && buttonHoverId != elementId.id) {
-        //     buttonHoverId = elementId.id;
-        //     SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-        // }
         onButtonHover(id, Clay_Hovered());
         Clay_OnHover(onButtonClick, this);
         CLAY_TEXT(label, CLAY_TEXT_CONFIG({ .textColor = { 255, 255, 255, 255 }, .fontSize = 24 }));
