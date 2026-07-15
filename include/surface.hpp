@@ -28,8 +28,8 @@ public:
     ~Surface() = default;
 
     void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderUnit;
-    void (Surface::*menu)() = &Surface::menuUnit;
-    void (Surface::*display)(GameState) = &Surface::displayUnit;
+    void (Surface::*layoutMenu)() = &Surface::layoutMenuUnit;
+    void (Surface::*layoutDisplay)(GameState) = &Surface::layoutDisplayUnit;
     Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateUnit;
 
     void load();
@@ -38,17 +38,13 @@ public:
     void renderUnit(Clay_RenderCommandArray& renderCommands) const {};
     void renderRaylib(Clay_RenderCommandArray& renderCommands) const;
 
-    // void layout(GameState);
-    void menuUnit() {};
-    void menuMain();
-    void menuPause();
-
-    void displayUnit(GameState) {};
-    void displayGame(GameState);
+    void layoutMenuUnit() {};
+    void layoutMenuMain();
+    void layoutMenuPause();
+    void layoutDisplayUnit(GameState) {};
+    void layoutDisplayGame(GameState);
     
-    Action::Surface updateUnit(const InputEvent& inputEvent) {
-        return Action::Surface::DO_NOTHING;
-    };
+    Action::Surface updateUnit(const InputEvent& inputEvent) { return Action::Surface::DO_NOTHING; };
     Action::Surface updateMenu(const InputEvent& inputEvent);
 
     void beginEvent(Event::Surface);

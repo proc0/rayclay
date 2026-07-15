@@ -429,7 +429,7 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
     return action;
 }
 
-void Surface::menuPause() {
+void Surface::layoutMenuPause() {
     CLAY(CLAY_ID("ContainerPauseMenu"), { 
         .layout = { 
             .sizing = { 
@@ -563,7 +563,7 @@ void Surface::menuPause() {
     // widget.clearButtonAction();
 }
 
-void Surface::menuMain() {
+void Surface::layoutMenuMain() {
     CLAY(CLAY_ID("ContainerMainMenu"), { 
         .layout = { 
             .sizing = { 
@@ -630,7 +630,7 @@ void Surface::menuMain() {
     // widget.clearButtonAction();
 }
 
-void Surface::displayGame(GameState gameState) {
+void Surface::layoutDisplayGame(GameState gameState) {
     CLAY(CLAY_ID("HUDContainer"), { 
         .layout = { 
             .sizing = { 
@@ -1072,37 +1072,37 @@ void Surface::resize(int width, int height) {
 void Surface::transition(State::App appState, State::Screen screen) {
     switch(screen) {
         case State::Screen::MAIN:
-            menu = &Surface::menuMain;
-            display = &Surface::displayUnit;
-            update = &Surface::updateMenu;
-            render = &Surface::renderRaylib;
+            layoutMenu      = &Surface::layoutMenuMain;
+            layoutDisplay   = &Surface::layoutDisplayUnit;
+            update          = &Surface::updateMenu;
+            render          = &Surface::renderRaylib;
             break;
         case State::Screen::GAME:
             render = &Surface::renderRaylib;
+            
             switch(appState) {
                 case State::App::HOLD:
-                    menu = &Surface::menuPause;
-                    display = &Surface::displayUnit;
-                    update = &Surface::updateMenu;
+                    layoutMenu      = &Surface::layoutMenuPause;
+                    layoutDisplay   = &Surface::layoutDisplayUnit;
+                    update          = &Surface::updateMenu;
                     break;
                 case State::App::RUN:
-                    menu = &Surface::menuUnit;
-                    display = &Surface::displayGame;
-                    update = &Surface::updateMenu;
+                    layoutMenu      = &Surface::layoutMenuUnit;
+                    layoutDisplay   = &Surface::layoutDisplayGame;
+                    update          = &Surface::updateMenu;
                     break;
                 default:
-                    menu = &Surface::menuUnit;
-                    display = &Surface::displayUnit;
-                    update = &Surface::updateUnit;
+                    layoutMenu      = &Surface::layoutMenuUnit;
+                    layoutDisplay   = &Surface::layoutDisplayUnit;
+                    update          = &Surface::updateUnit;
             }
 
             break;
         default:
-            // TODO: rename Null -> Unit
-            menu = &Surface::menuUnit;
-            display = &Surface::displayUnit;
-            update = &Surface::updateUnit;
-            render = &Surface::renderUnit;
+            layoutMenu      = &Surface::layoutMenuUnit;
+            layoutDisplay   = &Surface::layoutDisplayUnit;
+            update          = &Surface::updateUnit;
+            render          = &Surface::renderUnit;
     };
 }
 

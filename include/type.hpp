@@ -92,11 +92,6 @@ struct GameState {
     State::Game state;
 };
 
-// typedef struct TimerEvent {
-//     uint16_t id;
-//     Event::Timer state;
-// } TimerEvent;
-
 class Layer {
 public:
     virtual ~Layer() = default;
