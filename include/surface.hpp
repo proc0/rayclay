@@ -59,7 +59,7 @@ class Surface : public Layer {
     // Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
     const Window& window;
-    int colorLoc;
+    int overlayColorLocation;
 
 public:
     Widget widget;
@@ -92,22 +92,24 @@ public:
     void setColorOverlay(Color) const;
     void disableColorOverlay() const;
 
-    void renderNull(Clay_RenderCommandArray& renderCommands) const;
-    void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderNull;
+    void renderUnit(Clay_RenderCommandArray& renderCommands) const {};
+    void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderUnit;
     void renderRaylib(Clay_RenderCommandArray& renderCommands) const;
 
     // void layout(GameState);
-    void menuNull();
-    void (Surface::*menu)() = &Surface::menuNull;
+    void menuUnit() {};
+    void (Surface::*menu)() = &Surface::menuUnit;
     void menuMain();
     void menuPause();
 
-    void displayUnit(GameState);
+    void displayUnit(GameState) {};
     void (Surface::*display)(GameState) = &Surface::displayUnit;
     void displayGame(GameState);
     
-    Action::Surface updateNull(const InputEvent& inputEvent);
-    Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateNull;
+    Action::Surface updateUnit(const InputEvent& inputEvent) {
+        return Action::Surface::DO_NOTHING;
+    };
+    Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateUnit;
     Action::Surface updateMenu(const InputEvent& inputEvent);
 
     // void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);

@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 static inline Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
     // Measure string size for Font
     Clay_Dimensions textSize = { 0 };
@@ -54,6 +53,29 @@ static inline Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_Tex
     textSize.height = textHeight;
 
     return textSize;
+}
+
+void Surface::load(){
+    // 1. Query minimum memory required for default element limits
+    uint64_t memorySize = Clay_MinMemorySize();
+    // 2. Allocate memory (malloc, stack, or custom allocator)
+    void* memory = malloc(memorySize);
+    // 3. Create arena [clay.h:2150-2158]
+    arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
+    // 4. Initialize Clay [clay.h:2186-2188]
+    Clay_Initialize(arena, Clay_Dimensions({ window.widthf, window.heightf }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
+
+    fonts[0] = LoadFontEx(PATH_ASSET("RobotoMono-Medium.ttf"), 48, 0, 400);
+    SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
+    fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
+    SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
+    Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
+
+    initOverlay();
+
+    // profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
+    // parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
+    // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
 }
 
 // Get a ray trace from the screen position (i.e mouse) within a specific section of the screen
@@ -103,32 +125,6 @@ Ray getScreenToWorldPointWithZDistance(Vector2 position, Camera camera, int scre
     ray.direction = direction;
 
     return ray;
-}
-
-void Surface::load(){
-    // 1. Query minimum memory required for default element limits
-    uint64_t memorySize = Clay_MinMemorySize();
-    // 2. Allocate memory (malloc, stack, or custom allocator)
-    void* memory = malloc(memorySize);
-    // 3. Create arena [clay.h:2150-2158]
-    arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
-    // 4. Initialize Clay [clay.h:2186-2188]
-    Clay_Initialize(arena, Clay_Dimensions({ window.widthf, window.heightf }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
-
-    fonts[0] = LoadFontEx(PATH_ASSET("RobotoMono-Medium.ttf"), 48, 0, 400);
-    SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
-    fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
-    SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
-    Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
-
-    initOverlay();
-
-    // profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
-    // parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
-    // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
-}
-
-void Surface::renderNull(Clay_RenderCommandArray& renderCommands) const {
 }
     
 static inline char *temp_render_buffer;
@@ -208,21 +204,24 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_START: {
-                // setColorOverlay(CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color));
+                // NOTE: this seems to convert Clay Color range to Raylib Color range first.
+                // If Clay Color is used directly (which is also 4 floats), there is some flashing of white occurring.
                 Color color = CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color);
 			    float colorFloat[4] = {
-			        static_cast<float>(color.r)/255.0f,
-			        static_cast<float>(color.g)/255.0f,
-			        static_cast<float>(color.b)/255.0f,
-			        static_cast<float>(color.a)/255.0f,
+			        static_cast<float>(color.r)*INV255,
+			        static_cast<float>(color.g)*INV255,
+			        static_cast<float>(color.b)*INV255,
+			        static_cast<float>(color.a)*INV255,
 			    };
-
-			    SetShaderValue(overlayShader, colorLoc, colorFloat, SHADER_UNIFORM_VEC4);
-			    BeginShaderMode(overlayShader);
+			    SetShaderValue(overlayShader, overlayColorLocation, colorFloat, SHADER_UNIFORM_VEC4);
+			    // NOTE: in the Raylib Renderer example of Clay, this was behind a bool flag
+                // that was turn on to call EndShaderMode in CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_END 
+                BeginShaderMode(overlayShader);
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_END: {
-                // disableColorOverlay();
+                // NOTE: in the Raylib Renderer example of Clay, this was behind a bool flag
+                // that if on, calls EndShaderMode and then turns off the flag
         		EndShaderMode();
         		break;
             }
@@ -294,6 +293,7 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
+// TODO: fix Web shader (get from hexagram)
 void Surface::initOverlay() {
 #ifdef __EMSCRIPTEN__
     // GLSL ES 2.0 shader for WebGL 1.0 used by Emscripten for Web
@@ -334,103 +334,7 @@ void Surface::initOverlay() {
 	                                "}";
 #endif
     overlayShader = LoadShaderFromMemory(0, overlayShaderCode);
-    colorLoc = GetShaderLocation(overlayShader, "overlayColor");
-}
-
-// void Surface::setColorOverlay(Color color) const {
-//     overlayEnabled = true;
-//     float colorFloat[4] = {
-//         static_cast<float>(color.r)/255.0f,
-//         static_cast<float>(color.g)/255.0f,
-//         static_cast<float>(color.b)/255.0f,
-//         static_cast<float>(color.a)/255.0f,
-//     };
-
-//     SetShaderValue(overlayShader, colorLoc, colorFloat, SHADER_UNIFORM_VEC4);
-//     BeginShaderMode(overlayShader);
-// }
-
-// void Surface::disableColorOverlay() const {
-//     if (overlayEnabled) {
-//         EndShaderMode();
-//         overlayEnabled = false;
-//     } else {
-//     	TraceLog(LOG_INFO, "OVERLAY HIT");
-//     }
-// }
-
-// void handleButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-//     Widget* widget = static_cast<Widget*>(userData);
-//     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
-//         // std::string idStr(elementId.stringId.chars);
-//         // auto result = self->buttonActions.find(idStr.c_str());
-
-//         // Action::Surface action = Action::Surface::DO_NOTHING;
-//         // if (result != self->buttonActions.end()) {
-//         //     action = result->second;
-//         // } else {
-//         //     TraceLog(LOG_ERROR, "SURFACE ERROR: Button ID not found.");
-//         // }
-
-//         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-//     	widget->triggerAction(elementId.stringId.chars);
-//     }
-// }
-
-// void Surface::buttonSimple(const Clay_ElementId& elementId, const Clay_String& buttonText) {
-// 	// Clay_Color bgColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE);
-
-//     CLAY(elementId, { 
-//         .layout = {
-//             .sizing = { 
-//                 .width = CLAY_SIZING_GROW(0)
-//             },
-//             .padding = CLAY_PADDING_ALL(8),
-//             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
-//         }, 
-//         .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
-//         .border = { 
-//             .color = Clay_Color({ 220, 220, 220, 255 }), 
-//             .width = CLAY_BORDER_OUTSIDE(1) 
-//         },
-//     }) {
-//         Clay_Color textColor = SURFACE_BUTTON_COLOR_FG;
-//         if (Clay_Hovered() && buttonHoverId != elementId.id) {
-//             buttonHoverId = elementId.id;
-//             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-//             textColor = SURFACE_BUTTON_COLOR_FG_HL;
-//         }
-//     	Clay_OnHover(handleButtonClick, &widget);
-//         CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = textColor, .fontSize = 24 }));
-//     }
-// }
-
-
-void handleButtonTabClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    Surface* self = static_cast<Surface*>(userData);
-    if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
-        self->activeTabId = elementId.id;
-    }
-}
-
-void Surface::buttonTab(const Clay_ElementId& elementId, const Clay_String& buttonText) {
-    CLAY(elementId, { 
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0)
-            },
-            .padding = CLAY_PADDING_ALL(8),
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
-        }, 
-        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE),
-    }) {
-        if (Clay_Hovered() && buttonHoverId != elementId.id) {
-            buttonHoverId = elementId.id;
-            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-        }
-        Clay_OnHover(handleButtonTabClick, this);
-        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = { 255, 255, 255, 255 }, .fontSize = 24 }));
-    }
+    overlayColorLocation = GetShaderLocation(overlayShader, "overlayColor");
 }
 
 static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
@@ -461,10 +365,6 @@ static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_Tr
 //     }
 //     return targetState;
 // }
-
-Action::Surface Surface::updateNull(const InputEvent& inputEvent) {
-    return Action::Surface::DO_NOTHING;
-}
 
 Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
@@ -511,14 +411,17 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
         // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
     }
 
-    // Action::Surface lastButtonAction = buttonAction;
-    // buttonAction = Action::Surface::DO_NOTHING;
+    // handle mouse cursor, if there is an action
+    // this function might not be called again
+    // default mouse cursor before returning
+    auto action = widget.consumeButtonAction();
+    if (widget.onButtonJustHovered()) {
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    } else if (widget.onButtonJustBlurred() || action != 0) {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    }
 
-    return widget.getAction();
-}
-
-void Surface::menuNull() {
-
+    return action;
 }
 
 void Surface::menuPause() {
@@ -625,8 +528,8 @@ void Surface::menuPause() {
                         // TODO: overload createbutton to take button id
                         const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM);
                         const Button& cancel = widget.getButton(BUTTON_ID::CANCEL);
-                        widget.createButton(confirm.clayId, confirm.label);
-                        widget.createButton(cancel.clayId, cancel.label);
+                        widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+                        widget.layoutButton(cancel.id, cancel.clayId, cancel.label);
                     }
                 }
             }
@@ -641,7 +544,7 @@ void Surface::menuPause() {
 
             for (auto buttonId : widget.buttonsMenuPause) {
                 const Button& button = widget.getButton(buttonId);
-                widget.createButton(button.clayId, button.label);
+                widget.layoutButton(button.id, button.clayId, button.label);
             }
             // buttonSimple(CLAY_ID("ButtonGameResume"), CLAY_STRING("Resume Game"));
             // buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"));
@@ -652,7 +555,7 @@ void Surface::menuPause() {
     }
 
     // buttonAction = Action::Surface::DO_NOTHING;
-    widget.clearAction();
+    // widget.clearButtonAction();
 }
 
 void Surface::menuMain() {
@@ -709,7 +612,7 @@ void Surface::menuMain() {
 
             for (auto buttonId : widget.buttonsMenuMain) {
                 const Button& button = widget.getButton(buttonId);
-                widget.createButton(button.clayId, button.label);
+                widget.layoutButton(button.id, button.clayId, button.label);
             }
             // buttonSimple(CLAY_ID("ButtonGameNew"), CLAY_STRING("New Game"));
             // buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"));
@@ -719,10 +622,8 @@ void Surface::menuMain() {
     }
 
     // buttonAction = Action::Surface::DO_NOTHING;
-    widget.clearAction();
+    // widget.clearButtonAction();
 }
-
-void Surface::displayUnit(GameState gameState) {}
 
 void Surface::displayGame(GameState gameState) {
     CLAY(CLAY_ID("HUDContainer"), { 
@@ -1180,23 +1081,23 @@ void Surface::transition(State::App appState, State::Screen screen) {
                     update = &Surface::updateMenu;
                     break;
                 case State::App::RUN:
-                    menu = &Surface::menuNull;
+                    menu = &Surface::menuUnit;
                     display = &Surface::displayGame;
                     update = &Surface::updateMenu;
                     break;
                 default:
-                    menu = &Surface::menuNull;
+                    menu = &Surface::menuUnit;
                     display = &Surface::displayUnit;
-                    update = &Surface::updateNull;
+                    update = &Surface::updateUnit;
             }
 
             break;
         default:
             // TODO: rename Null -> Unit
-            menu = &Surface::menuNull;
+            menu = &Surface::menuUnit;
             display = &Surface::displayUnit;
-            update = &Surface::updateNull;
-            render = &Surface::renderNull;
+            update = &Surface::updateUnit;
+            render = &Surface::renderUnit;
     };
 }
 

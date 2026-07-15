@@ -5,7 +5,6 @@
 #include "clay.h"
 
 #include <array>
-#include <cstring>
 #include <vector>
 
 #define SURFACE_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
@@ -70,6 +69,7 @@ BUTTON(QUIT, 	"ButtonQuit", 		QUIT_APP, 	              "Quit")
 
 class Widget {
 	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
+	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
 	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
 
 	const std::vector<Button> buttons = {
@@ -78,50 +78,37 @@ BUTTONS
 #undef BUTTON
 	};
 
+	std::vector<char> buttonHovers;
+
 public:
 	BUTTONS_MENU_MAIN
 	BUTTONS_MENU_PAUSE
 
-	Widget() {};
+	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
 
-	const Button& getButton(WidgetId::ButtonId id) const {
-		return buttons.at(id);
-	};
+	const Button& getButton(WidgetId::ButtonId) const;
+	const Action::Surface getButtonAction() const;
+	const BUTTON_ID getButtonHovered() const;
+	bool onButtonHover(BUTTON_ID id, bool isHovered);
+	bool onButtonJustHovered() const;
+	bool onButtonJustBlurred() const;
+	void triggerButtonAction(const char* elementId);
+	void clearButtonAction();
+	Action::Surface consumeButtonAction();
 
-	const Action::Surface getAction() const {
-		return currentButtonAction;
-	}
-
-	const BUTTON_ID getButtonHovered() const {
-		return currentButtonHovered;
-	}
-
-	void hoverButton(BUTTON_ID id) {
-		currentButtonHovered = id;
-	}
-
-	void triggerAction(const char* elementId) {
-		for (auto& button : buttons) {
-			if (strcmp(button.clayId.stringId.chars, elementId) == 0) {
-				currentButtonAction = button.action;
-			}
-		}
-	}
-
-	void clearAction() {
-		currentButtonAction = Action::Surface::DO_NOTHING;
-	}
-
-	void createButton(const Clay_ElementId& clayId, const Clay_String& label);
+	void layoutButton(const BUTTON_ID, const Clay_ElementId& elementId, const Clay_String& label);
+	void layoutTab(const BUTTON_ID, const Clay_ElementId& elementId, const Clay_String& label);
 };
 
 #undef BUTTONS
 #endif
 
-#define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) (Rectangle) { .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height }
+constexpr float INV255 = 1.0f/255.0f;
+
+#define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) Rectangle({ .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height })
 #define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
-#define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(roundf(color.r)), static_cast<float>(roundf(color.g)), static_cast<float>(roundf(color.b)), static_cast<float>(roundf(color.a)) })
+#define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(color.r)*INV255, static_cast<float>(color.g)*INV255, static_cast<float>(color.b)*INV255, static_cast<float>(color.a)*INV255 })
 #define RAYLIB_VECTOR2_TO_CLAY_VECTOR2(vector) Clay_Vector2({ .x = vector.x, .y = vector.y })
 
 enum CustomLayoutElementType {
