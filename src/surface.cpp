@@ -115,9 +115,7 @@ void Surface::loadOverlay() {
         "void main()\n"
         "{\n"
         "    vec4 texelColor = texture(texture0, fragTexCoord) * fragColor;\n"
-        "\n"
         "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
-        "\n"
         "    finalColor = vec4(blendedRGB, texelColor.a);\n"
         "}";
 #endif
@@ -360,61 +358,11 @@ static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_Tr
     return targetState;
 }
 
-// static Clay_TransitionData TransitionFadeOut(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
-//     Clay_TransitionData targetState = initialState;
-//     if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
-//         targetState.backgroundColor.a = 0.0f;
-//     }
-//     if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
-//         targetState.borderColor.a = 0.0f;
-//     }
-//     return targetState;
-// }
-
 Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
-    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN;
-    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(GetMousePosition());
-    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
-
-    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
-    float mouseWheelX = mouseWheelDelta.x;
-    float mouseWheelY = mouseWheelDelta.y;
-    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
-
-    if (inputEvent.id == Event::Input::PRIMARY_UP) {
-        scrollbarData.mouseDown = false;
-    }
-
-        Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
-    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
-        scrollbarData.clickOrigin = mousePosition;
-        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
-        scrollbarData.mouseDown = true;
-
-    } else if (scrollbarData.mouseDown) {
-        // Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
-        if (scrollContainerData.contentDimensions.height > 0) {
-            Clay_Vector2 ratio = Clay_Vector2({
-                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
-                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
-            });
-
-            if (scrollContainerData.config.vertical) {
-                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
-            }
-            
-            if (scrollContainerData.config.horizontal) {
-                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
-            }
-        }
-    }
-
-    if(scrollContainerData.scrollPosition) {
-
-        scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
-        // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
-    }
+    // TODO: find a way to link this CLAY_ID to be used in update function
+    // to pass through to Widget.updateScrollbar, which requires a reference to parent
+    widget.updateScrollbar(inputEvent, Clay_GetElementId(CLAY_STRING("containerTutorial")));
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -431,15 +379,13 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
 void Surface::layoutTutorial() {
 
-    CLAY(CLAY_ID("containerTutorial"), {
+    CLAY(CLAY_ID("backgroundTutorial"), {
         .layout = { 
-         .sizing = { 
-            .width = CLAY_SIZING_PERCENT(0.5f),
-            .height = CLAY_SIZING_PERCENT(0.8f),
-         }, 
-         .padding = { 48, 48, 48, 0 }, 
-         // .childGap = 16, 
-         .layoutDirection = CLAY_TOP_TO_BOTTOM 
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(0.5f),
+                .height = CLAY_SIZING_PERCENT(0.7f),
+            }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = SURFACE_MENU_COLOR_BG,
         .floating = { 
@@ -451,49 +397,51 @@ void Surface::layoutTutorial() {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
-        .clip = { 
-         .vertical = true, 
-         .childOffset = Clay_GetScrollOffset()
-        },
-
     }) {
-        CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
-            CLAY_TEXT_CONFIG({ 
-                .textColor = CLAY_WHITE, 
-                .fontSize = 28,
-                .letterSpacing = 0, 
-                .lineHeight = 30,
-                .textAlignment = CLAY_TEXT_ALIGN_LEFT 
-            }));
+        // TODO: find a way to link this CLAY_ID to be used in update function
+        // to pass through to Widget.updateScrollbar, which requires a reference to parent
+        Clay_ElementId containerId = CLAY_ID("containerTutorial");
+        CLAY(containerId, {
+            .layout = { 
+                .padding = { 24, 24, 48, 0 }, 
+                .layoutDirection = CLAY_TOP_TO_BOTTOM 
+            },
+            .clip = { 
+                .vertical = true, 
+                .childOffset = Clay_GetScrollOffset()
+            },
 
-        CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
-            CLAY_TEXT_CONFIG({ 
-                .textColor = CLAY_WHITE, 
-                .fontSize = 28,
-                .letterSpacing = 0, 
-                .lineHeight = 30,
-                .textAlignment = CLAY_TEXT_ALIGN_LEFT 
-            }));
+        }) {
+            CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
+                CLAY_TEXT_CONFIG({ 
+                    .textColor = CLAY_WHITE, 
+                    .fontSize = 28,
+                    .letterSpacing = 0, 
+                    .lineHeight = 30,
+                    .textAlignment = CLAY_TEXT_ALIGN_LEFT 
+                }));
+
+            CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
+                CLAY_TEXT_CONFIG({ 
+                    .textColor = CLAY_WHITE, 
+                    .fontSize = 28,
+                    .letterSpacing = 0, 
+                    .lineHeight = 30,
+                    .textAlignment = CLAY_TEXT_ALIGN_LEFT 
+                }));
+
+            // WARNING: layoutScrollbar requires updateScrollbar call
+            // during update phase (currently in updateMenu)
+            widget.layoutScrollBar(containerId);
+        }
 
         CLAY(CLAY_ID("containerTutorialConfirm"), {
             .layout = { 
-             .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_PERCENT(0.2f),
-             }, 
-             .padding = { 48, 48, 48, 0 }, 
-             // .childGap = 16, 
-             .layoutDirection = CLAY_TOP_TO_BOTTOM 
-            },
-            // .backgroundColor = SURFACE_MENU_COLOR_BG,
-            .floating = { 
-                .offset = { 0, 0 }, 
-                .zIndex = 2, 
-                .attachPoints = { 
-                    CLAY_ATTACH_POINT_CENTER_CENTER, 
-                    CLAY_ATTACH_POINT_CENTER_BOTTOM 
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0),
+                    .height = CLAY_SIZING_PERCENT(0.2f),
                 }, 
-                .attachTo = CLAY_ATTACH_TO_PARENT 
+             .padding = { 100, 100, 24, 0 }, 
             },
         }) {        
             const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_TUTORIAL);
@@ -541,10 +489,6 @@ void Surface::layoutMenuPause() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
-            // if (Clay_Hovered() && buttonHoverId != contentPauseMenuId.id) {
-            //     buttonHoverId = contentPauseMenuId.id;
-            //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-            // }
 
             if (surfaceEvent == Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
                 CLAY(CLAY_ID("PauseMenuConfirmationDialogue"), {
@@ -587,6 +531,10 @@ void Surface::layoutMenuPause() {
                             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
                         },
                     }) {
+                        // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
+                        // and as a result any fading on the parent leave the text unchange and looks jarring.
+                        // solution is to either add .transition to each text element in Clay, or allow the parent
+                        // to somehow force fade the children text nodes in it if a transition property is set.
                         CLAY_TEXT(CLAY_STRING("All progress will be lost. Return to Main Menu?"), CLAY_TEXT_CONFIG({ 
                             .textColor = Clay_Color({255,255,255,255}),
                             .fontSize = 24,
@@ -611,10 +559,7 @@ void Surface::layoutMenuPause() {
                     }
                 }
             }
-            // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
-            // and as a result any fading on the parent leave the text unchange and looks jarring.
-            // solution is to either add .transition to each text element in Clay, or allow the parent
-            // to somehow force fade the children text nodes in it if a transition property is set.
+
             CLAY_TEXT(CLAY_STRING("Pause Menu"), CLAY_TEXT_CONFIG({ 
                 .textColor = SURFACE_BUTTON_COLOR_FG,
                 .fontSize = 24,
@@ -624,16 +569,8 @@ void Surface::layoutMenuPause() {
                 const Button& button = widget.getButton(buttonId);
                 widget.layoutButton(button.id, button.clayId, button.label);
             }
-            // buttonSimple(CLAY_ID("ButtonGameResume"), CLAY_STRING("Resume Game"));
-            // buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"));
-            // buttonSimple(CLAY_ID("ButtonOptions"), CLAY_STRING("Options"));
-            // buttonSimple(CLAY_ID("ButtonMainMenu"), CLAY_STRING("Main Menu"));
-            // buttonSimple(CLAY_ID("ButtonQuit"), CLAY_STRING("Quit"));
         }
     }
-
-    // buttonAction = Action::Surface::DO_NOTHING;
-    // widget.clearButtonAction();
 }
 
 void Surface::layoutMenuMain() {
@@ -675,14 +612,7 @@ void Surface::layoutMenuMain() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
-            // if (Clay_Hovered() && buttonHoverId != contentMainMenuId.id) {
-            //     buttonHoverId = contentMainMenuId.id;
-            //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-            // }
-            // NOTES: CLAY_TEXT does not have .transition property, text cannot animate transition
-            // and as a result any fading on the parent leave the text unchange and looks jarring.
-            // solution is to either add .transition to each text element in Clay, or allow the parent
-            // to somehow force fade the children text nodes in it if a transition property is set.
+
             CLAY_TEXT(CLAY_STRING("Main Menu"), CLAY_TEXT_CONFIG({ 
                 .textColor = SURFACE_BUTTON_COLOR_FG,
                 .fontSize = 24,
@@ -692,15 +622,8 @@ void Surface::layoutMenuMain() {
                 const Button& button = widget.getButton(buttonId);
                 widget.layoutButton(button.id, button.clayId, button.label);
             }
-            // buttonSimple(CLAY_ID("ButtonGameNew"), CLAY_STRING("New Game"));
-            // buttonSimple(CLAY_ID("ButtonGameLoad"), CLAY_STRING("Load Game"));
-            // buttonSimple(CLAY_ID("ButtonOptions"), CLAY_STRING("Options"));
-            // buttonSimple(CLAY_ID("ButtonQuit"), CLAY_STRING("Quit"));
         }
     }
-
-    // buttonAction = Action::Surface::DO_NOTHING;
-    // widget.clearButtonAction();
 }
 
 void Surface::layoutDisplayGame(GameState gameState) {

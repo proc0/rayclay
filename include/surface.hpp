@@ -13,7 +13,7 @@ class Surface : public Layer {
     Shader overlayShader;
 
     Clay_Arena arena = {};
-    ScrollbarData scrollbarData = {0};
+
 
     const Window& window;
     // overlay shader variable

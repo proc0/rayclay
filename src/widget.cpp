@@ -33,7 +33,7 @@ void Widget::layoutButtonTexture(const BUTTON_ID id, const Clay_ElementId& eleme
 void Widget::layoutButton(const BUTTON_ID id, const Clay_ElementId& elementId, const Clay_String& buttonText) {
     CLAY(elementId, { 
         .layout = {
-            .sizing = { 
+            .sizing = {
                 .width = CLAY_SIZING_GROW(0)
             },
             .padding = CLAY_PADDING_ALL(8),
@@ -45,12 +45,11 @@ void Widget::layoutButton(const BUTTON_ID id, const Clay_ElementId& elementId, c
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
-        Clay_Color textColor = SURFACE_BUTTON_COLOR_FG;
         // Clay_Hovered only works inside the CLAY declaration body
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
     	Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = textColor, .fontSize = 24 }));
+        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
     }
 }
 
@@ -67,7 +66,86 @@ void Widget::layoutTab(const BUTTON_ID id, const Clay_ElementId& elementId, cons
     }) {
         onButtonHover(id, Clay_Hovered());
         Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(label, CLAY_TEXT_CONFIG({ .textColor = { 255, 255, 255, 255 }, .fontSize = 24 }));
+        CLAY_TEXT(label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
+    }
+}
+
+void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parentId) {
+    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
+
+    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
+    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
+
+    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
+    float mouseWheelX = mouseWheelDelta.x;
+    float mouseWheelY = mouseWheelDelta.y;
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
+
+    if (inputEvent.id == Event::Input::PRIMARY_UP) {
+        scrollbarData.mouseDown = false;
+    }
+
+    Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
+    // TODO: abstract Scrollbar ElementId
+    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
+        scrollbarData.clickOrigin = mousePosition;
+        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
+        scrollbarData.mouseDown = true;
+
+    } else if (scrollbarData.mouseDown) {
+        // Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
+        if (scrollContainerData.contentDimensions.height > 0) {
+            Clay_Vector2 ratio = Clay_Vector2({
+                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
+                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
+            });
+
+            if (scrollContainerData.config.vertical) {
+                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
+            }
+            
+            if (scrollContainerData.config.horizontal) {
+                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
+            }
+        }
+    }
+
+    if(scrollContainerData.scrollPosition) {
+
+        scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
+        // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
+    }
+}
+
+void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
+    Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(parentId);
+    if (scrollData.found && scrollData.scrollContainerDimensions.height < scrollData.contentDimensions.height) {
+        CLAY(CLAY_ID("ScrollBar"), {
+            .floating = {
+                .offset = { 
+                	.y = -(scrollData.scrollPosition->y / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height 
+                },
+                // .parentId = Clay_GetElementId(CLAY_STRING("TabContent")).id,
+                .parentId = parentId.id,
+                .zIndex = 2,
+                .attachPoints = { 
+                	.element = CLAY_ATTACH_POINT_RIGHT_TOP, 
+                	.parent = CLAY_ATTACH_POINT_RIGHT_TOP 
+                },
+                .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
+            }
+        }) {
+            CLAY(CLAY_ID("ScrollBarButton"), {
+                .layout = { 
+                	.sizing = { 
+                		CLAY_SIZING_FIXED(12), 
+                		CLAY_SIZING_FIXED((scrollData.scrollContainerDimensions.height / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height) 
+                	}
+                },
+                .backgroundColor = Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar"))) ? Clay_Color({100, 100, 140, 150}) : Clay_Color({120, 120, 160, 150}),
+                .cornerRadius = CLAY_CORNER_RADIUS(6),
+            });
+        }
     }
 }
 

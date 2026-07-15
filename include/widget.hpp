@@ -8,6 +8,7 @@
 #include <vector>
 
 #define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
+#define CLAY_BLACK Clay_Color({ 0.0f, 0.0f, 0.0f, 255.0f })
 #define SURFACE_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
 #define SURFACE_BUTTON_COLOR_BG_HL Clay_Color({ 0, 0, 0, 130 })
 #define SURFACE_BUTTON_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
@@ -71,18 +72,28 @@ BUTTON(CONFIRM_TUTORIAL, "ButtonConfirmTutorial", CONFIRM_TUTORIAL,  "Begin") \
 BUTTON(CANCEL_RETURN,  "ButtonCancelReturn", CANCEL_RETURN, 	    	"No") \
 BUTTON(QUIT, 		   "ButtonQuit", 		QUIT_APP, 	              "Quit")
 
-class Widget {
-	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
-	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
-	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
 
+struct ScrollbarData {
+    Clay_Vector2 clickOrigin;
+    Clay_Vector2 positionOrigin;
+    float scrollY;
+    bool mouseDown;
+};
+
+
+class Widget {
 	const std::vector<Button> buttons = {
 #define BUTTON(BID, CID, ACTION, LABEL) Button({ BUTTON_ID::BID, CLAY_ID(CID), Action::Surface::ACTION, CLAY_STRING(LABEL) }),
 BUTTONS
 #undef BUTTON
 	};
-
 	std::vector<char> buttonHovers;
+
+	ScrollbarData scrollbarData = {0};
+
+	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
+	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
+	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
 
 public:
 	BUTTONS_MENU_MAIN
@@ -90,6 +101,8 @@ public:
 
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
+
+	void updateScrollbar(InputEvent, const Clay_ElementId& parentId);
 
 	const Button& getButton(WidgetId::ButtonId) const;
 	const Action::Surface getButtonAction() const;
@@ -104,6 +117,7 @@ public:
 	void layoutButton(const BUTTON_ID, const Clay_ElementId&, const Clay_String& label);
 	void layoutTab(const BUTTON_ID, const Clay_ElementId&, const Clay_String& label);
 	void layoutButtonTexture(const BUTTON_ID, const Clay_ElementId&, Texture2D* buttonTexture);
+	void layoutScrollBar(const Clay_ElementId& parentId);
 };
 
 #undef BUTTONS
@@ -132,13 +146,6 @@ struct CustomLayoutElement {
     union {
         CustomLayoutElement_3DModel model;
     } customData;
-};
-
-struct ScrollbarData {
-    Clay_Vector2 clickOrigin;
-    Clay_Vector2 positionOrigin;
-    float scrollY;
-    bool mouseDown;
 };
 
 struct DisplayButtonContext {
