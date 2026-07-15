@@ -12,6 +12,24 @@ void onButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void*
     }
 }
 
+void Widget::layoutButtonTexture(const BUTTON_ID id, const Clay_ElementId& elementId, Texture2D* buttonTexture) {
+    CLAY(elementId, { 
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIXED(static_cast<float>(buttonTexture->width)),
+                .height = CLAY_SIZING_FIXED(static_cast<float>(buttonTexture->height))
+            },
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
+        }, 
+        .image = { .imageData = buttonTexture },
+    }) {
+        // Clay_Hovered only works inside the CLAY declaration body
+        onButtonHover(id, Clay_Hovered());
+        // Clay_OnHover also handles click events
+        Clay_OnHover(onButtonClick, this);
+    }
+}
+
 void Widget::layoutButton(const BUTTON_ID id, const Clay_ElementId& elementId, const Clay_String& buttonText) {
     CLAY(elementId, { 
         .layout = {
