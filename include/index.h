@@ -3,7 +3,7 @@
 #define PROJECT_NAME "rayclay"
 #define VERSION "0.2.0"
 #define DEBUG 1
-#define DATE_BUILD "2026-07-14 00:28:52"
+#define DATE_BUILD "2026-07-14 18:38:22"
 #define DIR_ASSETS "asset"
 
 #define TITLE_HINT "Press any key to continue."
