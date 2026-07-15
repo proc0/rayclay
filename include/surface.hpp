@@ -43,8 +43,7 @@
 
 // A MALLOC'd buffer, that we keep modifying inorder to save from so many Malloc and Free Calls.
 // Call Clay_Raylib_Close() to free
-static inline char *temp_render_buffer;
-static inline int temp_render_buffer_len;
+
 
 class Surface : public Layer {
     Shader overlayShader;
@@ -55,7 +54,7 @@ class Surface : public Layer {
     // Texture2D monkTexture;
     Clay_Arena arena = {};
     ScrollbarData scrollbarData = {0};
-    
+
     uint32_t buttonHoverId = 0;
     // Clay_SizingAxis sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
 
@@ -111,7 +110,7 @@ public:
     Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateNull;
     Action::Surface updateMenu(const InputEvent& inputEvent);
 
-    void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
+    // void buttonSimple(const Clay_ElementId& id, const Clay_String& buttonText);
     void buttonTab(const Clay_ElementId& id, const Clay_String& buttonText);
     static void handleError(Clay_ErrorData);
     void resize(int width, int height);

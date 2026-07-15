@@ -34,10 +34,19 @@ using BUTTON_ID = WidgetId::ButtonId;
 
 // menu buttons per screen
 #define BUTTONS_MENU_MAIN const std::array<BUTTON_ID, 4> buttonsMenuMain{ \
-		BUTTON_ID::NEW, BUTTON_ID::RELOAD, BUTTON_ID::OPTIONS, BUTTON_ID::QUIT };
+		BUTTON_ID::NEW, 	\
+		BUTTON_ID::RELOAD, 	\
+		BUTTON_ID::OPTIONS, \
+		BUTTON_ID::QUIT, 	\
+	};
 
 #define BUTTONS_MENU_PAUSE const std::array<BUTTON_ID, 5> buttonsMenuPause{ \
-		BUTTON_ID::RESUME, BUTTON_ID::RELOAD, BUTTON_ID::RETURN, BUTTON_ID::OPTIONS, BUTTON_ID::QUIT };
+		BUTTON_ID::RESUME, 	\
+		BUTTON_ID::RELOAD, 	\
+		BUTTON_ID::RETURN, 	\
+		BUTTON_ID::OPTIONS, \
+		BUTTON_ID::QUIT,	\
+	};
 
 struct Button {
 	const BUTTON_ID id;

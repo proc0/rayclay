@@ -130,6 +130,9 @@ void Surface::load(){
 
 void Surface::renderNull(Clay_RenderCommandArray& renderCommands) const {
 }
+    
+static inline char *temp_render_buffer;
+static inline int temp_render_buffer_len;
 
 void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     for (int j = 0; j < renderCommands.length; j++)
@@ -1189,6 +1192,7 @@ void Surface::transition(State::App appState, State::Screen screen) {
 
             break;
         default:
+            // TODO: rename Null -> Unit
             menu = &Surface::menuNull;
             display = &Surface::displayUnit;
             update = &Surface::updateNull;
