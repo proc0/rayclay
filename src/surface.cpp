@@ -71,11 +71,58 @@ void Surface::load(){
     SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
-    initOverlay();
+    loadOverlay();
 
     // profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
     // parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
     // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
+}
+
+void Surface::loadOverlay() {
+#ifdef __EMSCRIPTEN__
+    // GLSL ES 3.0 shader for WebGL 2.0 used by Emscripten for Web
+    const char* overlayShaderCode = 
+        "#version 300 es\n"
+        "precision mediump float;\n"
+        "\n"
+        "in vec2 fragTexCoord;\n"
+        "in vec4 fragColor;\n"
+        "\n"
+        "uniform sampler2D texture0;\n"
+        "uniform vec4 overlayColor;\n"
+        "\n"
+        "out vec4 finalColor;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 texelColor = texture(texture0, fragTexCoord) * fragColor;\n"
+        "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
+        "    finalColor = vec4(blendedRGB, texelColor.a);\n"
+        "}";
+#else
+    // GLSL 3.3 for OpenGL 3 used for Desktop 
+    const char* overlayShaderCode = 
+        "#version 330\n"
+        "\n"
+        "in vec2 fragTexCoord;\n"
+        "in vec4 fragColor;\n"
+        "\n"
+        "uniform sampler2D texture0;\n"
+        "uniform vec4 overlayColor;\n"
+        "\n"
+        "out vec4 finalColor;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 texelColor = texture(texture0, fragTexCoord) * fragColor;\n"
+        "\n"
+        "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
+        "\n"
+        "    finalColor = vec4(blendedRGB, texelColor.a);\n"
+        "}";
+#endif
+    overlayShader = LoadShaderFromMemory(0, overlayShaderCode);
+    overlayColorLocation = GetShaderLocation(overlayShader, "overlayColor");
 }
 
 // Get a ray trace from the screen position (i.e mouse) within a specific section of the screen
@@ -293,50 +340,6 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
             }
         }
     }
-}
-
-// TODO: fix Web shader (get from hexagram)
-void Surface::initOverlay() {
-#ifdef __EMSCRIPTEN__
-    // GLSL ES 2.0 shader for WebGL 1.0 used by Emscripten for Web
-    const char* overlayShaderCode = "precision mediump float\n"
-                                    "\n"
-                                    "varying vec2 fragTexCoord;\n"
-                                    "varying vec4 fragColor;\n"
-                                    "\n"
-                                    "uniform sampler2D texture0;\n"
-                                    "uniform vec4 overlayColor;\n"
-                                    "\n"
-                                    "void main()\n"
-                                    "{\n"
-                                    "    vec4 texelColor = texture2D(texture0, fragTexCoord) * fragColor;\n"
-                                    "\n"
-                                    "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
-                                    "\n"
-                                    "    gl_FragColor = vec4(blendedRGB, texelColor.a);\n"
-                                    "}";
-#else
-	const char* overlayShaderCode = "#version 330\n"
-	                                "\n"
-	                                "in vec2 fragTexCoord;\n"
-	                                "in vec4 fragColor;\n"
-	                                "\n"
-	                                "uniform sampler2D texture0;\n"
-	                                "uniform vec4 overlayColor;\n"
-	                                "\n"
-	                                "out vec4 finalColor;\n"
-	                                "\n"
-	                                "void main()\n"
-	                                "{\n"
-	                                "    vec4 texelColor = texture(texture0, fragTexCoord) * fragColor;\n"
-	                                "\n"
-	                                "    vec3 blendedRGB = mix(texelColor.rgb, overlayColor.rgb, overlayColor.a);\n"
-	                                "\n"
-	                                "    finalColor = vec4(blendedRGB, texelColor.a);\n"
-	                                "}";
-#endif
-    overlayShader = LoadShaderFromMemory(0, overlayShaderCode);
-    overlayColorLocation = GetShaderLocation(overlayShader, "overlayColor");
 }
 
 static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
