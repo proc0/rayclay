@@ -13,6 +13,7 @@
 #define SURFACE_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
 #define SURFACE_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
 
+// TODO: make consistent button ids and their actions in type header
 namespace WidgetId {
 	// WARNING: used for indices to Widget.buttons
 	// needs to be the same order as BUTTONS macro
@@ -23,8 +24,9 @@ namespace WidgetId {
 		RETURN,
 		RELOAD,
 		OPTIONS,
-		CONFIRM,
-		CANCEL,
+		CONFIRM_RETURN,
+		CONFIRM_TUTORIAL,
+		CANCEL_RETURN,
 		QUIT
 	};
 }
@@ -57,15 +59,16 @@ struct Button {
 #ifndef BUTTONS
 // WARNING: order should match WidgetId::ButtonId enum
 #define BUTTONS \
-BUTTON(NIL, 	"ButtonNil", 		DO_NOTHING,			   "Nothing") \
-BUTTON(NEW, 	"ButtonNewGame", 	NEW_GAME,			  "New Game") \
-BUTTON(RESUME, 	"ButtonGameResume", RESUME_GAME,			"Resume") \
-BUTTON(RETURN, 	"ButtonMainMenu", 	MAIN_MENU, "Return to Main Menu") \
-BUTTON(RELOAD, 	"ButtonGameLoad", 	LOAD_GAME,			 "Load Game") \
-BUTTON(OPTIONS, "ButtonOptions", 	OPTIONS, 			   "Options") \
-BUTTON(CONFIRM, "ButtonConfirm", 	CONFIRM_RETURN_MAIN,	   "Yes") \
-BUTTON(CANCEL, 	"ButtonCancel", 	CANCEL_RETURN_MAIN, 	    "No") \
-BUTTON(QUIT, 	"ButtonQuit", 		QUIT_APP, 	              "Quit")
+BUTTON(NIL, 		   "ButtonNil", 		DO_NOTHING,			   "Nothing") \
+BUTTON(NEW, 		   "ButtonNewGame", 	NEW_GAME,			  "New Game") \
+BUTTON(RESUME, 		   "ButtonGameResume",  RESUME_GAME,			"Resume") \
+BUTTON(RETURN, 		   "ButtonMainMenu", 	MAIN_MENU, "Return to Main Menu") \
+BUTTON(RELOAD, 		   "ButtonGameLoad", 	LOAD_GAME,			 "Load Game") \
+BUTTON(OPTIONS, 	   "ButtonOptions", 	OPTIONS, 			   "Options") \
+BUTTON(CONFIRM_RETURN, "ButtonConfirmReturn", CONFIRM_RETURN,	       "Yes") \
+BUTTON(CONFIRM_TUTORIAL, "ButtonConfirmTutorial", CONFIRM_TUTORIAL,  "Begin") \
+BUTTON(CANCEL_RETURN,  "ButtonCancelReturn", CANCEL_RETURN, 	    	"No") \
+BUTTON(QUIT, 		   "ButtonQuit", 		QUIT_APP, 	              "Quit")
 
 class Widget {
 	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;

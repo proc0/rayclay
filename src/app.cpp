@@ -168,6 +168,16 @@ Clay_RenderCommandArray App::update() {
 
                 surface.transition(state, screen);
             }
+        } else if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
+            state = State::App::RUN;
+            // screen = State::Screen::GAME;
+            
+            // world.transition(screen);
+            // game.transition(screen);
+            surface.clearEvent();
+            game.transition(screen);
+            surface.transition(state, screen);
+
         } else if (state == State::App::HOLD) {
 
             if (surfaceAction == Action::Surface::RESUME_GAME) {
@@ -180,7 +190,7 @@ Clay_RenderCommandArray App::update() {
             
                 surface.beginEvent(Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
             
-            } else if (surfaceAction == Action::Surface::CONFIRM_RETURN_MAIN) {
+            } else if (surfaceAction == Action::Surface::CONFIRM_RETURN) {
                 surface.clearEvent();
                 state = State::App::RUN;
                 screen = State::Screen::MAIN;
@@ -189,7 +199,7 @@ Clay_RenderCommandArray App::update() {
                 game.transition(screen);
                 surface.transition(state, screen);
 
-            } else if (surfaceAction == Action::Surface::CANCEL_RETURN_MAIN) {
+            } else if (surfaceAction == Action::Surface::CANCEL_RETURN) {
 
                 surface.clearEvent();
             
@@ -200,11 +210,11 @@ Clay_RenderCommandArray App::update() {
         }
     } else if (screen == State::Screen::MAIN) {
         if(surfaceAction == Action::Surface::NEW_GAME) {
-            state = State::App::RUN;
+            // state = State::App::RUN;
             screen = State::Screen::GAME;
+            surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
             
             world.transition(screen);
-            game.transition(screen);
             surface.transition(state, screen);
 
         } else if (surfaceAction == Action::Surface::QUIT_APP) {
@@ -215,7 +225,7 @@ Clay_RenderCommandArray App::update() {
 
 	GameState gameState = (game.*game.update)(state, inputEvent);
 	(world.*world.update)();
-    
+
     Clay_BeginLayout();
     (surface.*surface.layoutDisplay)(gameState);
     (surface.*surface.layoutMenu)();

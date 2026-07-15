@@ -41,6 +41,7 @@ public:
     void layoutMenuUnit() {};
     void layoutMenuMain();
     void layoutMenuPause();
+    void layoutTutorial();
     void layoutDisplayUnit(GameState) {};
     void layoutDisplayGame(GameState);
     

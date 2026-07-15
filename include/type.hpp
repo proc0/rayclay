@@ -6,12 +6,13 @@ namespace Action {
     enum Surface {
         DO_NOTHING,
         NEW_GAME,
+        CONFIRM_TUTORIAL,
         LOAD_GAME,
         OPTIONS,
         RESUME_GAME,
         MAIN_MENU,
-        CONFIRM_RETURN_MAIN,
-        CANCEL_RETURN_MAIN,
+        CONFIRM_RETURN,
+        CANCEL_RETURN,
         QUIT_APP,
     };
 }
@@ -43,6 +44,8 @@ namespace Event {
 
     enum Surface {
         NO_EVENT,
+        SHOW_TUTORIAL,
+        CONFIRM_TUTORIAL,
         SHOW_RETURN_MAIN_MENU_CONFIRMATION,
     };
 }
