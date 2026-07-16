@@ -3,12 +3,15 @@
 #define PROJECT_NAME "rayclay"
 #define VERSION "0.2.0"
 #define DEBUG 1
-#define DATE_BUILD "2026-07-16 02:40:09"
+#define DATE_BUILD "2026-07-16 03:11:33"
 #define DIR_ASSETS "asset"
 
 #define TITLE_HINT "Press any key to continue."
 
 #define PATH_ASSET(filename) DIR_ASSETS "/" filename
+
+#define URI_FONT_ROBOTO_MEDIUM "RobotoMono-Medium.ttf"
+#define URI_FONT_ROBOTO_REGULAR "Roboto-Regular.ttf"
 
 #define URI_SOUND_SPLAT "splat1.wav"
 

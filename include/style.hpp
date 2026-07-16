@@ -41,6 +41,6 @@
 //     Clay_TextAlignment textAlignment;
 // } Clay_TextElementConfig;
 
-#define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_TEXT_FG, .fontSize = 24 })
+#define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_TEXT_FG, .fontId = 1, .fontSize = 24 })
 #define STYLE_TEXT_TITLE CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_TEXT_FG, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 #define STYLE_TEXT_DISPLAY CLAY_TEXT_CONFIG({ .textColor = CLAY_WHITE, .fontSize = 48, .textAlignment = CLAY_TEXT_ALIGN_CENTER })

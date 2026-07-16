@@ -67,14 +67,15 @@ void Surface::load(){
     // 4. Initialize Clay [clay.h:2186-2188]
     Clay_Initialize(arena, Clay_Dimensions({ window.widthf, window.heightf }), Clay_ErrorHandler({ .errorHandlerFunction = handleError, .userData = this }));
 
-    fonts[0] = LoadFontEx(PATH_ASSET("RobotoMono-Medium.ttf"), 48, 0, 400);
+    fonts[0] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_MEDIUM), 48, 0, 400);
     SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
-    fonts[1] = LoadFontEx(PATH_ASSET("Roboto-Regular.ttf"), 32, 0, 400);
+    fonts[1] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_REGULAR), 32, 0, 400);
     SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
     loadOverlay();
 
+    // TODO: move this into Display class
     textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
     textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
     textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
@@ -254,8 +255,8 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_OVERLAY_COLOR_START: {
-                // NOTE: this seems to convert Clay Color range to Raylib Color range first.
-                // If Clay Color is used directly (which is also 4 floats), there is some flashing of white occurring.
+                // NOTE: converting to Raylib unsigned char 0-255 first, then dividing by 255 
+                // (or multiplying by 1/255) because shader requires rgba values between 0.0f-1.0f
                 Color color = CLAY_COLOR_TO_RAYLIB_COLOR(renderCommand->renderData.overlayColor.color);
 			    float colorFloat[4] = {
 			        static_cast<float>(color.r)*INV255,
@@ -923,12 +924,12 @@ void Surface::unload(){
     UnloadTexture(textureArrowDown);
     UnloadTexture(textureArrowLeft);
 
-    if(temp_render_buffer) free(temp_render_buffer);
-    temp_render_buffer_len = 0;
-
     UnloadShader(overlayShader);
     UnloadFont(fonts[0]);
     UnloadFont(fonts[1]);
 
-    free(arena.memory);
+    if(temp_render_buffer) free(temp_render_buffer);
+    temp_render_buffer_len = 0;
+
+    if(arena.memory) free(arena.memory);
 }

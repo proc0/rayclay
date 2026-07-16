@@ -10,6 +10,9 @@
 
 #define PATH_ASSET(filename) DIR_ASSETS "/" filename
 
+#define URI_FONT_ROBOTO_MEDIUM "RobotoMono-Medium.ttf"
+#define URI_FONT_ROBOTO_REGULAR "Roboto-Regular.ttf"
+
 #define URI_SOUND_SPLAT "splat1.wav"
 
 #define URI_IMAGE_ARROW_UP "arrow_up.png"
