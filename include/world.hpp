@@ -24,15 +24,17 @@ public:
 
     void load();
     
-    void renderUnit() const;
+    void renderUnit() const {};
     void renderMain() const;
     void renderGame() const;
+    void renderHold() const;
 
-    WorldState updateUnit(InputEvent, Action::Surface);
+    WorldState updateUnit(InputEvent, Action::Surface) { return { .reachedGoal = false }; };
     WorldState updateMain(InputEvent, Action::Surface);
     WorldState updateGame(InputEvent, Action::Surface);
+    WorldState updateHold(InputEvent, Action::Surface);
     
     void resize(int width, int height) override;
-    void transition(State::Screen);
+    void transition(State::App, State::Screen);
     void unload();
 };

@@ -102,7 +102,7 @@ void App::runIntro() {
             state = State::App::RUN;
             screen = State::Screen::MAIN;
             surface.transition(state, screen);
-            world.transition(screen);
+            world.transition(state, screen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -164,25 +164,27 @@ Clay_RenderCommandArray App::update() {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
 
+                game.transition(state, screen);
+                world.transition(state, screen);
                 surface.transition(state, screen);
 
             } else if (state == State::App::RUN) {
                 TraceLog(LOG_INFO, "PAUSE");
                 state = State::App::HOLD;
 
+                game.transition(state, screen);
+                world.transition(state, screen);
                 surface.transition(state, screen);
             }
         }
 
         if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
             state = State::App::RUN;
-            // screen = State::Screen::GAME;
-            
-            // world.transition(screen);
-            // game.transition(screen);
+
             surface.clearEvent();
-            game.transition(screen);
-            world.transition(screen);
+            game.start();
+            game.transition(state, screen);
+            world.transition(state, screen);
             surface.transition(state, screen);
 
         } else if (state == State::App::HOLD) {
@@ -191,8 +193,10 @@ Clay_RenderCommandArray App::update() {
                 TraceLog(LOG_INFO, "UNPAUSE");
                 state = State::App::RUN;
             
-                surface.transition(state, screen);          
-            
+                game.transition(state, screen);
+                world.transition(state, screen);
+                surface.transition(state, screen);
+
             } else if (surfaceAction == Action::Surface::MAIN_MENU) {
             
                 surface.beginEvent(Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
@@ -202,8 +206,8 @@ Clay_RenderCommandArray App::update() {
                 state = State::App::RUN;
                 screen = State::Screen::MAIN;
 
-                world.transition(screen);
-                game.transition(screen);
+                world.transition(state, screen);
+                game.transition(state, screen);
                 surface.transition(state, screen);
 
             } else if (surfaceAction == Action::Surface::CANCEL_RETURN) {
@@ -236,13 +240,14 @@ Clay_RenderCommandArray App::update() {
         // Main screen input events
         //-----------------------------
         if(surfaceAction == Action::Surface::NEW_GAME) {
-            // state = State::App::RUN;
-            // TODO: confirm the screen state can move to game
-            // while tutorial window is showing, so that the game
-            // can show in the background. Might require extra state.
             screen = State::Screen::GAME;
+            // NOTE: app state is still on HOLD until confirm
             surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
+            // reset any game state
+            game.reset();
+            game.transition(state, screen);
             // transition world to start showing in background
+            world.transition(state, screen);
             surface.transition(state, screen);
 
         } else if (surfaceAction == Action::Surface::OPTIONS) {

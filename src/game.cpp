@@ -8,8 +8,12 @@ void Game::load() {
     updateTitle();
 }
 
-void Game::renderNull() const {
+void Game::start() {
+    state = State::Game::PLAY;
+}
 
+void Game::reset() {
+    gameState.score = 0;
 }
 
 void Game::renderMain() const {
@@ -26,15 +30,13 @@ void Game::renderTitle() const {
     DrawText(titleHint, titleHintX, titleHintY, titleHintFontSize, RAYWHITE);
 }
 
-GameState Game::updateNull(InputEvent, WorldState){
-    return gameState;
-}
-
 GameState Game::updateMain(InputEvent, WorldState){
     return gameState;
 }
 
 GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
+    if (paused) return gameState;
+
     if (worldState.reachedGoal) {
         gameState.score++;
     }
@@ -52,18 +54,20 @@ void Game::updateTitle() {
     titleHintY = static_cast<int>(window.height - window.height*0.25f - titleHintFontSize*0.5f);
 }
 
-void Game::transition(State::Screen screen) {
+void Game::transition(State::App appState, State::Screen screen) {
     switch(screen) {
         case State::Screen::MAIN:
             update = &Game::updateMain;
             render = &Game::renderMain;
             break;
         case State::Screen::GAME:
+            paused = appState == State::App::HOLD;
             update = &Game::updateGame;
             render = &Game::renderGame;
             break;
         default:
-            update = &Game::updateNull;
+            update = &Game::updateUnit;
+            render = &Game::renderUnit;
     };
 }
 

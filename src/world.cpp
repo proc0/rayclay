@@ -3,42 +3,35 @@
 #include "index.h"
 #include "raylib.h"
 #include "type.hpp"
-// #include "config.hpp"
-
-#include <string>
 
 void World::load(){
-    std::string pathAssets = DIR_ASSETS;
-    const char* pathSoundSplat = pathAssets.append("/").append(URI_SOUND_SPLAT).c_str();
-
-    splat = LoadSound(pathSoundSplat);
-}
-
-void World::renderUnit() const {
-
+    splat = LoadSound(PATH_ASSET(URI_SOUND_SPLAT));
 }
 
 void World::renderMain() const {
-    DrawRectangleGradientH(0, 0, window.width, window.height, GREEN, PINK);
+    DrawRectangleGradientV(0, 0, window.width, window.height, DARKBLUE, DARKBROWN);
 }
 
 void World::renderGame() const {
-    DrawRectangleGradientH(0, 0, window.width, window.height, BLUE, ORANGE);
+    DrawRectangleGradientV(0, 0, window.width, window.height, BLUE, GREEN);
 }
 
-WorldState World::updateUnit(InputEvent, Action::Surface){
-    return { .reachedGoal = false };
+void World::renderHold() const {
+    renderGame();
+    const char* pausedText = TextFormat("PAUSED");
+    float pausedTextWidth = MeasureText(pausedText, 200);
+    DrawText(pausedText, window.halfWidthf-pausedTextWidth*0.5f, window.halfHeightf-100.0f, 200, RAYWHITE);
 }
 
 WorldState World::updateMain(InputEvent, Action::Surface){
     return { .reachedGoal = false };
 }
 
-WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
+WorldState World::updateHold(InputEvent inputEvent, Action::Surface action){
+    return { .reachedGoal = false };
+}
 
-    if(IsKeyPressed(KEY_SPACE)){
-        PlaySound(splat);
-    }
+WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
 
     if (inputEvent.id == Event::Input::MOVE_UP || action == Action::Surface::MOVE_UP ) {
             TraceLog(LOG_INFO, "MOVE UP");
@@ -55,6 +48,7 @@ WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
     }
 
     if (dummyGoalTracker >= 3) {
+        PlaySound(splat);
         dummyGoalTracker = 0;
         return { .reachedGoal = true };
     }
@@ -62,15 +56,20 @@ WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
     return { .reachedGoal = false };
 }
 
-void World::transition(State::Screen screen) {
+void World::transition(State::App appState, State::Screen screen) {
     switch(screen) {
         case State::Screen::MAIN:
             update = &World::updateMain;
             render = &World::renderMain;
             break;
         case State::Screen::GAME:
-            update = &World::updateGame;
-            render = &World::renderGame;
+            if (appState == State::App::HOLD) {
+                update = &World::updateHold;
+                render = &World::renderHold;
+            } else {
+                update = &World::updateGame;
+                render = &World::renderGame;
+            }
             break;
         default:
             update = &World::updateUnit;

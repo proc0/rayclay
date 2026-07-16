@@ -3,6 +3,7 @@
 #include "index.h"
 #include "type.hpp"
 #include "window.hpp"
+#include "text.hpp"
 
 class Game : public Layer {
     const char* title = PROJECT_NAME;
@@ -19,30 +20,38 @@ class Game : public Layer {
         .score = 0,
         .state = State::Game::START
     };
+    GameState defaultState = {
+        .score = 0,
+        .state = State::Game::START
+    };
     State::Game state = State::Game::START;
 
     const Window& window;
+
+    bool paused;
 
 public:
     Game(const Window& window): window(window) {}
     ~Game() = default;
 
-    void (Game::*render)() const = &Game::renderNull;
-    GameState (Game::*update)(InputEvent, WorldState) = &Game::updateNull;
+    void (Game::*render)() const = &Game::renderUnit;
+    GameState (Game::*update)(InputEvent, WorldState) = &Game::updateUnit;
     
     void load();
-
-    void renderNull() const;
+    void start();
+    void reset();
+    
+    void renderUnit() const {};
     void renderGame() const;
     void renderMain() const;
     void renderTitle() const;
 
-    GameState updateNull(InputEvent, WorldState);
+    GameState updateUnit(InputEvent, WorldState) { return defaultState; };
     GameState updateMain(InputEvent, WorldState);
     GameState updateGame(InputEvent, WorldState);
     void updateTitle();
 
-    void transition(State::Screen);
+    void transition(State::App, State::Screen);
     void resize(int height, int width) override;
     void unload();
 };
