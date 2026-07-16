@@ -27,7 +27,7 @@ public:
     ~Game() = default;
 
     void (Game::*render)() const = &Game::renderNull;
-    GameState (Game::*update)(State::App, InputEvent) = &Game::updateNull;
+    GameState (Game::*update)(InputEvent) = &Game::updateNull;
     
     void load();
 
@@ -36,9 +36,9 @@ public:
     void renderMain() const;
     void renderTitle() const;
 
-    GameState updateNull(State::App, InputEvent);
-    GameState updateMain(State::App, InputEvent);
-    GameState updateGame(State::App, InputEvent);
+    GameState updateNull(InputEvent);
+    GameState updateMain(InputEvent);
+    GameState updateGame(InputEvent);
     void updateTitle();
 
     void transition(State::Screen);

@@ -18,7 +18,7 @@ public:
     ~World() = default;
     
     void (World::*render)() const = &World::renderUnit;
-    void (World::*update)() = &World::updateUnit;
+    void (World::*update)(InputEvent) = &World::updateUnit;
 
     void load();
     
@@ -26,9 +26,9 @@ public:
     void renderMain() const;
     void renderGame() const;
 
-    void updateUnit();
-    void updateMain();
-    void updateGame();
+    void updateUnit(InputEvent);
+    void updateMain(InputEvent);
+    void updateGame(InputEvent);
     
     void resize(int width, int height) override;
     void transition(State::Screen);

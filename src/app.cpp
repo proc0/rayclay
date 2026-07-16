@@ -182,6 +182,7 @@ Clay_RenderCommandArray App::update() {
             // game.transition(screen);
             surface.clearEvent();
             game.transition(screen);
+            world.transition(screen);
             surface.transition(state, screen);
 
         } else if (state == State::App::HOLD) {
@@ -242,7 +243,6 @@ Clay_RenderCommandArray App::update() {
             screen = State::Screen::GAME;
             surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
             // transition world to start showing in background
-            world.transition(screen);
             surface.transition(state, screen);
 
         } else if (surfaceAction == Action::Surface::OPTIONS) {
@@ -266,8 +266,8 @@ Clay_RenderCommandArray App::update() {
         }            
     }
 
-	GameState gameState = (game.*game.update)(state, inputEvent);
-	(world.*world.update)();
+	GameState gameState = (game.*game.update)(inputEvent);
+	(world.*world.update)(inputEvent);
 
     Clay_BeginLayout();
     (surface.*surface.layoutDisplay)(gameState);

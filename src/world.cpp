@@ -1,6 +1,8 @@
 #include "world.hpp"
 
 #include "index.h"
+#include "raylib.h"
+#include "type.hpp"
 // #include "config.hpp"
 
 #include <string>
@@ -24,27 +26,37 @@ void World::renderGame() const {
     DrawRectangleGradientH(0, 0, window.width, window.height, BLUE, ORANGE);
 }
 
-void World::updateUnit(){
+void World::updateUnit(InputEvent){
 
 }
 
-void World::updateMain(){
+void World::updateMain(InputEvent){
 
 }
 
-void World::updateGame(){
+void World::updateGame(InputEvent inputEvent){
 
     if(IsKeyPressed(KEY_SPACE)){
         PlaySound(splat);
     }
-    
-    if (IsKeyPressed(KEY_H)){
-        if (IsCursorHidden()){
-            ShowCursor();
-        } else {
-            HideCursor();
-        }
+
+    switch(inputEvent.id) {
+        case Event::Input::MOVE_UP:
+            TraceLog(LOG_INFO, "MOVE UP");
+            break;
+        case Event::Input::MOVE_DOWN:
+            TraceLog(LOG_INFO, "MOVE DOWN");
+            break;
+        case Event::Input::MOVE_RIGHT:
+            TraceLog(LOG_INFO, "MOVE RIGHT");
+            break;
+        case Event::Input::MOVE_LEFT:
+            TraceLog(LOG_INFO, "MOVE LEFT");
+            break;
+        default:
+            break;
     }
+
 }
 
 void World::transition(State::Screen screen) {

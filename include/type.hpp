@@ -31,6 +31,10 @@ namespace Event {
         SECONDARY,
         SECONDARY_DOWN,
         SECONDARY_UP,
+        MOVE_UP,
+        MOVE_RIGHT,
+        MOVE_DOWN,
+        MOVE_LEFT,
         ZOOM_IN,
         ZOOM_OUT,
         SWIPE_UP,
@@ -95,9 +99,6 @@ struct InputEvent {
 #define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })
 
 struct GameState {
-    // int raylibLogoClicks;
-    // int raylibLogoBounces;
-    // int raylibLogoCorners;
     State::Game state;
 };
 

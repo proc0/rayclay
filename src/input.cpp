@@ -47,40 +47,29 @@ InputEvent Input::update() {
 		};
 	} 
 
-	// if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-	// 	return {
-	// 		.id = Event::Input::PRIMARY,
-	// 		.position = position,
-	// 	};
-	// } else if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-	// 	return {
-	// 		.id = Event::Input::PRIMARY_DOWN,
-	// 		.position = position,
-	// 	};
-	// } else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-	// 	return {
-	// 		.id = Event::Input::PRIMARY_UP,
-	// 		.position = position,
-	// 	};
-	// } else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-	// 	return {
-	// 		.id = Event::Input::SECONDARY,
-	// 		.position = position,
-	// 	};
-	// } else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-	// 	return {
-	// 		.id = Event::Input::SECONDARY_DOWN,
-	// 		.position = position,
-	// 	};
-	// } else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
-	// 	return {
-	// 		.id = Event::Input::SECONDARY_UP,
-	// 		.position = position,
-	// 	};
-	// } 
-
-
-	if (IsKeyPressed(KEY_ESCAPE)) { 
+	// TODO: figure out how to send both key pressed and mouse inputs simultaneously
+	// and whether raylibe /glfw supports this
+	if (IsKeyPressed(KEY_W)) {
+		return {
+			.id = Event::Input::MOVE_UP,
+			.position = position,
+		};
+	} else if (IsKeyPressed(KEY_D)) {
+		return {
+			.id = Event::Input::MOVE_RIGHT,
+			.position = position,
+		};
+	} else if (IsKeyPressed(KEY_S)) {
+		return {
+			.id = Event::Input::MOVE_DOWN,
+			.position = position,
+		};
+	} else if (IsKeyPressed(KEY_A)) {
+		return {
+			.id = Event::Input::MOVE_LEFT,
+			.position = position,
+		};
+	} else if (IsKeyPressed(KEY_ESCAPE)) { 
 		return {
 			.id = Event::Input::KEY_ESCAPE,
 			.position = position,

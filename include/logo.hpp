@@ -11,6 +11,7 @@ class Logo : public Layer {
     int logoFontSize = 108;
 
     const char* rlLogoName = "raylib";
+    // TODO: make fontsize and border relative to logo size
     const int rlLogoFontSize = 40;
     const float rlLogoSize = RAYLIB_LOGO_SIZE;
     const int rlLogoBorder = 16;

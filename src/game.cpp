@@ -26,15 +26,15 @@ void Game::renderTitle() const {
     DrawText(titleHint, titleHintX, titleHintY, titleHintFontSize, RAYWHITE);
 }
 
-GameState Game::updateNull(State::App appState, InputEvent inputEvent){
+GameState Game::updateNull(InputEvent inputEvent){
     return gameState;
 }
 
-GameState Game::updateMain(State::App appState, InputEvent inputEvent){
+GameState Game::updateMain(InputEvent inputEvent){
     return gameState;
 }
 
-GameState Game::updateGame(State::App appState, InputEvent inputEvent){
+GameState Game::updateGame(InputEvent inputEvent){
 
     return gameState;
 }
