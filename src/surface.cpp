@@ -852,12 +852,6 @@ void Surface::handleError(Clay_ErrorData errorData) {
 }
 
 void Surface::resize(int width, int height) {
-    // if (width < 720) {
-    //     sidebarWidth = CLAY_SIZING_FIXED(150);
-    // } else {
-    //     sidebarWidth = CLAY_SIZING_PERCENT(0.2f);
-    // }
-
 	Clay_SetLayoutDimensions(Clay_Dimensions({ static_cast<float>(width), static_cast<float>(height) }));
 }
 
