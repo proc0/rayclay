@@ -11,6 +11,7 @@
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 using Millisecs = std::chrono::milliseconds;
+using Secs = std::chrono::seconds;
 using Duration = std::chrono::duration<double>;
 using Trigger = std::function<void()>;
 using TimerId = uint64_t;

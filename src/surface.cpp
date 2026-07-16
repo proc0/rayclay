@@ -427,7 +427,8 @@ void Surface::updateDisplay(const GameState gameState) {
         if (gameState.state == State::Game::OVER || gameState.state == State::Game::WIN) {
             layoutMenu = &Surface::layoutWinLose;
             if (gameState.totalTimeId) {
-                formatTotalTime = window.timer.consumeWatchTime(gameState.totalTimeId);
+                std::string totalTime = window.timer.consumeWatchTime(gameState.totalTimeId);
+                formatTotalTime = std::format("Time {}", totalTime);
             }
         }
     }
@@ -482,7 +483,6 @@ void Surface::layoutWinLose() {
             CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
             Clay_String displayTime = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatTotalTime.length()), .chars = formatTotalTime.c_str() };
             CLAY_TEXT(displayTime, STYLE_TEXT_BANNER);
-            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
         }
 
         CLAY(CLAY_ID("FooterWinLose"), {

@@ -39,7 +39,7 @@ std::string Timer::getWatchTime(TimerId id) {
     std::string value = "";
     if (result != timepoints.end()) {
         auto& timePair = result->second;
-        value = std::format("{:%M:%S}", timePair.second);
+        value = std::format("{:%M:%S}", std::chrono::duration_cast<Secs>(timePair.second));
     }
 
     return value;
