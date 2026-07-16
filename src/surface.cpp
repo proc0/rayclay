@@ -3,6 +3,8 @@
 
 #include "index.h"
 #include "type.hpp"
+#include "text.hpp"
+#include "style.hpp"
 
 #include "raylib.h"
 #include "raymath.h"
@@ -443,7 +445,7 @@ void Surface::layoutTutorial() {
             },
 
         }) {
-            CLAY_TEXT(CLAY_STRING("Faucibus purus in massa tempor nec. Nec ullamcorper sit amet risus nullam eget felis eget nunc. Diam vulputate ut pharetra sit amet aliquam id diam. Lacus suspendisse faucibus interdum posuere lorem. A diam sollicitudin tempor id. Amet massa vitae tortor condimentum lacinia. Aliquet nibh praesent tristique magna."),
+            CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_1),
                 CLAY_TEXT_CONFIG({ 
                     .textColor = CLAY_WHITE, 
                     .fontSize = 28,
@@ -452,7 +454,7 @@ void Surface::layoutTutorial() {
                     .textAlignment = CLAY_TEXT_ALIGN_LEFT 
                 }));
 
-            CLAY_TEXT(CLAY_STRING("Suspendisse in est ante in nibh. Amet venenatis urna cursus eget nunc scelerisque viverra. Elementum sagittis vitae et leo duis ut diam quam nulla. Enim nulla aliquet porttitor lacus. Pellentesque habitant morbi tristique senectus et. Facilisi nullam vehicula ipsum a arcu cursus vitae.\nSem fringilla ut morbi tincidunt. Euismod quis viverra nibh cras pulvinar mattis nunc sed. Velit sed ullamcorper morbi tincidunt ornare massa. Varius quam quisque id diam vel quam. Nulla pellentesque dignissim enim sit amet venenatis. Enim lobortis scelerisque fermentum dui faucibus in. Pretium viverra suspendisse potenti nullam ac tortor vitae. Lectus vestibulum mattis ullamcorper velit sed. Eget mauris pharetra et ultrices neque ornare aenean euismod elementum. Habitant morbi tristique senectus et. Integer vitae justo eget magna fermentum iaculis eu. Semper quis lectus nulla at volutpat diam. Enim praesent elementum facilisis leo. Massa vitae tortor condimentum lacinia quis vel."),
+            CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_2),
                 CLAY_TEXT_CONFIG({ 
                     .textColor = CLAY_WHITE, 
                     .fontSize = 28,
@@ -513,27 +515,29 @@ void Surface::layoutOptions() {
         CLAY_AUTO_ID({ 
             .layout = { 
                 .sizing = { 
-                    .width = CLAY_SIZING_GROW(0) 
+                    .width = CLAY_SIZING_GROW(0),
+                    .height = CLAY_SIZING_FIXED(55.0f),
                 }, 
                 .padding = {8, 8, 8, 8 }, 
                 .childGap = 8, 
-                .childAlignment = { .x = CLAY_ALIGN_X_RIGHT } 
-            }, 
+                .childAlignment = { .x = CLAY_ALIGN_X_RIGHT },
+                .layoutDirection = CLAY_LEFT_TO_RIGHT
+            },
         }) {
-            widget.layoutButton(BUTTON_ID::OPTIONS_GAME);
-            widget.layoutButton(BUTTON_ID::OPTIONS_AUDIO);
-            widget.layoutButton(BUTTON_ID::OPTIONS_INPUTS);
+            widget.layoutTab(BUTTON_ID::OPTIONS_GAME);
+            widget.layoutTab(BUTTON_ID::OPTIONS_AUDIO);
+            widget.layoutTab(BUTTON_ID::OPTIONS_INPUTS);
         }
 
         CLAY(CLAY_ID("OptionsTabContent"), {
             .layout = { 
-             .sizing = { 
-                 .width = CLAY_SIZING_GROW(0),
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_GROW(0),
-             }, 
-             .padding = { 72, 72, 72, 72 }, 
-             .childGap = 16, 
-             .layoutDirection = CLAY_TOP_TO_BOTTOM 
+                }, 
+                .padding = { 72, 72, 72, 72 }, 
+                .childGap = 16, 
+                .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
             // .clip = { 
             //  .vertical = true, 

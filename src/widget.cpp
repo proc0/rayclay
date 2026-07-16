@@ -2,10 +2,11 @@
 
 #include "clay.h"
 #include "type.hpp"
+#include "style.hpp"
 
 #include <cstring>
 
-void onButtonClick(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
+void handleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     Widget* widget = static_cast<Widget*>(userData);
     
     if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
@@ -24,10 +25,9 @@ void Widget::layoutButtonTexture(const BUTTON_ID id, const Clay_ElementId& eleme
         }, 
         .image = { .imageData = buttonTexture },
     }) {
-        // Clay_Hovered only works inside the CLAY declaration body
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
-        Clay_OnHover(onButtonClick, this);
+        Clay_OnHover(handleClayHover, this);
     }
 }
 
@@ -41,17 +41,17 @@ void Widget::layoutButton(const BUTTON_ID id) {
             .padding = CLAY_PADDING_ALL(8),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
+        // Clay_Hovered only works inside the paramaters or Clay declaration body
         .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
         .border = { 
             .color = Clay_Color({ 220, 220, 220, 255 }), 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
-        // Clay_Hovered only works inside the CLAY declaration body
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
-    	Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(button.label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
+    	Clay_OnHover(handleClayHover, this);
+        CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
     }
 }
 
@@ -59,17 +59,23 @@ void Widget::layoutTab(const BUTTON_ID id) {
 	const Button& button = getButton(id);
     CLAY(button.clayId, { 
         .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0)
+            .sizing = {
+                .width = CLAY_SIZING_GROW(0),
             },
             .padding = CLAY_PADDING_ALL(8),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
         }, 
-        .backgroundColor = Clay_Hovered() ? RAYLIB_COLOR_TO_CLAY_COLOR(GREEN) : RAYLIB_COLOR_TO_CLAY_COLOR(BLUE),
+        // Clay_Hovered only works inside the paramaters or Clay declaration body
+        .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
+        .border = { 
+            .color = Clay_Color({ 220, 220, 220, 255 }), 
+            .width = CLAY_BORDER_OUTSIDE(1) 
+        },
     }) {
         onButtonHover(id, Clay_Hovered());
-        Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(button.label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
+        // Clay_OnHover also handles click events
+        Clay_OnHover(handleClayHover, this);
+        CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
     }
 }
 
@@ -121,14 +127,13 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parent
 }
 
 void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
-    Clay_ScrollContainerData scrollData = Clay_GetScrollContainerData(parentId);
-    if (scrollData.found && scrollData.scrollContainerDimensions.height < scrollData.contentDimensions.height) {
+    Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
+    if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
         CLAY(CLAY_ID("ScrollBar"), {
             .floating = {
                 .offset = { 
-                	.y = -(scrollData.scrollPosition->y / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height 
+                	.y = -(scrollContainerData.scrollPosition->y / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height 
                 },
-                // .parentId = Clay_GetElementId(CLAY_STRING("TabContent")).id,
                 .parentId = parentId.id,
                 .zIndex = 2,
                 .attachPoints = { 
@@ -142,10 +147,10 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
                 .layout = { 
                 	.sizing = { 
                 		CLAY_SIZING_FIXED(12), 
-                		CLAY_SIZING_FIXED((scrollData.scrollContainerDimensions.height / scrollData.contentDimensions.height) * scrollData.scrollContainerDimensions.height) 
+                		CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                 	}
                 },
-                .backgroundColor = Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar"))) ? Clay_Color({100, 100, 140, 150}) : Clay_Color({120, 120, 160, 150}),
+                .backgroundColor = Clay_Hovered() ? Clay_Color({100, 100, 140, 150}) : Clay_Color({120, 120, 160, 150}),
                 .cornerRadius = CLAY_CORNER_RADIUS(6),
             });
         }
@@ -162,7 +167,7 @@ const Button& Widget::getButton(Action::Surface action) const {
 			return button;
 		}
 	}
-	
+
 	return buttons.at(0);
 };
 

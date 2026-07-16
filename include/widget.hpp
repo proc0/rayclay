@@ -7,14 +7,6 @@
 #include <array>
 #include <vector>
 
-#define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
-#define CLAY_BLACK Clay_Color({ 0.0f, 0.0f, 0.0f, 255.0f })
-#define SURFACE_BUTTON_COLOR_BG Clay_Color({ 0, 0, 0, 100 })
-#define SURFACE_BUTTON_COLOR_BG_HL Clay_Color({ 0, 0, 0, 130 })
-#define SURFACE_BUTTON_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
-#define SURFACE_BUTTON_COLOR_FG_HL Clay_Color({ 255, 255, 255, 255 })
-#define SURFACE_MENU_COLOR_BG Clay_Color({ 0, 0, 0, 150 })
-
 // TODO: make consistent button ids and their actions in type header
 namespace WidgetId {
 	// WARNING: used for indices to Widget.buttons
@@ -134,10 +126,11 @@ public:
 
 constexpr float INV255 = 1.0f/255.0f;
 
-#define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) Rectangle({ .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height })
-#define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
-#define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(color.r)*INV255, static_cast<float>(color.g)*INV255, static_cast<float>(color.b)*INV255, static_cast<float>(color.a)*INV255 })
 #define RAYLIB_VECTOR2_TO_CLAY_VECTOR2(vector) Clay_Vector2({ .x = vector.x, .y = vector.y })
+#define CLAY_RECTANGLE_TO_RAYLIB_RECTANGLE(rectangle) Rectangle({ .x = rectangle.x, .y = rectangle.y, .width = rectangle.width, .height = rectangle.height })
+// NOTE: if color conversion is off, check Clay color representation type, it might need to be rounded. Clay uses 0.0f-255.0f, Raylib is unsighed char.
+#define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
+#define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(color.r), static_cast<float>(color.g), static_cast<float>(color.b), static_cast<float>(color.a) })
 
 enum CustomLayoutElementType {
     CUSTOM_LAYOUT_ELEMENT_TYPE_3D_MODEL
