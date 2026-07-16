@@ -30,8 +30,9 @@ void Widget::layoutButtonTexture(const BUTTON_ID id, const Clay_ElementId& eleme
     }
 }
 
-void Widget::layoutButton(const BUTTON_ID id, const Clay_ElementId& elementId, const Clay_String& buttonText) {
-    CLAY(elementId, { 
+void Widget::layoutButton(const BUTTON_ID id) {
+	const Button& button = getButton(id);
+    CLAY(button.clayId, { 
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0)
@@ -49,12 +50,13 @@ void Widget::layoutButton(const BUTTON_ID id, const Clay_ElementId& elementId, c
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
     	Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(buttonText, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
+        CLAY_TEXT(button.label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
     }
 }
 
-void Widget::layoutTab(const BUTTON_ID id, const Clay_ElementId& elementId, const Clay_String& label) {
-    CLAY(elementId, { 
+void Widget::layoutTab(const BUTTON_ID id) {
+	const Button& button = getButton(id);
+    CLAY(button.clayId, { 
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0)
@@ -66,7 +68,7 @@ void Widget::layoutTab(const BUTTON_ID id, const Clay_ElementId& elementId, cons
     }) {
         onButtonHover(id, Clay_Hovered());
         Clay_OnHover(onButtonClick, this);
-        CLAY_TEXT(label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
+        CLAY_TEXT(button.label, CLAY_TEXT_CONFIG({ .textColor = SURFACE_BUTTON_COLOR_FG, .fontSize = 24 }));
     }
 }
 

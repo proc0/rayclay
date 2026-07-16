@@ -445,8 +445,7 @@ void Surface::layoutTutorial() {
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
         }) {        
-            const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_TUTORIAL);
-            widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+            widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
         }
     }
 }
@@ -489,10 +488,8 @@ void Surface::layoutOptions() {
              .padding = { 100, 100, 24, 0 }, 
             },
         }) {        
-            const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_OPTIONS);
-            const Button& cancel = widget.getButton(BUTTON_ID::CANCEL_OPTIONS);
-            widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
-            widget.layoutButton(cancel.id, cancel.clayId, cancel.label);
+            widget.layoutButton(BUTTON_ID::CONFIRM_OPTIONS);
+            widget.layoutButton(BUTTON_ID::CANCEL_OPTIONS);
         }
     }
 }
@@ -598,11 +595,8 @@ void Surface::layoutMenuPause() {
                             .layoutDirection = CLAY_LEFT_TO_RIGHT,
                         },
                     }) {
-                        // TODO: overload createbutton to take button id
-                        const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_RETURN);
-                        const Button& cancel = widget.getButton(BUTTON_ID::CANCEL_RETURN);
-                        widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
-                        widget.layoutButton(cancel.id, cancel.clayId, cancel.label);
+                        widget.layoutButton(BUTTON_ID::CONFIRM_RETURN);
+                        widget.layoutButton(BUTTON_ID::CANCEL_RETURN);
                     }
                 }
             }
@@ -613,8 +607,7 @@ void Surface::layoutMenuPause() {
             }));
 
             for (auto buttonId : widget.buttonsMenuPause) {
-                const Button& button = widget.getButton(buttonId);
-                widget.layoutButton(button.id, button.clayId, button.label);
+                widget.layoutButton(buttonId);
             }
         }
     }
@@ -666,8 +659,7 @@ void Surface::layoutMenuMain() {
             }));
 
             for (auto buttonId : widget.buttonsMenuMain) {
-                const Button& button = widget.getButton(buttonId);
-                widget.layoutButton(button.id, button.clayId, button.label);
+                widget.layoutButton(buttonId);
             }
         }
     }

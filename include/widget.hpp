@@ -118,8 +118,8 @@ public:
 	void clearButtonAction();
 	Action::Surface consumeButtonAction();
 
-	void layoutButton(const BUTTON_ID, const Clay_ElementId&, const Clay_String& label);
-	void layoutTab(const BUTTON_ID, const Clay_ElementId&, const Clay_String& label);
+	void layoutButton(const BUTTON_ID);
+	void layoutTab(const BUTTON_ID);
 	void layoutButtonTexture(const BUTTON_ID, const Clay_ElementId&, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId);
 };
