@@ -103,6 +103,7 @@ void App::runIntro() {
             screen = State::Screen::MAIN;
             surface.transition(state, screen);
             world.transition(state, screen);
+            game.transition(state, screen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -162,12 +163,15 @@ Clay_RenderCommandArray App::update() {
         if(inputEvent.id == Event::Input::KEY_ESCAPE){
             if(state == State::App::HOLD) {
                 TraceLog(LOG_INFO, "UNPAUSE");
-                state = State::App::RUN;
+                if (surface.hasEvent()) {
+                    surface.clearEvent();
+                } else {                    
+                    state = State::App::RUN;
 
-                game.transition(state, screen);
-                world.transition(state, screen);
-                surface.transition(state, screen);
-
+                    game.transition(state, screen);
+                    world.transition(state, screen);
+                    surface.transition(state, screen);
+                }
             } else if (state == State::App::RUN) {
                 TraceLog(LOG_INFO, "PAUSE");
                 state = State::App::HOLD;

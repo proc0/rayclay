@@ -47,8 +47,8 @@ using BUTTON_ID = WidgetId::ButtonId;
 #define BUTTONS_MENU_PAUSE const std::array<BUTTON_ID, 5> buttonsMenuPause{ \
 		BUTTON_ID::RESUME, 	\
 		BUTTON_ID::RELOAD, 	\
-		BUTTON_ID::RETURN, 	\
 		BUTTON_ID::OPTIONS, \
+		BUTTON_ID::RETURN, 	\
 		BUTTON_ID::QUIT,	\
 	};
 
@@ -124,7 +124,7 @@ public:
 	Action::Surface consumeButtonAction();
 
 	void layoutButton(const BUTTON_ID);
-	void layoutTab(const BUTTON_ID);
+	void layoutTab(const BUTTON_ID, bool active);
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId);
 };

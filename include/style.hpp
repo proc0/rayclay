@@ -5,6 +5,9 @@
 #define CLAY_BLACK Clay_Color({ 0.0f, 0.0f, 0.0f, 255.0f })
 
 #define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 150 })
+#define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 80, 200, 255 })
+#define SURFACE_COLOR_ACCENT_BORDER Clay_Color({ 80, 80, 80, 255 })
+
 #define SURFACE_COLOR_TEXT_FG Clay_Color({ 200, 200, 200, 255 })
 #define SURFACE_COLOR_TEXT_FG_HL Clay_Color({ 255, 255, 255, 255 })
 

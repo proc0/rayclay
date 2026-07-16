@@ -69,6 +69,7 @@ public:
 
     void beginEvent(Event::Surface);
     void clearEvent();
+    bool hasEvent() const;
 
     static void handleError(Clay_ErrorData);
     void resize(int width, int height);

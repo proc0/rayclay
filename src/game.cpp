@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include "index.h"
 #include "type.hpp"
 
 #include "raylib.h"
@@ -17,7 +18,7 @@ void Game::reset() {
 }
 
 void Game::renderMain() const {
-
+    DrawText(title, titleX, titleY, titleFontSize, RAYWHITE);
 }
 
 void Game::renderGame() const {

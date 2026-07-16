@@ -4,6 +4,7 @@
 #include "type.hpp"
 #include "style.hpp"
 
+#include <cstdint>
 #include <cstring>
 
 void handleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
@@ -56,21 +57,26 @@ void Widget::layoutButton(const BUTTON_ID id) {
     }
 }
 
-void Widget::layoutTab(const BUTTON_ID id) {
+void Widget::layoutTab(const BUTTON_ID id, bool active) {
 	const Button& button = getButton(id);
     CLAY(button.clayId, { 
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(8),
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
+            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(active ? 12 : 8)),
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
         .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
             .color = WIDGET_COLOR_BORDER, 
-            .width = CLAY_BORDER_OUTSIDE(1) 
+            .width = {
+                .left = 1,
+                .right = 1,
+                .top = 1, 
+                .bottom = 0, 
+            } 
         },
     }) {
         onButtonHover(id, Clay_Hovered());
