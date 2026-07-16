@@ -84,6 +84,7 @@ namespace State {
         PLAY,
         PAUSE,
         OVER,
+        WIN,
         FINISH
     };
 
@@ -109,6 +110,7 @@ struct GameState {
 
 struct WorldState {
     bool reachedGoal;
+    bool failedGoal;
 };
 
 class Layer {

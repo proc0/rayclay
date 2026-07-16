@@ -1,6 +1,5 @@
 #include "game.hpp"
 
-#include "index.h"
 #include "type.hpp"
 
 #include "raylib.h"
@@ -11,6 +10,7 @@ void Game::load() {
 
 void Game::start() {
     state = State::Game::PLAY;
+    gameState.state = state;
 }
 
 void Game::reset() {
@@ -41,7 +41,19 @@ GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
     if (worldState.reachedGoal) {
         gameState.score++;
     }
-    
+
+    if (worldState.failedGoal) {
+        gameState.score--;
+    }
+ 
+    if (gameState.score > 2) {
+        state = State::Game::WIN;
+        gameState.state = state;
+    } else if (gameState.score < -2) {
+        state = State::Game::OVER;
+        gameState.state = state;
+    }
+
     return gameState;
 }
 

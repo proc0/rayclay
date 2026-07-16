@@ -28,6 +28,7 @@ class Surface : public Layer {
     const Window& window;
     // TODO: move this to Display
     int gameScore;
+    State::Game currentGameState = State::Game::START;
     // overlay shader variable
     int overlayColorLocation;
 
@@ -57,6 +58,7 @@ public:
     void layoutMenuPause();
     void layoutTutorial();
     void layoutOptions();
+    void layoutWinLose();
 
     // TODO: this would also move to Display
     void layoutDisplayUnit() {};

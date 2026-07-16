@@ -41,6 +41,7 @@ WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
 
     } else if (inputEvent.id == Event::Input::MOVE_DOWN || action == Action::Surface::MOVE_DOWN ) {
             TraceLog(LOG_INFO, "MOVE DOWN");
+            dummyGoalTracker--;
 
     } else if (inputEvent.id == Event::Input::MOVE_LEFT || action == Action::Surface::MOVE_LEFT ) {
             TraceLog(LOG_INFO, "MOVE LEFT");
@@ -51,6 +52,9 @@ WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
         PlaySound(splat);
         dummyGoalTracker = 0;
         return { .reachedGoal = true };
+    } else if (dummyGoalTracker < -2) {
+        dummyGoalTracker = 0;
+        return { .failedGoal = true };
     }
 
     return { .reachedGoal = false };

@@ -418,6 +418,58 @@ void Surface::updateDisplay(const GameState gameState) {
         gameScore = gameState.score;
         formatScore = std::format("Score {}", gameScore);
     }
+
+    if (currentGameState != gameState.state) {
+        currentGameState = gameState.state;
+        if (gameState.state == State::Game::OVER || gameState.state == State::Game::WIN) {
+            layoutMenu = &Surface::layoutWinLose;
+        }
+    }
+}
+
+
+void Surface::layoutWinLose() {
+    CLAY(CLAY_ID("LayoutWinLose"), {
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
+                .height = CLAY_SIZING_PERCENT(0.7f),
+            }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = SURFACE_COLOR_MENU_BG,
+        .floating = { 
+            .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+    }) {
+        if (currentGameState == State::Game::WIN) {
+            CLAY_TEXT(CLAY_STRING("YOU WIN!"), STYLE_TEXT_HIGHLIGHT);
+        } else if (currentGameState == State::Game::OVER) {
+            CLAY_TEXT(CLAY_STRING("Game Over"), STYLE_TEXT_HIGHLIGHT);
+        }
+        // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
+        Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
+        CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
+
+        CLAY(CLAY_ID("FooterWinLose"), {
+            .layout = { 
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0),
+                    .height = CLAY_SIZING_PERCENT(0.2f),
+                }, 
+                .padding = { 100, 100, 24, 0 }, 
+                .layoutDirection = CLAY_LEFT_TO_RIGHT,
+            },
+        }) {        
+            widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
+        }
+    }
 }
 
 void Surface::layoutTutorial() {

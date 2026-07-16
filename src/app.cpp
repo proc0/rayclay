@@ -183,9 +183,12 @@ Clay_RenderCommandArray App::update() {
         }
 
         if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
+            TraceLog(LOG_INFO, "BEGIN GAME");
             state = State::App::RUN;
 
             surface.clearEvent();
+            // reset any game state
+            game.reset();
             game.start();
             game.transition(state, screen);
             world.transition(state, screen);
@@ -247,8 +250,7 @@ Clay_RenderCommandArray App::update() {
             screen = State::Screen::GAME;
             // NOTE: app state is still on HOLD until confirm
             surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
-            // reset any game state
-            game.reset();
+
             game.transition(state, screen);
             // transition world to start showing in background
             world.transition(state, screen);
