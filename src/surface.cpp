@@ -426,6 +426,9 @@ void Surface::updateDisplay(const GameState gameState) {
         currentGameState = gameState.state;
         if (gameState.state == State::Game::OVER || gameState.state == State::Game::WIN) {
             layoutMenu = &Surface::layoutWinLose;
+            if (gameState.totalTimeId) {
+                formatTotalTime = window.timer.consumeWatchTime(gameState.totalTimeId);
+            }
         }
     }
 }
@@ -463,7 +466,7 @@ void Surface::layoutWinLose() {
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
                 },
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))),
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(24))),
                 .childGap = static_cast<uint16_t>(window.convert(4)),
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -477,7 +480,8 @@ void Surface::layoutWinLose() {
             // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
             Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
             CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
-            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
+            Clay_String displayTime = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatTotalTime.length()), .chars = formatTotalTime.c_str() };
+            CLAY_TEXT(displayTime, STYLE_TEXT_BANNER);
             CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
         }
 
@@ -487,7 +491,6 @@ void Surface::layoutWinLose() {
                     .width = CLAY_SIZING_PERCENT(window.adapt(0.3f)),
                 },
                 .padding = { 0, 0, static_cast<uint16_t>(window.convert(12)), 0 },
-                .childAlignment = { .y = CLAY_ALIGN_Y_BOTTOM },
             },
         }) {        
             widget.layoutButton(BUTTON_ID::RESTART);

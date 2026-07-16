@@ -9,7 +9,6 @@
 
 class Window {
 	Camera2D& camera;
-	Timer& timer;
 	TimerId resizeTimerId;
 
     Vector2 originDelta = { 0.0f, 0.0f };
@@ -21,6 +20,8 @@ class Window {
 	std::vector<Layer*> listeners;
 
 public:
+	Timer& timer;
+	
     Vector2 offset = { 0.0f, 0.0f };
 	float unit = SCREEN_UNIT;
 	float zoomUnit = 0.0f;

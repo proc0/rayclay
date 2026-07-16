@@ -9,7 +9,7 @@ void World::load(){
 }
 
 void World::renderMain() const {
-    DrawRectangleGradientV(0, 0, window.width, window.height, DARKBLUE, DARKBROWN);
+    DrawRectangleGradientV(0, 0, window.width, window.height, DARKBLUE, DARKGRAY);
 }
 
 void World::renderGame() const {

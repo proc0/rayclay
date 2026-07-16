@@ -27,6 +27,7 @@ class Game : public Layer {
     State::Game state = State::Game::START;
 
     const Window& window;
+    TimerId gameTimerId;
 
     bool paused;
 

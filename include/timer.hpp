@@ -6,10 +6,12 @@
 #include <functional>
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
-using Duration = std::chrono::milliseconds;
+using Millisecs = std::chrono::milliseconds;
+using Duration = std::chrono::duration<double>;
 using Trigger = std::function<void()>;
 using TimerId = uint64_t;
 
@@ -29,7 +31,8 @@ class Timer {
     std::unordered_set<TimerId> stoppedIds;
     // min-heap to keep the soonest timer at the top
     std::priority_queue<TimerEvent, std::vector<TimerEvent>, std::greater<TimerEvent>> timers;
-    
+    std::unordered_map<TimerId, std::pair<TimePoint, Millisecs>> timepoints;
+
     TimerId nextId = 0;
 
 public:
@@ -39,7 +42,12 @@ public:
     bool isRunning(TimerId);
 	
 	TimerId schedule(int delay, Trigger callback);
-    
+    TimerId startWatch();
+    void stopWatch(TimerId);
+    std::string getWatchTime(TimerId);
+    std::string consumeWatchTime(TimerId);
+    void eraseWatchTime(TimerId);
+
     void stop(TimerId);
     void updateUnit();
 	void updateTimer();

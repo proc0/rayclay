@@ -19,6 +19,7 @@ class Surface : public Layer {
     Texture2D textureArrowDown;
     Texture2D textureArrowLeft;
     std::string formatScore = "Score";
+    std::string formatTotalTime = "Time";
 
     Camera Raylib_camera;
     Shader overlayShader;

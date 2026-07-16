@@ -11,6 +11,7 @@ void Game::load() {
 void Game::start() {
     state = State::Game::PLAY;
     gameState.state = state;
+    gameTimerId = window.timer.startWatch();
 }
 
 void Game::reset() {
@@ -26,7 +27,7 @@ void Game::renderGame() const {
 }
 
 void Game::renderTitle() const {
-    ClearBackground(GOLD);
+    DrawRectangleGradientV(0, 0, window.width, window.height, DARKBLUE, ORANGE);
     DrawText(title, titleX, titleY, titleFontSize, RAYWHITE);
     DrawText(titleHint, titleHintX, titleHintY, titleHintFontSize, RAYWHITE);
 }
@@ -36,7 +37,13 @@ GameState Game::updateMain(InputEvent, WorldState){
 }
 
 GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
-    if (paused) return gameState;
+    if (state != State::Game::PLAY) return gameState;
+    
+    if (paused) {
+        state = State::Game::PAUSE;
+        gameState.state = state;
+        return gameState;
+    }
 
     if (worldState.reachedGoal) {
         gameState.score++;
@@ -49,9 +56,13 @@ GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
     if (gameState.score > 2) {
         state = State::Game::WIN;
         gameState.state = state;
+        window.timer.stopWatch(gameTimerId);
+        gameState.totalTimeId = gameTimerId;
     } else if (gameState.score < -2) {
         state = State::Game::OVER;
         gameState.state = state;
+        window.timer.stopWatch(gameTimerId);
+        gameState.totalTimeId = gameTimerId;
     }
 
     return gameState;

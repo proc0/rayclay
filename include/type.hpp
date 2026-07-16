@@ -1,5 +1,7 @@
 #pragma once
 
+#include "timer.hpp"
+
 #include "raylib.h"
 
 namespace Action {
@@ -108,6 +110,7 @@ struct InputEvent {
 struct GameState {
     int score;
     State::Game state;
+    TimerId totalTimeId;
 };
 
 struct WorldState {
