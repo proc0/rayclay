@@ -14,7 +14,6 @@ class Surface : public Layer {
 
     Clay_Arena arena = {};
 
-
     const Window& window;
     // overlay shader variable
     int overlayColorLocation;
@@ -24,6 +23,7 @@ public:
 
     Event::Surface lastEvent = Event::Surface::NO_EVENT;
     Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
+    BUTTON_ID activeOptionsTab = BUTTON_ID::OPTIONS_GAME;
 
     Surface(const Window& window): window(window) {};
     ~Surface() = default;
@@ -49,6 +49,7 @@ public:
     
     Action::Surface updateUnit(const InputEvent& inputEvent) { return Action::Surface::DO_NOTHING; };
     Action::Surface updateMenu(const InputEvent& inputEvent);
+    Action::Surface updateOptions(const InputEvent& inputEvent);
 
     void beginEvent(Event::Surface);
     void clearEvent();

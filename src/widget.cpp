@@ -1,6 +1,7 @@
 #include "widget.hpp"
 
 #include "clay.h"
+#include "type.hpp"
 
 #include <cstring>
 
@@ -153,6 +154,16 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
 
 const Button& Widget::getButton(WidgetId::ButtonId id) const {
 	return buttons.at(id);
+};
+
+const Button& Widget::getButton(Action::Surface action) const {
+	for (auto& button : buttons) {
+		if (button.action == action) {
+			return button;
+		}
+	}
+	
+	return buttons.at(0);
 };
 
 const Action::Surface Widget::getButtonAction() const {

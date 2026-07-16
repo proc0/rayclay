@@ -15,6 +15,9 @@ namespace Action {
         CANCEL_RETURN,
         CONFIRM_OPTIONS,
         CANCEL_OPTIONS,
+        CHANGE_OPTIONS_GAME,
+        CHANGE_OPTIONS_AUDIO,
+        CHANGE_OPTIONS_INPUTS,
         QUIT_APP,
     };
 }

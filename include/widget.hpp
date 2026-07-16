@@ -29,6 +29,9 @@ namespace WidgetId {
 		CONFIRM_RETURN,
 		CONFIRM_TUTORIAL,
 		CANCEL_RETURN,
+		OPTIONS_GAME,
+		OPTIONS_AUDIO,
+		OPTIONS_INPUTS,
 		CONFIRM_OPTIONS,
 		CANCEL_OPTIONS,
 		QUIT
@@ -71,11 +74,13 @@ BUTTON(RELOAD, 		   "ButtonGameLoad", 	LOAD_GAME,			 "Load Game") \
 BUTTON(OPTIONS, 	   "ButtonOptions", 	OPTIONS, 			   "Options") \
 BUTTON(CONFIRM_RETURN, "ButtonConfirmReturn", CONFIRM_RETURN,	       "Yes") \
 BUTTON(CONFIRM_TUTORIAL, "ButtonConfirmTutorial", CONFIRM_TUTORIAL,  "Begin") \
-BUTTON(CANCEL_RETURN,  "ButtonCancelReturn", CANCEL_RETURN, 	    	"No") \
+BUTTON(CANCEL_RETURN,   "ButtonCancelReturn", CANCEL_RETURN, 	    	"No") \
+BUTTON(OPTIONS_GAME,    "TabOptionsGame", 		CHANGE_OPTIONS_GAME,   "Game") \
+BUTTON(OPTIONS_AUDIO, 	"TabOptionsAudio", 		CHANGE_OPTIONS_AUDIO,	 "Audio") \
+BUTTON(OPTIONS_INPUTS,  "TabOptionsInputs", 	CHANGE_OPTIONS_INPUTS, "Inputs") \
 BUTTON(CONFIRM_OPTIONS, "ButtonConfirmOptions", CONFIRM_OPTIONS,	  "Save") \
-BUTTON(CANCEL_OPTIONS,  "ButtonCancelOptions", CANCEL_OPTIONS, 	    "Cancel") \
-BUTTON(QUIT, 		   "ButtonQuit", 		QUIT_APP, 	              "Quit")
-
+BUTTON(CANCEL_OPTIONS,  "ButtonCancelOptions",  CANCEL_OPTIONS, 	"Cancel") \
+BUTTON(QUIT, 		   "ButtonQuit", 			QUIT_APP, 	          "Quit")
 
 struct ScrollbarData {
     Clay_Vector2 clickOrigin;
@@ -83,7 +88,6 @@ struct ScrollbarData {
     float scrollY;
     bool mouseDown;
 };
-
 
 class Widget {
 	const std::vector<Button> buttons = {
@@ -109,6 +113,7 @@ public:
 	void updateScrollbar(InputEvent, const Clay_ElementId& parentId);
 
 	const Button& getButton(WidgetId::ButtonId) const;
+	const Button& getButton(Action::Surface) const;
 	const Action::Surface getButtonAction() const;
 	const BUTTON_ID getButtonHovered() const;
 	bool onButtonHover(BUTTON_ID id, bool isHovered);

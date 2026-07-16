@@ -215,11 +215,13 @@ Clay_RenderCommandArray App::update() {
                 surface.transition(state, screen);
             
             } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
+                TraceLog(LOG_INFO, "SAVE OPTIONS");
 
                 surface.clearEvent();
                 surface.transition(state, screen);
 
             } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
+                TraceLog(LOG_INFO, "DISCARD OPTIONS");
 
                 surface.clearEvent();
                 surface.transition(state, screen);
