@@ -13,6 +13,8 @@ namespace Action {
         MAIN_MENU,
         CONFIRM_RETURN,
         CANCEL_RETURN,
+        CONFIRM_OPTIONS,
+        CANCEL_OPTIONS,
         QUIT_APP,
     };
 }
@@ -47,6 +49,7 @@ namespace Event {
         SHOW_TUTORIAL,
         CONFIRM_TUTORIAL,
         SHOW_RETURN_MAIN_MENU_CONFIRMATION,
+        SHOW_OPTIONS,
     };
 }
 

@@ -441,11 +441,58 @@ void Surface::layoutTutorial() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_PERCENT(0.2f),
                 }, 
-             .padding = { 100, 100, 24, 0 }, 
+                .padding = { 100, 100, 24, 0 }, 
+                .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
         }) {        
             const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_TUTORIAL);
             widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+        }
+    }
+}
+
+void Surface::layoutOptions() {
+    CLAY(CLAY_ID("containerOptions"), {
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(0.5f),
+                .height = CLAY_SIZING_PERCENT(0.7f),
+            }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = SURFACE_MENU_COLOR_BG,
+        .floating = { 
+            .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+    }) {
+
+        CLAY_TEXT(CLAY_STRING("Options"), CLAY_TEXT_CONFIG({ 
+                    .textColor = CLAY_WHITE, 
+                    .fontSize = 28,
+                    .letterSpacing = 0, 
+                    .lineHeight = 30,
+                    .textAlignment = CLAY_TEXT_ALIGN_LEFT 
+                }));
+
+        CLAY(CLAY_ID("footerOptions"), {
+            .layout = { 
+                .sizing = { 
+                    .width = CLAY_SIZING_GROW(0),
+                    .height = CLAY_SIZING_PERCENT(0.2f),
+                }, 
+             .padding = { 100, 100, 24, 0 }, 
+            },
+        }) {        
+            const Button& confirm = widget.getButton(BUTTON_ID::CONFIRM_OPTIONS);
+            const Button& cancel = widget.getButton(BUTTON_ID::CANCEL_OPTIONS);
+            widget.layoutButton(confirm.id, confirm.clayId, confirm.label);
+            widget.layoutButton(cancel.id, cancel.clayId, cancel.label);
         }
     }
 }
@@ -1070,7 +1117,11 @@ void Surface::resize(int width, int height) {
 void Surface::transition(State::App appState, State::Screen screen) {
     switch(screen) {
         case State::Screen::MAIN:
-            layoutMenu      = &Surface::layoutMenuMain;
+            if (surfaceEvent == Event::Surface::SHOW_OPTIONS) {
+                layoutMenu  = &Surface::layoutOptions;
+            } else {
+                layoutMenu  = &Surface::layoutMenuMain;
+            }
             layoutDisplay   = &Surface::layoutDisplayUnit;
             update          = &Surface::updateMenu;
             render          = &Surface::renderRaylib;
@@ -1080,13 +1131,19 @@ void Surface::transition(State::App appState, State::Screen screen) {
 
             switch(appState) {
                 case State::App::HOLD:
-                    layoutMenu      = &Surface::layoutMenuPause;
+                    if (surfaceEvent == Event::Surface::SHOW_OPTIONS) {
+                        layoutMenu  = &Surface::layoutOptions;
+                    } else {
+                        layoutMenu  = &Surface::layoutMenuPause;
+                    }
                     layoutDisplay   = &Surface::layoutDisplayUnit;
                     update          = &Surface::updateMenu;
                     break;
                 case State::App::RUN:
                     if (surfaceEvent == Event::Surface::SHOW_TUTORIAL) {
                         layoutMenu = &Surface::layoutTutorial;
+                    } else if (surfaceEvent == Event::Surface::SHOW_OPTIONS) {
+                        layoutMenu = &Surface::layoutOptions;
                     } else {
                         // TODO: this implicitly assumes pause on APP::HOLD
                         // should there be explicit PAUSE state passed in

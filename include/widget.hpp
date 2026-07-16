@@ -29,6 +29,8 @@ namespace WidgetId {
 		CONFIRM_RETURN,
 		CONFIRM_TUTORIAL,
 		CANCEL_RETURN,
+		CONFIRM_OPTIONS,
+		CANCEL_OPTIONS,
 		QUIT
 	};
 }
@@ -70,6 +72,8 @@ BUTTON(OPTIONS, 	   "ButtonOptions", 	OPTIONS, 			   "Options") \
 BUTTON(CONFIRM_RETURN, "ButtonConfirmReturn", CONFIRM_RETURN,	       "Yes") \
 BUTTON(CONFIRM_TUTORIAL, "ButtonConfirmTutorial", CONFIRM_TUTORIAL,  "Begin") \
 BUTTON(CANCEL_RETURN,  "ButtonCancelReturn", CANCEL_RETURN, 	    	"No") \
+BUTTON(CONFIRM_OPTIONS, "ButtonConfirmOptions", CONFIRM_OPTIONS,	  "Save") \
+BUTTON(CANCEL_OPTIONS,  "ButtonCancelOptions", CANCEL_OPTIONS, 	    "Cancel") \
 BUTTON(QUIT, 		   "ButtonQuit", 		QUIT_APP, 	              "Quit")
 
 

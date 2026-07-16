@@ -209,6 +209,21 @@ Clay_RenderCommandArray App::update() {
 
                 surface.clearEvent();
             
+            } else if (surfaceAction == Action::Surface::OPTIONS) {
+
+                surface.beginEvent(Event::Surface::SHOW_OPTIONS);
+                surface.transition(state, screen);
+            
+            } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
+
+                surface.clearEvent();
+                surface.transition(state, screen);
+
+            } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
+
+                surface.clearEvent();
+                surface.transition(state, screen);
+            
             } else if (surfaceAction == Action::Surface::QUIT_APP) {
                 state = State::App::HALT;
                 return Clay_RenderCommandArray({ 0, 0, nullptr });
@@ -228,6 +243,21 @@ Clay_RenderCommandArray App::update() {
             world.transition(screen);
             surface.transition(state, screen);
 
+        } else if (surfaceAction == Action::Surface::OPTIONS) {
+
+            surface.beginEvent(Event::Surface::SHOW_OPTIONS);
+            surface.transition(state, screen);
+        
+        } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
+            
+            surface.clearEvent();
+            surface.transition(state, screen);
+
+        } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
+
+            surface.clearEvent();
+            surface.transition(state, screen);
+        
         } else if (surfaceAction == Action::Surface::QUIT_APP) {
             state = State::App::HALT;
             return Clay_RenderCommandArray({ 0, 0, nullptr });
