@@ -1,3 +1,4 @@
+#include <cstdint>
 #define CLAY_IMPLEMENTATION
 #include "surface.hpp"
 
@@ -424,7 +425,7 @@ void Surface::layoutTutorial() {
     CLAY(CLAY_ID("LayoutTutorial"), {
         .layout = { 
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f),
+                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
                 .height = CLAY_SIZING_PERCENT(0.7f),
             }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
@@ -482,7 +483,7 @@ void Surface::layoutOptions() {
     CLAY(CLAY_ID("LayoutOptions"), {
         .layout = { 
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f),
+                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
                 .height = CLAY_SIZING_PERCENT(0.7f),
             }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
@@ -536,13 +537,20 @@ void Surface::layoutOptions() {
                 .childGap = 16, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            .backgroundColor = SURFACE_COLOR_MENU_BG,
+            .border = { 
+                .color = SURFACE_COLOR_BG, 
+                .width = {
+                    .left = 0,
+                    .right = 0,
+                    .top = 1, 
+                    .bottom = 0, 
+                } 
+            },
             // NOTE: if options need scrollbar
             // .clip = { 
             //  .vertical = true, 
             //  .childOffset = Clay_GetScrollOffset()
             // },
-
         }) {
             if (activeOptionsTab == BUTTON_ID::OPTIONS_GAME) {
                 CLAY_TEXT(CLAY_STRING("Game Options"), STYLE_TEXT_DEFAULT);
@@ -559,10 +567,9 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_PERCENT(0.2f),
                 }, 
-                .padding = { 100, 100, 24, 0 },
-                .childGap = 100,
+                .padding = { static_cast<uint16_t>(window.convert(100)), static_cast<uint16_t>(window.convert(100)), 24, 0 },
+                .childGap = static_cast<uint16_t>(window.convert(100)),
             },
-            .backgroundColor = SURFACE_COLOR_MENU_BG,
         }) {      
             widget.layoutButton(BUTTON_ID::CANCEL_OPTIONS);
             widget.layoutButton(BUTTON_ID::CONFIRM_OPTIONS);
@@ -583,7 +590,7 @@ void Surface::layoutMenuPause() {
         CLAY(CLAY_ID("ContentPauseMenu"), {
             .layout = { 
                 .sizing = { 
-                    .width = CLAY_SIZING_PERCENT(0.33f), 
+                    .width = CLAY_SIZING_PERCENT(0.33f*window.invRatio), 
                     .height = CLAY_SIZING_PERCENT(0.5f) 
                 }, 
                 .padding = { 48, 48, 16, 16 },
@@ -603,12 +610,12 @@ void Surface::layoutMenuPause() {
         }) {
 
             if (surfaceEvent == Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION) {
-                CLAY(CLAY_ID("PauseMenuConfirmationDialogue"), {
+                CLAY(CLAY_ID("ModalReturnToMainWarning"), {
                     .layout = { 
                         .sizing = { 
-                            .width = CLAY_SIZING_PERCENT(0.5f), 
+                            .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio), 
                         }, 
-                        .padding = { 48, 48, 16, 48 },
+                        .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(42*window.unit)),
                         .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
                         .layoutDirection = CLAY_TOP_TO_BOTTOM,
                     },
@@ -624,7 +631,7 @@ void Surface::layoutMenuPause() {
                     },
                     .border = { 
                         .color = SURFACE_COLOR_ACCENT_BORDER, 
-                        .width = CLAY_BORDER_OUTSIDE(1)
+                        .width = CLAY_BORDER_OUTSIDE(6)
                     },
                     .transition = {
                         .handler = Clay_EaseOut,
@@ -634,12 +641,12 @@ void Surface::layoutMenuPause() {
                         .exit = { .setFinalState = ExitSlideUp },
                     }
                 }) {
-                    CLAY(CLAY_ID("ContainerConfirmationText"), {
+                    CLAY(CLAY_ID("ContentReturnToMainWarning"), {
                         .layout = {
                             .sizing = { 
                                 .width = CLAY_SIZING_GROW(0), 
                             },
-                            .padding = CLAY_PADDING_ALL(32),
+                            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(24))),
                             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
                         },
                     }) {
@@ -647,15 +654,15 @@ void Surface::layoutMenuPause() {
                         // and as a result any fading on the parent leave the text unchange and looks jarring.
                         // solution is to either add .transition to each text element in Clay, or allow the parent
                         // to somehow force fade the children text nodes in it if a transition property is set.
-                        CLAY_TEXT(CLAY_STRING("All progress will be lost.\nReturn to Main Menu?"), STYLE_TEXT_TITLE);
+                        CLAY_TEXT(CLAY_STRING(TEXT_RETURN_TO_MAIN), STYLE_TEXT_HIGHLIGHT);
                     }
 
-                    CLAY(CLAY_ID("ContainerConfirmationButtons"), {
+                    CLAY(CLAY_ID("FooterReturnToMainWarning"), {
                         .layout = {
                             .sizing = { 
                                 .width = CLAY_SIZING_GROW(0), 
                             },
-                            .childGap = 48,
+                            .childGap = static_cast<uint16_t>(window.convert(48)),
                             .layoutDirection = CLAY_LEFT_TO_RIGHT,
                         },
                     }) {
@@ -697,13 +704,11 @@ void Surface::layoutMenuMain() {
                     .width = CLAY_SIZING_PERCENT(0.33f), 
                     .height = CLAY_SIZING_PERCENT(0.5f) 
                 }, 
-                .padding = { 48, 48, 48, 48 },
                 .childGap = 2,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            // .backgroundColor = SURFACE_COLOR_MENU_BG,
             .floating = { 
-                .offset = {0, -48 }, 
+                .offset = {0, -64*window.unit }, 
                 .zIndex = 1, 
                 .attachPoints = { 
                     CLAY_ATTACH_POINT_CENTER_CENTER, 
@@ -719,16 +724,6 @@ void Surface::layoutMenuMain() {
                 .exit = { .setFinalState = ExitSlideUp },
             }
         }) {
-
-            // CLAY_AUTO_ID({ 
-            //     .layout = { 
-            //         .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-            //         .padding = { 8, 8, 8, 48 }, 
-            //         .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
-            //     }
-            // }) {
-            //     CLAY_TEXT(CLAY_STRING(PROJECT_NAME), STYLE_TEXT_TITLE);
-            // }
 
             for (auto buttonId : widget.buttonsMenuMain) {
                 widget.layoutButton(buttonId);

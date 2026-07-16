@@ -25,7 +25,8 @@ public:
 	float unit = SCREEN_UNIT;
 	float zoomUnit = 0.0f;
     float ratio = 1.0f;
-
+    float invRatio = 1.0f;
+    
     int width = SCREEN_WIDTH;
     int height = SCREEN_HEIGHT;
     float widthf = static_cast<float>(SCREEN_WIDTH);

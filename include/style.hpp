@@ -4,19 +4,20 @@
 #define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
 #define CLAY_BLACK Clay_Color({ 0.0f, 0.0f, 0.0f, 255.0f })
 
-#define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 150 })
-#define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 80, 200, 255 })
+#define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 180 })
+#define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 140, 140, 255 })
 #define SURFACE_COLOR_ACCENT_BORDER Clay_Color({ 80, 80, 80, 255 })
 
-#define SURFACE_COLOR_TEXT_FG Clay_Color({ 200, 200, 200, 255 })
-#define SURFACE_COLOR_TEXT_FG_HL Clay_Color({ 255, 255, 255, 255 })
+#define SURFACE_COLOR_BG Clay_Color({ 140, 140, 140, 255 })
+#define SURFACE_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
+#define SURFACE_COLOR_HL Clay_Color({ 235, 235, 235, 255 })
 
-#define WIDGET_COLOR_BUTTON_BG Clay_Color({ 0, 0, 0, 100 })
-#define WIDGET_COLOR_BUTTON_BG_HL Clay_Color({ 0, 0, 0, 130 })
-#define WIDGET_COLOR_BORDER Clay_Color({ 220, 220, 220, 255 })
+#define WIDGET_COLOR_BUTTON_BG Clay_Color({ 80, 80, 80, 255 })
+#define WIDGET_COLOR_BUTTON_BG_HL Clay_Color({ 90, 90, 90, 255 })
+#define WIDGET_COLOR_BORDER Clay_Color({ 200, 200, 200, 255 })
 
-#define WIDGET_COLOR_SCROLLBAR Clay_Color({100, 100, 140, 150})
-#define WIDGET_COLOR_SCROLLBAR_HL Clay_Color({120, 120, 160, 150})
+#define WIDGET_COLOR_SCROLLBAR Clay_Color({80, 80, 80, 255})
+#define WIDGET_COLOR_SCROLLBAR_HL Clay_Color({140, 140, 140, 255})
 
 // typedef struct Clay_TextElementConfig {
 //     // A pointer that will be transparently passed through to the resulting render command.
@@ -44,6 +45,8 @@
 //     Clay_TextAlignment textAlignment;
 // } Clay_TextElementConfig;
 
-#define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_TEXT_FG, .fontId = 1, .fontSize = 24 })
-#define STYLE_TEXT_TITLE CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_TEXT_FG, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_FG, .fontId = 1, .fontSize = 24 })
+#define STYLE_TEXT_DISABLED CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_BG, .fontId = 1, .fontSize = 24 })
+#define STYLE_TEXT_TITLE CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_BG, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define STYLE_TEXT_HIGHLIGHT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_HL, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 #define STYLE_TEXT_DISPLAY CLAY_TEXT_CONFIG({ .textColor = CLAY_WHITE, .fontSize = 48, .textAlignment = CLAY_TEXT_ALIGN_CENTER })

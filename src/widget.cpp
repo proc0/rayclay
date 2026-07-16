@@ -68,7 +68,7 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
-        .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
+        // .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
             .color = WIDGET_COLOR_BORDER, 
             .width = {
@@ -82,7 +82,11 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
         Clay_OnHover(handleClayHover, this);
-        CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
+        if (active) {
+            CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
+        } else {
+            CLAY_TEXT(button.label, STYLE_TEXT_DISABLED);
+        }
     }
 }
 

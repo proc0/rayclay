@@ -103,7 +103,8 @@ void Window::update(InputEvent input) {
 void Window::resize(int newWidth, int newHeight) {
     // calculate ratio based on screen diagonal
     ratio = ROUND4(sqrtf(powf(newWidth, 2.0f) + powf(newHeight, 2.0f))/unitRatio);
-
+    invRatio = 1/ratio;
+    
     width = newWidth;
     height = newHeight;
     widthf = static_cast<float>(newWidth);
