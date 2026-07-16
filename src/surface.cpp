@@ -75,9 +75,10 @@ void Surface::load(){
 
     loadOverlay();
 
-    // profilePicture = LoadTexture(PATH_ASSET("profile-picture.png"));
-    // parchmentTexture = LoadTexture(PATH_ASSET("parchment.png"));
-    // monkTexture = LoadTexture(PATH_ASSET("monk.png"));
+    textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
+    textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
+    textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
+    textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
 }
 
 void Surface::loadOverlay() {
@@ -410,6 +411,13 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
     return action;
 }
 
+void Surface::updateDisplay(const GameState gameState) {
+    if (gameState.score != gameScore) {
+        gameScore = gameState.score;
+        formatScore = std::format("Score {}", gameScore);
+    }
+}
+
 void Surface::layoutTutorial() {
 
     CLAY(CLAY_ID("LayoutTutorial"), {
@@ -730,72 +738,87 @@ void Surface::layoutMenuMain() {
     }
 }
 
-void Surface::layoutDisplayGame(GameState gameState) {
+// TODO: should probably be its own class like Widget
+// would have components for HUD, and used here in a layout
+// TODO: Layout could be also another class that handles doing the layout
+void Surface::layoutDisplayGame() {
     CLAY(CLAY_ID("HUDContainer"), { 
         .layout = { 
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0), 
-                // .height = CLAY_SIZING_GROW(0) 
+                .height = CLAY_SIZING_GROW(0) 
             }, 
-            .padding = { 16, 16, 16, 16 }, 
-            .childGap = 16
+            .padding = { 30, 40, 30, 30 }, 
         }, 
-        .backgroundColor = Clay_Color({ 200, 200, 200, 0 })
     }) {
         CLAY(CLAY_ID("LeftCounter"), {
             .layout = {
                 .sizing = { 
                     .width = CLAY_SIZING_GROW(0), 
                 },
-                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+                .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }
             },
         }) {            
 
-            // TODO: abstract the HUD display counter
-            // needs to be stored in a member field as std::string
-            // std::string&& numClicks = std::format("COUNTER: {}", gameState.raylibLogoClicks);
-            const char* numClicksText = TextFormat("COUNTER: %d", 10);
-            Clay_String numClicksClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numClicksText)), .chars = numClicksText };
-            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
-            CLAY_TEXT(numClicksClayString, CLAY_TEXT_CONFIG({
-                .textColor = Clay_Color({255,255,255,255}),
-                .fontSize = 48,
-            }));
+            // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
+            Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
+            CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
         }
 
-        CLAY(CLAY_ID("CenterCounter"), {
+        // HUD Controls for Mobile
+        CLAY(CLAY_ID("ControlHUD"), {
             .layout = {
-                .sizing = { 
-                    .width = CLAY_SIZING_GROW(0), 
-                }, 
-                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+                .sizing = {
+                    .width = CLAY_SIZING_FIXED(210), 
+                    .height = CLAY_SIZING_GROW(0),
+                },
+                .childAlignment = { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_BOTTOM },
+                .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
-        }) {    
-            const char* numBouncesText = TextFormat("BOUNCES: %d", 10);
-            Clay_String numBouncesClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numBouncesText)), .chars = numBouncesText };
-            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
-            CLAY_TEXT(numBouncesClayString, CLAY_TEXT_CONFIG({ 
-                .textColor = Clay_Color({255,255,255,255}),
-                .fontSize = 48,
-            }));
-        }
+        }) {         
 
-        CLAY(CLAY_ID("RightCounter"), {
-            .layout = {
-                .sizing = { 
-                    .width = CLAY_SIZING_GROW(0), 
-                }, 
-                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
-            },
-        }) {    
-            const char* numCornersText = TextFormat("CORNERS: %d", 10);
-            Clay_String numCornersClayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(strlen(numCornersText)), .chars = numCornersText };
-            // CLAY_TEXT(Clay__IntToString(gameState.raylibLogoClicks), CLAY_TEXT_CONFIG({ 
-            CLAY_TEXT(numCornersClayString, CLAY_TEXT_CONFIG({ 
-                .textColor = Clay_Color({255,255,255,255}),
-                .fontSize = 48,
-            }));
-        }
+            CLAY(CLAY_ID("HUDControlsLeft"), {
+                .layout = {
+                    .sizing = { 
+                        .width = CLAY_SIZING_FIXED(70), 
+                        .height = CLAY_SIZING_FIXED(170), 
+                    },
+                    .childAlignment = { .y = CLAY_ALIGN_Y_CENTER },
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                }
+            }) {            
+
+                widget.layoutButtonTexture(BUTTON_ID::MOVE_LEFT, &textureArrowLeft);
+            }
+
+            CLAY(CLAY_ID("HUDControlsMiddle"), {
+                .layout = {
+                    .sizing = { 
+                        .width = CLAY_SIZING_FIXED(70), 
+                        .height = CLAY_SIZING_FIXED(170), 
+                    },
+                    .childGap = 30,
+                    .childAlignment = { .y = CLAY_ALIGN_Y_CENTER },
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                }
+            }) {            
+                widget.layoutButtonTexture(BUTTON_ID::MOVE_UP, &textureArrowUp);
+                widget.layoutButtonTexture(BUTTON_ID::MOVE_DOWN, &textureArrowDown);
+            }
+
+            CLAY(CLAY_ID("HUDControlsRight"), {
+                .layout = {
+                    .sizing = { 
+                        .width = CLAY_SIZING_FIXED(70), 
+                        .height = CLAY_SIZING_FIXED(170), 
+                    },
+                    .childAlignment = { .y = CLAY_ALIGN_Y_CENTER },
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                }
+            }) {            
+                widget.layoutButtonTexture(BUTTON_ID::MOVE_RIGHT, &textureArrowRight);
+            }
+        } // End HUD
     }
 }
 
@@ -894,6 +917,12 @@ void Surface::transition(State::App appState, State::Screen screen) {
 }
 
 void Surface::unload(){
+
+    UnloadTexture(textureArrowUp);
+    UnloadTexture(textureArrowRight);
+    UnloadTexture(textureArrowDown);
+    UnloadTexture(textureArrowLeft);
+
     if(temp_render_buffer) free(temp_render_buffer);
     temp_render_buffer_len = 0;
 
@@ -902,8 +931,4 @@ void Surface::unload(){
     UnloadFont(fonts[1]);
 
     free(arena.memory);
-
-    // UnloadTexture(parchmentTexture);
-    // UnloadTexture(profilePicture);
-    // UnloadTexture(monkTexture);
 }

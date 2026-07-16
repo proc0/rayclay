@@ -16,6 +16,7 @@ class Game : public Layer {
     float titleHintY;
 
     GameState gameState = {
+        .score = 0,
         .state = State::Game::START
     };
     State::Game state = State::Game::START;
@@ -27,7 +28,7 @@ public:
     ~Game() = default;
 
     void (Game::*render)() const = &Game::renderNull;
-    GameState (Game::*update)(InputEvent) = &Game::updateNull;
+    GameState (Game::*update)(InputEvent, WorldState) = &Game::updateNull;
     
     void load();
 
@@ -36,9 +37,9 @@ public:
     void renderMain() const;
     void renderTitle() const;
 
-    GameState updateNull(InputEvent);
-    GameState updateMain(InputEvent);
-    GameState updateGame(InputEvent);
+    GameState updateNull(InputEvent, WorldState);
+    GameState updateMain(InputEvent, WorldState);
+    GameState updateGame(InputEvent, WorldState);
     void updateTitle();
 
     void transition(State::Screen);

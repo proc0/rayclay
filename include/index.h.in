@@ -11,3 +11,8 @@
 #define PATH_ASSET(filename) DIR_ASSETS "/" filename
 
 #define URI_SOUND_SPLAT "splat1.wav"
+
+#define URI_IMAGE_ARROW_UP "arrow_up.png"
+#define URI_IMAGE_ARROW_RIGHT "arrow_right.png"
+#define URI_IMAGE_ARROW_DOWN "arrow_down.png"
+#define URI_IMAGE_ARROW_LEFT "arrow_left.png"

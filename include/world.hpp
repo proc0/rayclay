@@ -13,12 +13,14 @@ class World : public Layer {
     Vector2 rlLogoDir = { static_cast<float>(GetRandomValue(-100, 100))/100.0f, static_cast<float>(GetRandomValue(-100, 100))/100.0f };
     Vector2 rlLogoPos = { static_cast<float>(GetRandomValue(0, SCREEN_WIDTH-RAYLIB_LOGO_SIZE)), static_cast<float>(GetRandomValue(0, SCREEN_HEIGHT-RAYLIB_LOGO_SIZE)) };
 
+    int dummyGoalTracker = 0;
+
 public:
     World(const Window& window): window(window) {};
     ~World() = default;
     
     void (World::*render)() const = &World::renderUnit;
-    void (World::*update)(InputEvent) = &World::updateUnit;
+    WorldState (World::*update)(InputEvent, Action::Surface) = &World::updateUnit;
 
     void load();
     
@@ -26,9 +28,9 @@ public:
     void renderMain() const;
     void renderGame() const;
 
-    void updateUnit(InputEvent);
-    void updateMain(InputEvent);
-    void updateGame(InputEvent);
+    WorldState updateUnit(InputEvent, Action::Surface);
+    WorldState updateMain(InputEvent, Action::Surface);
+    WorldState updateGame(InputEvent, Action::Surface);
     
     void resize(int width, int height) override;
     void transition(State::Screen);

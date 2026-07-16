@@ -26,37 +26,40 @@ void World::renderGame() const {
     DrawRectangleGradientH(0, 0, window.width, window.height, BLUE, ORANGE);
 }
 
-void World::updateUnit(InputEvent){
-
+WorldState World::updateUnit(InputEvent, Action::Surface){
+    return { .reachedGoal = false };
 }
 
-void World::updateMain(InputEvent){
-
+WorldState World::updateMain(InputEvent, Action::Surface){
+    return { .reachedGoal = false };
 }
 
-void World::updateGame(InputEvent inputEvent){
+WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
 
     if(IsKeyPressed(KEY_SPACE)){
         PlaySound(splat);
     }
 
-    switch(inputEvent.id) {
-        case Event::Input::MOVE_UP:
+    if (inputEvent.id == Event::Input::MOVE_UP || action == Action::Surface::MOVE_UP ) {
             TraceLog(LOG_INFO, "MOVE UP");
-            break;
-        case Event::Input::MOVE_DOWN:
-            TraceLog(LOG_INFO, "MOVE DOWN");
-            break;
-        case Event::Input::MOVE_RIGHT:
+            dummyGoalTracker++;
+    } else if (inputEvent.id == Event::Input::MOVE_RIGHT || action == Action::Surface::MOVE_RIGHT ) {
             TraceLog(LOG_INFO, "MOVE RIGHT");
-            break;
-        case Event::Input::MOVE_LEFT:
+
+    } else if (inputEvent.id == Event::Input::MOVE_DOWN || action == Action::Surface::MOVE_DOWN ) {
+            TraceLog(LOG_INFO, "MOVE DOWN");
+
+    } else if (inputEvent.id == Event::Input::MOVE_LEFT || action == Action::Surface::MOVE_LEFT ) {
             TraceLog(LOG_INFO, "MOVE LEFT");
-            break;
-        default:
-            break;
+
     }
 
+    if (dummyGoalTracker >= 3) {
+        dummyGoalTracker = 0;
+        return { .reachedGoal = true };
+    }
+
+    return { .reachedGoal = false };
 }
 
 void World::transition(State::Screen screen) {

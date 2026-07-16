@@ -26,16 +26,19 @@ void Game::renderTitle() const {
     DrawText(titleHint, titleHintX, titleHintY, titleHintFontSize, RAYWHITE);
 }
 
-GameState Game::updateNull(InputEvent inputEvent){
+GameState Game::updateNull(InputEvent, WorldState){
     return gameState;
 }
 
-GameState Game::updateMain(InputEvent inputEvent){
+GameState Game::updateMain(InputEvent, WorldState){
     return gameState;
 }
 
-GameState Game::updateGame(InputEvent inputEvent){
-
+GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
+    if (worldState.reachedGoal) {
+        gameState.score++;
+    }
+    
     return gameState;
 }
 

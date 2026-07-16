@@ -266,11 +266,12 @@ Clay_RenderCommandArray App::update() {
         }            
     }
 
-	GameState gameState = (game.*game.update)(inputEvent);
-	(world.*world.update)(inputEvent);
+	WorldState worldState = (world.*world.update)(inputEvent, surfaceAction);
+	GameState gameState = (game.*game.update)(inputEvent, worldState);
+    surface.updateDisplay(gameState);
 
     Clay_BeginLayout();
-    (surface.*surface.layoutDisplay)(gameState);
+    (surface.*surface.layoutDisplay)();
     (surface.*surface.layoutMenu)();
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 

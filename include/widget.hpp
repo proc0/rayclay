@@ -15,6 +15,10 @@ namespace WidgetId {
 		NIL,
 		NEW,
 		RESUME,
+		MOVE_UP,
+		MOVE_RIGHT,
+		MOVE_DOWN,
+		MOVE_LEFT,
 		RETURN,
 		RELOAD,
 		OPTIONS,
@@ -61,6 +65,10 @@ struct Button {
 BUTTON(NIL, 		   "ButtonNil", 		DO_NOTHING,			   "Nothing") \
 BUTTON(NEW, 		   "ButtonNewGame", 	NEW_GAME,			  "New Game") \
 BUTTON(RESUME, 		   "ButtonGameResume",  RESUME_GAME,			"Resume") \
+BUTTON(MOVE_UP, 	   "HUDMoveUp",  		MOVE_UP,					"Up") \
+BUTTON(MOVE_RIGHT, 	   "HUDMoveRight",  	MOVE_RIGHT,				 "Right") \
+BUTTON(MOVE_DOWN, 	   "HUDMoveDown",  		MOVE_DOWN,				  "Down") \
+BUTTON(MOVE_LEFT, 	   "HUDMoveLeft",  		MOVE_LEFT,				  "Left") \
 BUTTON(RETURN, 		   "ButtonMainMenu", 	MAIN_MENU, "Return to Main Menu") \
 BUTTON(RELOAD, 		   "ButtonGameLoad", 	LOAD_GAME,			 "Load Game") \
 BUTTON(OPTIONS, 	   "ButtonOptions", 	OPTIONS, 			   "Options") \
@@ -117,7 +125,7 @@ public:
 
 	void layoutButton(const BUTTON_ID);
 	void layoutTab(const BUTTON_ID);
-	void layoutButtonTexture(const BUTTON_ID, const Clay_ElementId&, Texture2D* buttonTexture);
+	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId);
 };
 

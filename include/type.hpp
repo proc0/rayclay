@@ -7,6 +7,10 @@ namespace Action {
         DO_NOTHING,
         NEW_GAME,
         CONFIRM_TUTORIAL,
+        MOVE_UP,
+        MOVE_RIGHT,
+        MOVE_DOWN,
+        MOVE_LEFT,
         LOAD_GAME,
         OPTIONS,
         RESUME_GAME,
@@ -99,7 +103,12 @@ struct InputEvent {
 #define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })
 
 struct GameState {
+    int score;
     State::Game state;
+};
+
+struct WorldState {
+    bool reachedGoal;
 };
 
 class Layer {

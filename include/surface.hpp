@@ -7,14 +7,27 @@
 #include "clay.h" 
 #include "raylib.h"
 
+#include <string>
+
 class Surface : public Layer {
     Font fonts[2];
+    // TODO: move this into a Display class
+    // along with building the components
+    // for the HUD
+    Texture2D textureArrowUp;
+    Texture2D textureArrowRight;
+    Texture2D textureArrowDown;
+    Texture2D textureArrowLeft;
+    std::string formatScore = "Score";
+
     Camera Raylib_camera;
     Shader overlayShader;
 
     Clay_Arena arena = {};
 
     const Window& window;
+    // TODO: move this to Display
+    int gameScore;
     // overlay shader variable
     int overlayColorLocation;
 
@@ -30,8 +43,8 @@ public:
 
     void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderUnit;
     void (Surface::*layoutMenu)() = &Surface::layoutMenuUnit;
-    void (Surface::*layoutDisplay)(GameState) = &Surface::layoutDisplayUnit;
-    Action::Surface (Surface::*update)(const InputEvent& inputEvent) = &Surface::updateUnit;
+    void (Surface::*layoutDisplay)() = &Surface::layoutDisplayUnit;
+    Action::Surface (Surface::*update)(const InputEvent&) = &Surface::updateUnit;
 
     void load();
     void loadOverlay();
@@ -44,12 +57,15 @@ public:
     void layoutMenuPause();
     void layoutTutorial();
     void layoutOptions();
-    void layoutDisplayUnit(GameState) {};
-    void layoutDisplayGame(GameState);
+
+    // TODO: this would also move to Display
+    void layoutDisplayUnit() {};
+    void layoutDisplayGame();
+    void updateDisplay(const GameState);
     
-    Action::Surface updateUnit(const InputEvent& inputEvent) { return Action::Surface::DO_NOTHING; };
-    Action::Surface updateMenu(const InputEvent& inputEvent);
-    Action::Surface updateOptions(const InputEvent& inputEvent);
+    Action::Surface updateUnit(const InputEvent&) { return Action::Surface::DO_NOTHING; };
+    Action::Surface updateMenu(const InputEvent&);
+    Action::Surface updateOptions(const InputEvent&);
 
     void beginEvent(Event::Surface);
     void clearEvent();
