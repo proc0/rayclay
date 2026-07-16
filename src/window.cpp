@@ -23,7 +23,7 @@ void Window::enlist(Layer* listener) {
 }
 
 float Window::adapt(float value) const {
-    return value * unit;
+    return Clamp(value*invRatio, 0.0f, 1.0f);
 }
 
 Rectangle Window::center(Rectangle area) const {

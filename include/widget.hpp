@@ -13,7 +13,7 @@ namespace WidgetId {
 	// needs to be the same order as BUTTONS macro
 	enum ButtonId {
 		NIL,
-		NEW,
+		NEW_GAME,
 		RESUME,
 		MOVE_UP,
 		MOVE_RIGHT,
@@ -21,6 +21,8 @@ namespace WidgetId {
 		MOVE_LEFT,
 		RETURN,
 		RELOAD,
+		RESTART,
+		SAVE_GAME,
 		OPTIONS,
 		CONFIRM_RETURN,
 		CONFIRM_TUTORIAL,
@@ -38,18 +40,19 @@ using BUTTON_ID = WidgetId::ButtonId;
 
 // menu buttons per screen
 #define BUTTONS_MENU_MAIN const std::array<BUTTON_ID, 4> buttonsMenuMain{ \
-		BUTTON_ID::NEW, 	\
-		BUTTON_ID::RELOAD, 	\
-		BUTTON_ID::OPTIONS, \
-		BUTTON_ID::QUIT, 	\
+		BUTTON_ID::NEW_GAME,\
+		BUTTON_ID::RELOAD,\
+		BUTTON_ID::OPTIONS,\
+		BUTTON_ID::QUIT,\
 	};
 
-#define BUTTONS_MENU_PAUSE const std::array<BUTTON_ID, 5> buttonsMenuPause{ \
-		BUTTON_ID::RESUME, 	\
-		BUTTON_ID::RELOAD, 	\
-		BUTTON_ID::OPTIONS, \
-		BUTTON_ID::RETURN, 	\
-		BUTTON_ID::QUIT,	\
+#define BUTTONS_MENU_PAUSE const std::array<BUTTON_ID, 6> buttonsMenuPause{ \
+		BUTTON_ID::RESUME,\
+		BUTTON_ID::SAVE_GAME,\
+		BUTTON_ID::RELOAD,\
+		BUTTON_ID::OPTIONS,\
+		BUTTON_ID::RETURN,\
+		BUTTON_ID::QUIT,\
 	};
 
 struct Button {
@@ -63,7 +66,7 @@ struct Button {
 // WARNING: order should match WidgetId::ButtonId enum
 #define BUTTONS \
 BUTTON(NIL, 		   "ButtonNil", 		DO_NOTHING,			   "Nothing") \
-BUTTON(NEW, 		   "ButtonNewGame", 	NEW_GAME,			  "New Game") \
+BUTTON(NEW_GAME, 	   "ButtonNewGame", 	NEW_GAME,			  "New Game") \
 BUTTON(RESUME, 		   "ButtonGameResume",  RESUME_GAME,			"Resume") \
 BUTTON(MOVE_UP, 	   "HUDMoveUp",  		MOVE_UP,					"Up") \
 BUTTON(MOVE_RIGHT, 	   "HUDMoveRight",  	MOVE_RIGHT,				 "Right") \
@@ -71,6 +74,8 @@ BUTTON(MOVE_DOWN, 	   "HUDMoveDown",  		MOVE_DOWN,				  "Down") \
 BUTTON(MOVE_LEFT, 	   "HUDMoveLeft",  		MOVE_LEFT,				  "Left") \
 BUTTON(RETURN, 		   "ButtonMainMenu", 	MAIN_MENU, "Return to Main Menu") \
 BUTTON(RELOAD, 		   "ButtonGameLoad", 	LOAD_GAME,			 "Load Game") \
+BUTTON(RESTART, 	   "ButtonGameRestart", RESTART,			   "Restart") \
+BUTTON(SAVE_GAME, 	   "ButtonGameSave", 	SAVE_GAME,			 "Save Game") \
 BUTTON(OPTIONS, 	   "ButtonOptions", 	OPTIONS, 			   "Options") \
 BUTTON(CONFIRM_RETURN, "ButtonConfirmReturn", CONFIRM_RETURN,	       "Yes") \
 BUTTON(CONFIRM_TUTORIAL, "ButtonConfirmTutorial", CONFIRM_TUTORIAL,  "Begin") \

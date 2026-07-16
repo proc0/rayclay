@@ -12,6 +12,8 @@ namespace Action {
         MOVE_DOWN,
         MOVE_LEFT,
         LOAD_GAME,
+        RESTART,
+        SAVE_GAME,
         OPTIONS,
         RESUME_GAME,
         MAIN_MENU,

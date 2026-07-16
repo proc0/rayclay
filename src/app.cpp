@@ -182,7 +182,7 @@ Clay_RenderCommandArray App::update() {
             }
         }
 
-        if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL) {
+        if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL || surfaceAction == Action::Surface::RESTART) {
             TraceLog(LOG_INFO, "BEGIN GAME");
             state = State::App::RUN;
 

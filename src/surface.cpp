@@ -1,4 +1,3 @@
-#include <cstdint>
 #define CLAY_IMPLEMENTATION
 #include "surface.hpp"
 
@@ -7,10 +6,12 @@
 #include "text.hpp"
 #include "style.hpp"
 
+#include "clay.h"
 #include "raylib.h"
 #include "raymath.h"
 
-#include <stdint.h>
+// #include <stdint.h>
+#include <cstdint>
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,6 +73,8 @@ void Surface::load(){
     SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
     fonts[1] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_REGULAR), 32, 0, 400);
     SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
+    fonts[2] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_CONDENSED), 184, 0, 400);
+    SetTextureFilter(fonts[2].texture, TEXTURE_FILTER_BILINEAR);
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
     loadOverlay();
@@ -432,12 +435,13 @@ void Surface::layoutWinLose() {
     CLAY(CLAY_ID("LayoutWinLose"), {
         .layout = { 
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
-                .height = CLAY_SIZING_PERCENT(0.7f),
-            }, 
+                .width = CLAY_SIZING_PERCENT(window.adapt(0.8f)),
+                .height = CLAY_SIZING_PERCENT(window.adapt(0.8f)),
+            },
+            .childGap = static_cast<uint16_t>(window.convert(32)),
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
-        .backgroundColor = SURFACE_COLOR_MENU_BG,
         .floating = { 
             .offset = {0, 0}, 
             .zIndex = 1, 
@@ -449,25 +453,44 @@ void Surface::layoutWinLose() {
         },
     }) {
         if (currentGameState == State::Game::WIN) {
-            CLAY_TEXT(CLAY_STRING("YOU WIN!"), STYLE_TEXT_HIGHLIGHT);
+            CLAY_TEXT(CLAY_STRING("SUCCESS"), STYLE_TEXT_WIN);
         } else if (currentGameState == State::Game::OVER) {
-            CLAY_TEXT(CLAY_STRING("Game Over"), STYLE_TEXT_HIGHLIGHT);
+            CLAY_TEXT(CLAY_STRING("FAILURE"), STYLE_TEXT_LOSE);
         }
-        // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
-        Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
-        CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
+
+        CLAY(CLAY_ID("ContentWinLose"), {
+            .layout = { 
+                .sizing = { 
+                    .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
+                },
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))),
+                .childGap = static_cast<uint16_t>(window.convert(4)),
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            },
+        }) { 
+            if (currentGameState == State::Game::WIN) {
+                CLAY_TEXT(CLAY_STRING("YOU WIN!"), STYLE_TEXT_DISPLAY);
+            } else if (currentGameState == State::Game::OVER) {
+                CLAY_TEXT(CLAY_STRING("Game Over"), STYLE_TEXT_DISPLAY);
+            }
+            // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
+            Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
+            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
+            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
+            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
+        }
 
         CLAY(CLAY_ID("FooterWinLose"), {
             .layout = { 
                 .sizing = { 
-                    .width = CLAY_SIZING_GROW(0),
-                    .height = CLAY_SIZING_PERCENT(0.2f),
-                }, 
-                .padding = { 100, 100, 24, 0 }, 
-                .layoutDirection = CLAY_LEFT_TO_RIGHT,
+                    .width = CLAY_SIZING_PERCENT(window.adapt(0.3f)),
+                },
+                .padding = { 0, 0, static_cast<uint16_t>(window.convert(12)), 0 },
+                .childAlignment = { .y = CLAY_ALIGN_Y_BOTTOM },
             },
         }) {        
-            widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
+            widget.layoutButton(BUTTON_ID::RESTART);
         }
     }
 }
@@ -477,7 +500,7 @@ void Surface::layoutTutorial() {
     CLAY(CLAY_ID("LayoutTutorial"), {
         .layout = { 
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
+                .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
                 .height = CLAY_SIZING_PERCENT(0.7f),
             }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
@@ -498,7 +521,7 @@ void Surface::layoutTutorial() {
         Clay_ElementId containerId = CLAY_ID("ContentTutorial");
         CLAY(containerId, {
             .layout = { 
-                .padding = { 24, 24, 48, 0 }, 
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))), 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
             .clip = { 
@@ -535,7 +558,7 @@ void Surface::layoutOptions() {
     CLAY(CLAY_ID("LayoutOptions"), {
         .layout = { 
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio),
+                .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
                 .height = CLAY_SIZING_PERCENT(0.7f),
             }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
@@ -555,7 +578,7 @@ void Surface::layoutOptions() {
         CLAY_AUTO_ID({ 
             .layout = { 
                 .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-                .padding = { 8, 8, 8, 8 }, 
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(8))), 
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             }
         }) {
@@ -585,7 +608,7 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_GROW(0),
                 }, 
-                .padding = CLAY_PADDING_ALL(32),
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))),
                 .childGap = 16, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
@@ -637,15 +660,13 @@ void Surface::layoutMenuPause() {
                 .height = CLAY_SIZING_GROW(0) 
             }, 
         }, 
-        .backgroundColor = Clay_Color({ 0, 0, 0, 0 })
     }) {
         CLAY(CLAY_ID("ContentPauseMenu"), {
             .layout = { 
                 .sizing = { 
-                    .width = CLAY_SIZING_PERCENT(0.33f*window.invRatio), 
-                    .height = CLAY_SIZING_PERCENT(0.5f) 
+                    .width = CLAY_SIZING_PERCENT(window.adapt(0.33f)), 
                 }, 
-                .padding = { 48, 48, 16, 16 },
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(48))),
                 .childGap = 2,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
@@ -665,7 +686,7 @@ void Surface::layoutMenuPause() {
                 CLAY(CLAY_ID("ModalReturnToMainWarning"), {
                     .layout = { 
                         .sizing = { 
-                            .width = CLAY_SIZING_PERCENT(0.5f*window.invRatio), 
+                            .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)), 
                         }, 
                         .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(42*window.unit)),
                         .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
@@ -727,7 +748,7 @@ void Surface::layoutMenuPause() {
             CLAY_AUTO_ID({ 
                 .layout = { 
                     .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-                    .padding = { 8, 8, 8, 48 }, 
+                    .padding = { 0, 0, 0, static_cast<uint16_t>(window.convert(32)) }, 
                     .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
                 }
             }) {

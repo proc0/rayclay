@@ -53,7 +53,7 @@ void Widget::layoutButton(const BUTTON_ID id) {
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
     	Clay_OnHover(handleClayHover, this);
-        CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
+        CLAY_TEXT(button.label, STYLE_TEXT_CENTERED);
     }
 }
 
@@ -203,13 +203,16 @@ bool Widget::onButtonHover(BUTTON_ID id, bool isHovered) {
 		lastButtonHovered = currentButtonHovered;
 		currentButtonHovered = id;
 		return true;
-	} else if (!isHovered && currentButtonHovered == id) {
+	} else if (isHovered && currentButtonHovered == id && lastButtonHovered != currentButtonHovered) {
+        lastButtonHovered = currentButtonHovered;
+    } else if (!isHovered && currentButtonHovered == id) {
 		buttonHovers[id] = 0;
 		currentButtonHovered = BUTTON_ID::NIL;
 		return false;
-	} else if (isHovered && currentButtonHovered == id && lastButtonHovered != currentButtonHovered) {
-		lastButtonHovered = currentButtonHovered;
-	}
+	} else if (!isHovered && lastButtonHovered == id) {
+        lastButtonHovered = BUTTON_ID::NIL;
+        return false;
+    } 
 
 	return false;
 }
@@ -219,7 +222,7 @@ bool Widget::onButtonJustHovered() const {
 }
 
 bool Widget::onButtonJustBlurred() const {
-	return currentButtonHovered == BUTTON_ID::NIL && lastButtonHovered != currentButtonHovered;
+	return currentButtonHovered == BUTTON_ID::NIL && lastButtonHovered != BUTTON_ID::NIL;
 }
 
 void Widget::triggerButtonAction(const char* elementId) {

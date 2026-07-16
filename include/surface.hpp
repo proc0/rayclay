@@ -10,7 +10,7 @@
 #include <string>
 
 class Surface : public Layer {
-    Font fonts[2];
+    Font fonts[3];
     // TODO: move this into a Display class
     // along with building the components
     // for the HUD

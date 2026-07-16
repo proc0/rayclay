@@ -7,6 +7,8 @@
 #define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 180 })
 #define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 140, 140, 255 })
 #define SURFACE_COLOR_ACCENT_BORDER Clay_Color({ 80, 80, 80, 255 })
+#define SURFACE_COLOR_ACCENT_RED Clay_Color({ 230, 40, 45, 255 })
+#define SURFACE_COLOR_ACCENT_GOLD Clay_Color({ 216, 238, 10, 255 })
 
 #define SURFACE_COLOR_BG Clay_Color({ 140, 140, 140, 255 })
 #define SURFACE_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
@@ -46,7 +48,11 @@
 // } Clay_TextElementConfig;
 
 #define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_FG, .fontId = 1, .fontSize = 24 })
+#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_FG, .fontId = 1, .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 #define STYLE_TEXT_DISABLED CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_BG, .fontId = 1, .fontSize = 24 })
 #define STYLE_TEXT_TITLE CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_BG, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 #define STYLE_TEXT_HIGHLIGHT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_HL, .fontSize = 32, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 #define STYLE_TEXT_DISPLAY CLAY_TEXT_CONFIG({ .textColor = CLAY_WHITE, .fontSize = 48, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define STYLE_TEXT_BANNER CLAY_TEXT_CONFIG({ .textColor = CLAY_WHITE, .fontSize = 28, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define STYLE_TEXT_WIN CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_ACCENT_GOLD, .fontId = 2, .fontSize = 184 })
+#define STYLE_TEXT_LOSE CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_ACCENT_RED, .fontId = 2, .fontSize = 184 })
