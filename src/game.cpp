@@ -65,6 +65,7 @@ void Game::transition(State::Screen screen) {
 }
 
 void Game::resize(int height, int width) {
+    // TODO: only resize on Title screen
     updateTitle();
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.hpp"
 #include "type.hpp"
 #include "window.hpp"
 
@@ -11,11 +12,9 @@ class Logo : public Layer {
 
     const char* rlLogoName = "raylib";
     const int rlLogoFontSize = 40;
-    const float rlLogoSize = 200;
+    const float rlLogoSize = RAYLIB_LOGO_SIZE;
     const int rlLogoBorder = 16;
     const float rlLogoInnerSize = rlLogoSize - 2.0f*rlLogoBorder;
-    Vector2 rlLogoDir = { static_cast<float>(GetRandomValue(-100, 100))/100.0f, static_cast<float>(GetRandomValue(-100, 100))/100.0f };
-    Vector2 rlLogoPos = { static_cast<float>(GetRandomValue(0, SCREEN_WIDTH-rlLogoSize)), static_cast<float>(GetRandomValue(0, SCREEN_HEIGHT-rlLogoSize)) };
     Rectangle rlLogoOuterRec;
     Rectangle rlLogoInnerRec;
     Vector2 rlLogoTextPos;

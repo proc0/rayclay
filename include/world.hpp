@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.hpp"
 #include "type.hpp"
 #include "window.hpp"
 
@@ -8,6 +9,9 @@
 class World : public Layer {
     Sound splat;
     const Window& window;
+
+    Vector2 rlLogoDir = { static_cast<float>(GetRandomValue(-100, 100))/100.0f, static_cast<float>(GetRandomValue(-100, 100))/100.0f };
+    Vector2 rlLogoPos = { static_cast<float>(GetRandomValue(0, SCREEN_WIDTH-RAYLIB_LOGO_SIZE)), static_cast<float>(GetRandomValue(0, SCREEN_HEIGHT-RAYLIB_LOGO_SIZE)) };
 
 public:
     World(const Window& window): window(window) {};

@@ -12,3 +12,4 @@
 
 #define INTRO_TIME_MS 3000
 
+#define RAYLIB_LOGO_SIZE 200

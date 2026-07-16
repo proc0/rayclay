@@ -42,9 +42,9 @@ void Widget::layoutButton(const BUTTON_ID id) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
-        .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
+        .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
-            .color = Clay_Color({ 220, 220, 220, 255 }), 
+            .color = WIDGET_COLOR_BORDER, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
@@ -66,9 +66,9 @@ void Widget::layoutTab(const BUTTON_ID id) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER } 
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
-        .backgroundColor = Clay_Hovered() ? SURFACE_BUTTON_COLOR_BG_HL : SURFACE_BUTTON_COLOR_BG,
+        .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
-            .color = Clay_Color({ 220, 220, 220, 255 }), 
+            .color = WIDGET_COLOR_BORDER, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
     }) {
@@ -80,11 +80,14 @@ void Widget::layoutTab(const BUTTON_ID id) {
 }
 
 void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parentId) {
+	// TODO: pass in mouse information, including mouse scroll to decouple
+	// from updating scrollbar
     bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
 
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
 
+    // TODO: add mouseWheel info to InputEvent
     Vector2 mouseWheelDelta = GetMouseWheelMoveV();
     float mouseWheelX = mouseWheelDelta.x;
     float mouseWheelY = mouseWheelDelta.y;
@@ -94,6 +97,7 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parent
         scrollbarData.mouseDown = false;
     }
 
+    // TODO: if this is not needed every frame, move inside below conditional
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
     // TODO: abstract Scrollbar ElementId
     if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
@@ -120,7 +124,8 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parent
     }
 
     if(scrollContainerData.scrollPosition) {
-
+    	// TODO: review this state field tracking vertical movement in order to render wrapping images in Surface.Render
+    	// either move into above conditional, or find another way to not update every frame
         scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
         // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
     }
@@ -150,7 +155,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
                 		CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                 	}
                 },
-                .backgroundColor = Clay_Hovered() ? Clay_Color({100, 100, 140, 150}) : Clay_Color({120, 120, 160, 150}),
+                .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_SCROLLBAR_HL : WIDGET_COLOR_SCROLLBAR,
                 .cornerRadius = CLAY_CORNER_RADIUS(6),
             });
         }
