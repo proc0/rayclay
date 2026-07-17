@@ -484,10 +484,13 @@ void Surface::layoutWinLose() {
                 CLAY_TEXT(CLAY_STRING("Game Over"), STYLE_TEXT_DISPLAY);
             }
             // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
-            Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
-            CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
-            Clay_String displayTime = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatTotalTime.length()), .chars = formatTotalTime.c_str() };
-            CLAY_TEXT(displayTime, STYLE_TEXT_BANNER);
+
+            widget.layoutLabel(formatScore);
+            widget.layoutLabel(formatTotalTime);
+            // Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
+            // CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
+            // Clay_String displayTime = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatTotalTime.length()), .chars = formatTotalTime.c_str() };
+            // CLAY_TEXT(displayTime, STYLE_TEXT_BANNER);
         }
 
         CLAY(CLAY_ID("FooterWinLose"), {
@@ -842,8 +845,9 @@ void Surface::layoutDisplayGame() {
         }) {            
 
             // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
-            Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
-            CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
+            // Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
+            // CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
+            widget.layoutLabel(formatScore);
         }
 
         // HUD Controls for Mobile

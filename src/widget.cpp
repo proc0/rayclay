@@ -90,6 +90,11 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
     }
 }
 
+void Widget::layoutLabel(const std::string& label) {
+    Clay_String clayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(label.length()), .chars = label.c_str() };
+    CLAY_TEXT(clayString, STYLE_TEXT_BANNER);
+}
+
 // TODO: pass in scrollbar ID, to reuse this for any scrollbar
 void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
 	// TODO: pass in mouse information, including mouse scroll to decouple
