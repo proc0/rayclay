@@ -90,7 +90,11 @@ void Surface::load(){
     // INIT: scrollbar Ids, one for the container, one for the scrollbar, and one for a proxy
     // of the image that can be scrolled.
     // TODO: make the proxyId optional by overloading
-    widget.initScrollbar(scrollbarTutorialContainerId, scrollbarTutorialId, layoutTutorialId);
+    // widget.initScrollbar(scrollbarTutorialContainerId, scrollbarTutorialId, layoutTutorialId);
+    // TODO: this would receive a ScrollStateId of some kind, and that would be used to open/close
+    // scrollBox blacks, i.e.:
+    // tutorialScrollId = widget.initScrollBox("TutorialScrollBox");
+    widget.initScrollBox("TutorialScrollBox");
 }
 
 void Surface::loadOverlay() {
@@ -368,12 +372,9 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
 Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 
     // update mouse for Clay
+    // TODO: move to its own method?
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
-
-    // NOTE: if LayoutOptions need scrollbar, define the container and scrollbar IDs first
-    // Use those IDs to construct the layout and then update scrollbar passing them in to Widget.updateScrollbar
-    // widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
 
     // check action before returning it to app
     // this function might not be called again
@@ -391,12 +392,13 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 
 Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
+    // TODO: move to its own method?
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
-    // TODO: find a way to link this CLAY_ID to be used in update function
-    // to pass through to Widget.updateScrollbar, which requires a reference to parent
-    // widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
-    widget.updateScrollbar(inputEvent, mousePosition, CLAY_ID("ScrollBarContainer"), CLAY_ID("ScrollBarButton"));
+
+    // update scrollbox
+    // TODO: update based on scrollBoxId
+    widget.updateScrollBox(inputEvent, mousePosition);
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -492,7 +494,7 @@ void Surface::layoutWinLose() {
 
 void Surface::layoutTutorial() {
 
-    CLAY(layoutTutorialId, {
+    CLAY(CLAY_ID("LayoutTutorial"), {
         .layout = { 
             .sizing = { 
                 .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
@@ -518,8 +520,8 @@ void Surface::layoutTutorial() {
         // .userData = &widget.scrollState
     }) {
         // scrolling content
-        widget.BeginScrollContainer();
-            CLAY_AUTO_ID({ 
+        widget.BeginScrollBox();
+            CLAY_AUTO_ID({
                 .layout = { 
                     .sizing = { .width = CLAY_SIZING_GROW(0) }, 
                     .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(20))), 
@@ -532,35 +534,7 @@ void Surface::layoutTutorial() {
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_1), STYLE_TEXT_DEFAULT);
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_2), STYLE_TEXT_DEFAULT);
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_3), STYLE_TEXT_DEFAULT);
-        widget.EndScrollContainer();
-        // CLAY(scrollbarTutorialContainerId, {
-        //     .layout = { 
-        //         .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
-        //         .childGap = 12, 
-        //         .layoutDirection = CLAY_TOP_TO_BOTTOM 
-        //     },
-        //     .clip = { 
-        //         .vertical = true, 
-        //         .childOffset = Clay_GetScrollOffset()
-        //     },
-        // }) {
-        //     CLAY_AUTO_ID({ 
-        //         .layout = { 
-        //             .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-        //             .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(20))), 
-        //             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
-        //         }
-        //     }) {
-        //         CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_TITLE), STYLE_TEXT_TITLE);
-        //     }
-
-        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_1), STYLE_TEXT_DEFAULT);
-        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_2), STYLE_TEXT_DEFAULT);
-        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_3), STYLE_TEXT_DEFAULT);
-
-        //     // WARNING: layoutScrollbar requires updateScrollbar call
-        //     widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
-        // }
+        widget.EndScrollBox();
 
         CLAY(CLAY_ID("FooterTutorial"), {
             .layout = { 

@@ -147,20 +147,28 @@ void Widget::layoutLabel(const std::string& label) {
 
 // TODO: create a vector of ScrollState, and return and Id. This Id is then passed into the update and layout
 // methods of scrollbar, to look up the different Ids.
-void Widget::initScrollbar(Clay_ElementId parentId, Clay_ElementId scrollbarId, Clay_ElementId proxyId) {
-    scrollState.id = scrollbarId;
-    scrollState.parentId = parentId;
-    scrollState.proxyId = proxyId;
+Clay_ElementId Widget::initScrollBox(const std::string& stringId) {
+    scrollState.id = CLAY_ID("ScrollBar");
+    // TODO: refactor into something that builds Clay Strings
+    Clay_String clayString = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(stringId.length()), .chars = stringId.c_str() };
+    Clay_ElementId containerId = CLAY_SID(clayString);
+    scrollState.parentId = containerId;
+
+    // TODO: figure out how to pass/configure proxyId
+    // to work with layouts in Surface so you can scroll backgrounds in other containers
+    // scrollState.proxyId = proxyId;
+
+    return containerId; 
 }
 
 // TODO: use the scrollState within Widget directly without needing to pass in parentId and scrollId, since Ids are needed as a proxy to pass in userData
 // this however would require updateScrollbar to take in a ScrollState (to decouple), and that would be unecessary unless there is a list of ScrollStates
 // for multiple scrollbars. 
-void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
+void Widget::updateScrollBox(InputEvent inputEvent, const Clay_Vector2& mousePosition) {
 
     Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheel.x*2.0f, inputEvent.mouseWheel.y*2.0f }), GetFrameTime());
 
-    Clay_ScrollContainerData container = Clay_GetScrollContainerData(parentId);
+    Clay_ScrollContainerData container = Clay_GetScrollContainerData(scrollState.parentId);
     // WARNING: crashes without this check!
     if(container.scrollPosition) {
         // update the vertical scroll movement for mouse wheel, and mouse grab (content drag)
@@ -172,7 +180,7 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePos
         return;
     }
 
-    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollState.isPrimaryDown && Clay_PointerOver(scrollbarId)) {
+    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollState.isPrimaryDown && Clay_PointerOver(scrollState.id)) {
 
         scrollState.clickOrigin = mousePosition;
         scrollState.positionOrigin = *container.scrollPosition;
@@ -218,7 +226,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scro
                 .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
             }
         }) {
-            CLAY(CLAY_ID("ScrollbarBarButton"), {
+            CLAY_AUTO_ID({
                 .layout = { 
                 	.sizing = { 
                 		CLAY_SIZING_FIXED(12), 
@@ -231,7 +239,9 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scro
     }
 }
 
-void Widget::BeginScrollContainer() {
+// TODO: this would recieve a ScrollStateId,
+// and then use those Ids for declaring the container and scrollbar
+void Widget::BeginScrollBox() {
     // Clay__OpenElement();
     // Clay__ConfigureOpenElement((Clay_ElementDeclaration) {
     //   .id = CLAY_ID("Container"),
@@ -239,7 +249,7 @@ void Widget::BeginScrollContainer() {
     // });
     // ...children declared here
     // Clay__CloseElement();
-    Clay__OpenElementWithId(CLAY_ID("ScrollBarContainer"));
+    Clay__OpenElementWithId(scrollState.parentId);
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
             .layout = { 
                 .padding = CLAY_PADDING_ALL(32), 
@@ -253,8 +263,11 @@ void Widget::BeginScrollContainer() {
         });
 }
 
-void Widget::EndScrollContainer() {
-  layoutScrollBar(CLAY_ID("ScrollBarContainer"), CLAY_ID("ScrollBarButton"));
+// TODO: this would receive a ScrollStateId, pointing to
+// one of many ScrollStates, or it would know which one is open
+// and close it automatically
+void Widget::EndScrollBox() {
+  layoutScrollBar(scrollState.parentId, scrollState.id);
   Clay__CloseElement();
 
 }

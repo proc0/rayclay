@@ -115,6 +115,8 @@ BUTTONS
 	};
 	std::vector<char> buttonHovers;
 
+	ScrollState scrollState = {0};
+
 	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
 	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
 	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
@@ -131,8 +133,9 @@ BUTTONS
     BUTTON_ID activeTab = BUTTON_ID::OPTIONS_GAME;
 
 public:
-	ScrollState scrollState = {0};
-
+	// TODO: these are used from Surface, but they could be used in Widget
+	// and made private if we had a vector of sets and we return ids to the sets
+	// which Surface can use to render sets of buttons, tabs, and scrollboxes, etc.
 	BUTTONS_MENU_MAIN
 	BUTTONS_MENU_PAUSE
 	TABS_OPTIONS
@@ -140,8 +143,8 @@ public:
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
 
-	void initScrollbar(Clay_ElementId parentId, Clay_ElementId scrollbarId, Clay_ElementId proxyId);
-	void updateScrollbar(InputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
+	Clay_ElementId initScrollBox(const std::string& id);
+	void updateScrollBox(InputEvent, const Clay_Vector2& mousePosition);
 
 	const Button& getButton(WidgetId::ButtonId) const;
 	const Button& getButton(Action::Surface) const;
@@ -163,8 +166,8 @@ public:
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
 
-	void BeginScrollContainer();
-	void EndScrollContainer();
+	void BeginScrollBox();
+	void EndScrollBox();
 };
 
 #undef BUTTONS

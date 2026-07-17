@@ -26,12 +26,6 @@ class Surface : public Layer {
     Shader overlayShader;
 
     Clay_Arena arena = {};
-    // NOTE: define scrollbar and scrollbar container ID here
-    // WARNING: Clay_ElementId (CLAY_ID) cannot be const or a ref
-    // TODO: research further how Clay updates ElementId for scrollbar
-    Clay_ElementId layoutTutorialId = CLAY_ID("LayoutTutorial");
-    Clay_ElementId scrollbarTutorialContainerId = CLAY_ID("ContentTutorial");
-    Clay_ElementId scrollbarTutorialId = CLAY_ID("ScrollbarTutorial");
 
     const Window& window;
     // TODO: move this to Display
