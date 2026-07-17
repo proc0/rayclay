@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <cstring>
 
-
 // the initialState is set to a targetState for the transition, and the transition properties are set in the element
 Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
     Clay_TransitionData targetState = initialState;
