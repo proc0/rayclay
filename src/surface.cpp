@@ -379,12 +379,6 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
     // this function might not be called again
     auto action = widget.consumeButtonAction();
 
-    // tab selection, sets the active tab to the button ID, to render in the layout
-    if (action == Action::Surface::CHANGE_OPTIONS_GAME || action == Action::Surface::CHANGE_OPTIONS_AUDIO || action == Action::Surface::CHANGE_OPTIONS_INPUTS) {
-        const Button& buttonPressed = widget.getButton(action);
-        activeOptionsTab = buttonPressed.id;
-    }
-
     // default mouse cursor before returning
     if (widget.onButtonJustHovered()) {
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
@@ -613,9 +607,9 @@ void Surface::layoutOptions() {
                 .layoutDirection = CLAY_LEFT_TO_RIGHT
             },
         }) {
-            widget.layoutTab(BUTTON_ID::OPTIONS_GAME, activeOptionsTab == BUTTON_ID::OPTIONS_GAME);
-            widget.layoutTab(BUTTON_ID::OPTIONS_AUDIO, activeOptionsTab == BUTTON_ID::OPTIONS_AUDIO);
-            widget.layoutTab(BUTTON_ID::OPTIONS_INPUTS, activeOptionsTab == BUTTON_ID::OPTIONS_INPUTS);
+            for (auto tabId : widget.tabButtonIds) {
+                widget.layoutTab(tabId);
+            }
         }
 
         CLAY(CLAY_ID("TabContentOptions"), {
@@ -634,13 +628,14 @@ void Surface::layoutOptions() {
             //  .childOffset = Clay_GetScrollOffset()
             // },
         }) {
-            if (activeOptionsTab == BUTTON_ID::OPTIONS_GAME) {
+            BUTTON_ID activeTabId = widget.getActiveTab();
+            if (activeTabId == BUTTON_ID::OPTIONS_GAME) {
                 CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_GAME), STYLE_TEXT_DEFAULT);
                 // insert game options here
-            } else if (activeOptionsTab == BUTTON_ID::OPTIONS_AUDIO) {
+            } else if (activeTabId == BUTTON_ID::OPTIONS_AUDIO) {
                 CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_AUDIO), STYLE_TEXT_DEFAULT);
                 // insert audio options here
-            } else if (activeOptionsTab == BUTTON_ID::OPTIONS_INPUTS) {
+            } else if (activeTabId == BUTTON_ID::OPTIONS_INPUTS) {
                 CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_INPUTS), STYLE_TEXT_DEFAULT);
                 // insert input options here
             }

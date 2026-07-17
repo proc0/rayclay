@@ -38,6 +38,9 @@ namespace WidgetId {
 
 using BUTTON_ID = WidgetId::ButtonId;
 
+// IDEA: Abstract sets of components into another manager of sorts, i.e. Layer/Layout
+// It would take a list of component IDs and keep some kind of state for them, 
+// i.e. activeTab or scrollState, and it would allow for multiple instances of these sets.
 // menu buttons per screen
 #define BUTTONS_MENU_MAIN const std::array<BUTTON_ID, 4> buttonsMenuMain{ \
 		BUTTON_ID::NEW_GAME,\
@@ -53,6 +56,13 @@ using BUTTON_ID = WidgetId::ButtonId;
 		BUTTON_ID::OPTIONS,\
 		BUTTON_ID::RETURN,\
 		BUTTON_ID::QUIT,\
+	};
+
+// declare tabs here
+#define TABS_OPTIONS const std::array<BUTTON_ID, 3> tabButtonIds{ \
+		BUTTON_ID::OPTIONS_GAME, \
+		BUTTON_ID::OPTIONS_AUDIO, \
+		BUTTON_ID::OPTIONS_INPUTS, \
 	};
 
 struct Button {
@@ -105,16 +115,27 @@ BUTTONS
 	};
 	std::vector<char> buttonHovers;
 
-
 	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
 	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
 	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
+
+	// IDEA: add ability for multiple Tab sets, each
+	// with an active tab that can be queried, and it
+	// would be abstracted so Widget would not need to know 
+	// NOTE: use an unordered_set to store TabIds, and then
+	// a vector to store sets of TabIds, followed by a 
+	// <template> for a variadic function that takes in
+	// an arbitrary number of Tab/ButtonId arguments
+	// it would then load Tab sets on .load, and use
+	// a buildTabs(ButtonId) an d getActiveTab(ButtonId)
+    BUTTON_ID activeTab = BUTTON_ID::OPTIONS_GAME;
 
 public:
 	ScrollState scrollState = {0};
 
 	BUTTONS_MENU_MAIN
 	BUTTONS_MENU_PAUSE
+	TABS_OPTIONS
 
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
@@ -124,8 +145,10 @@ public:
 
 	const Button& getButton(WidgetId::ButtonId) const;
 	const Button& getButton(Action::Surface) const;
-	const Action::Surface getButtonAction() const;
-	const BUTTON_ID getButtonHovered() const;
+	Action::Surface getButtonAction() const;
+	BUTTON_ID getButtonHovered() const;
+	BUTTON_ID getActiveTab() const;
+
 	bool onButtonHover(BUTTON_ID id, bool isHovered);
 	bool onButtonJustHovered() const;
 	bool onButtonJustBlurred() const;
@@ -136,9 +159,12 @@ public:
 	void layoutLabel(const std::string& label);
 	void layoutButton(const BUTTON_ID);
 	void layoutButtonSecondary(const BUTTON_ID);
-	void layoutTab(const BUTTON_ID, bool active);
+	void layoutTab(const BUTTON_ID);
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
+
+	void BeginScrollContainer(Clay_ElementDeclaration& elementDeclaration);
+	void EndScrollContainer();
 };
 
 #undef BUTTONS

@@ -45,7 +45,6 @@ public:
 
     Event::Surface lastEvent = Event::Surface::NO_EVENT;
     Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
-    BUTTON_ID activeOptionsTab = BUTTON_ID::OPTIONS_GAME;
 
     Surface(const Window& window): window(window) {};
     ~Surface() = default;

@@ -68,7 +68,7 @@ void Widget::layoutButton(const BUTTON_ID id) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -99,7 +99,7 @@ void Widget::layoutButtonSecondary(const BUTTON_ID id) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -111,27 +111,28 @@ void Widget::layoutButtonSecondary(const BUTTON_ID id) {
     }
 }
 
-void Widget::layoutTab(const BUTTON_ID id, bool active) {
+void Widget::layoutTab(const BUTTON_ID id) {
 	const Button& button = getButton(id);
+    bool isActive = getActiveTab() == button.id;
     CLAY(button.clayId, { 
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(active ? 10 : 6)),
+            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(isActive ? 10 : 6)),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
         // .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
             .color = WIDGET_COLOR_BORDER, 
-            .width = { 0, 0, 0, active } 
+            .width = { 0, 0, 0, isActive } 
         },
     }) {
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
         Clay_OnHover(handleClayHover, this);
-        if (active) {
+        if (isActive) {
             CLAY_TEXT(button.label, STYLE_TEXT_DEFAULT);
         } else {
             CLAY_TEXT(button.label, STYLE_TEXT_DISABLED);
@@ -230,6 +231,20 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scro
     }
 }
 
+void Widget::BeginScrollContainer(Clay_ElementDeclaration& elementDeclaration) {
+  // Clay__OpenElement();
+  // Clay__ConfigureOpenElement((Clay_ElementDeclaration) {
+  //   .id = CLAY_ID("Container"),
+  //   .backgroundColor = { 255, 200, 200, 255 }
+  // });
+  // ...children declared here
+  // Clay__CloseElement();
+}
+
+void Widget::EndScrollContainer() {
+
+}
+
 const Button& Widget::getButton(WidgetId::ButtonId id) const {
 	return buttons.at(id);
 };
@@ -244,11 +259,11 @@ const Button& Widget::getButton(Action::Surface action) const {
 	return buttons.at(0);
 };
 
-const Action::Surface Widget::getButtonAction() const {
+Action::Surface Widget::getButtonAction() const {
 	return currentButtonAction;
 }
 
-const BUTTON_ID Widget::getButtonHovered() const {
+BUTTON_ID Widget::getButtonHovered() const {
 	return currentButtonHovered;
 }
 
@@ -291,11 +306,25 @@ bool Widget::onButtonJustBlurred() const {
 }
 
 void Widget::triggerButtonAction(const char* elementId) {
+    BUTTON_ID currentId = BUTTON_ID::NIL;
 	for (auto& button : buttons) {
 		if (strcmp(button.clayId.stringId.chars, elementId) == 0) {
 			currentButtonAction = button.action;
+            currentId = button.id;
+            break;
 		}
 	}
+
+    for (auto& tabId : tabButtonIds) {
+        if (currentId == tabId) {
+            activeTab = currentId;
+            break;
+        }
+    }
+}
+
+BUTTON_ID Widget::getActiveTab() const {
+    return activeTab;
 }
 
 void Widget::clearButtonAction() {
