@@ -91,14 +91,15 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
 }
 
 // TODO: pass in scrollbar ID, to reuse this for any scrollbar
-void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId) {
+void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
 	// TODO: pass in mouse information, including mouse scroll to decouple
 	// from updating scrollbar
     // TODO: add mouseWheel info to InputEvent
-    Vector2 mouseWheelDelta = GetMouseWheelMoveV();
-    float mouseWheelX = mouseWheelDelta.x;
-    float mouseWheelY = mouseWheelDelta.y;
-    Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
+    // Vector2 mouseWheelDelta = GetMouseWheelMoveV();
+    // float mouseWheelX = mouseWheelDelta.x;
+    // float mouseWheelY = mouseWheelDelta.y;
+    // Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheelDelta.x, inputEvent.mouseWheelDelta.y }), GetFrameTime());
 
     if (inputEvent.id == Event::Input::PRIMARY_UP) {
         scrollbarData.isPrimaryDown = false;
@@ -107,7 +108,7 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePos
     // TODO: if this is not needed every frame, move inside below conditional
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
 
-    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollbarData.isPrimaryDown && Clay_PointerOver(scrollbarData.id)) {
+    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollbarData.isPrimaryDown && Clay_PointerOver(scrollbarId)) {
         scrollbarData.clickOrigin = mousePosition;
         scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
         scrollbarData.isPrimaryDown = true;
@@ -130,6 +131,7 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePos
         }
     }
 
+    // TODO: test this
     if(scrollContainerData.scrollPosition) {
     	// TODO: review this state field tracking vertical movement in order to render wrapping images in Surface.Render
     	// either move into above conditional, or find another way to not update every frame
@@ -139,10 +141,10 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePos
 }
 
 // TODO: pass in scrollbar ID, to reuse this for any scrollbar
-void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
+void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
     if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
-        CLAY(scrollbarData.id, {
+        CLAY(scrollbarId, {
             .floating = {
                 .offset = { 
                 	.y = -(scrollContainerData.scrollPosition->y / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height 
@@ -156,8 +158,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
                 .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
             }
         }) {
-            // TODO: abstract this like scrollbar.id or use CLAY_AUTO_ID
-            CLAY(CLAY_ID("ScrollBarButton"), {
+            CLAY(CLAY_ID("ScrollbarBarButton"), {
                 .layout = { 
                 	.sizing = { 
                 		CLAY_SIZING_FIXED(12), 

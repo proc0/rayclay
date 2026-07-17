@@ -71,7 +71,7 @@ GameState Game::updateGame(InputEvent inputEvent, WorldState worldState){
 void Game::updateTitle() {
     float titleTextSize = MeasureText(title, titleFontSize);
     titleX = window.halfWidth - titleTextSize*0.5f;
-    titleY = window.halfHeight - titleFontSize*0.5f;
+    titleY = window.halfHeight - titleFontSize;
 
     float titleHintTextSize = MeasureText(titleHint, titleHintFontSize);
     titleHintX = window.halfWidth - titleHintTextSize*0.5f;

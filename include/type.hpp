@@ -103,6 +103,7 @@ namespace State {
 struct InputEvent {
     Event::Input id;
     Vector2 position;
+    Vector2 mouseWheelDelta;
 };
 
 #define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })

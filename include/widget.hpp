@@ -88,7 +88,6 @@ BUTTON(CANCEL_OPTIONS,  "ButtonCancelOptions",  CANCEL_OPTIONS, 	"Cancel") \
 BUTTON(QUIT, 		   "ButtonQuit", 			QUIT_APP, 	          "Quit")
 
 struct ScrollbarData {
-	const Clay_ElementId id;
     Clay_Vector2 clickOrigin;
     Clay_Vector2 positionOrigin;
     float scrollY;
@@ -104,7 +103,6 @@ BUTTONS
 	std::vector<char> buttonHovers;
 
 	ScrollbarData scrollbarData = {
-		.id = CLAY_ID("ScrollBar"),
 		.clickOrigin = {0},
 		.positionOrigin = {0},
 		.scrollY = 0.0f,
@@ -122,7 +120,7 @@ public:
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
 
-	void updateScrollbar(InputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId);
+	void updateScrollbar(InputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
 
 	const Button& getButton(WidgetId::ButtonId) const;
 	const Button& getButton(Action::Surface) const;
@@ -138,7 +136,7 @@ public:
 	void layoutButton(const BUTTON_ID);
 	void layoutTab(const BUTTON_ID, bool active);
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
-	void layoutScrollBar(const Clay_ElementId& parentId);
+	void layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
 };
 
 #undef BUTTONS

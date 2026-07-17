@@ -375,7 +375,11 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
     // update mouse for Clay
     // TODO: refactor this bit from Widget.updateScroll and consolidate into a new method (?)
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
-    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
+    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
+
+    // NOTE: if LayoutOptions need scrollbar, define the container and scrollbar IDs first
+    // Use those IDs to construct the layout and then update scrollbar passing them in to Widget.updateScrollbar
+    // widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -399,10 +403,10 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
-    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
+    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
     // TODO: find a way to link this CLAY_ID to be used in update function
     // to pass through to Widget.updateScrollbar, which requires a reference to parent
-    widget.updateScrollbar(inputEvent, mousePosition, Clay_GetElementId(CLAY_STRING("ContentTutorial")));
+    widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -522,8 +526,8 @@ void Surface::layoutTutorial() {
     }) {
         // TODO: find a way to link this CLAY_ID to be used in update function
         // to pass through to Widget.updateScrollbar, which requires a reference to parent
-        Clay_ElementId containerId = CLAY_ID("ContentTutorial");
-        CLAY(containerId, {
+        // Clay_ElementId containerId = CLAY_ID("ContentTutorial");
+        CLAY(scrollbarTutorialContainerId, {
             .layout = { 
                 .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
@@ -540,7 +544,7 @@ void Surface::layoutTutorial() {
 
             // WARNING: layoutScrollbar requires updateScrollbar call
             // during update phase (currently in updateMenu)
-            widget.layoutScrollBar(containerId);
+            widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
         }
 
         CLAY(CLAY_ID("FooterTutorial"), {
