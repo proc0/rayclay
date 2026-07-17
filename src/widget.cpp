@@ -90,14 +90,10 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
     }
 }
 
-void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parentId) {
+// TODO: pass in scrollbar ID, to reuse this for any scrollbar
+void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId) {
 	// TODO: pass in mouse information, including mouse scroll to decouple
 	// from updating scrollbar
-    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
-
-    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
-    Clay_SetPointerState(mousePosition, isMouseDown && !scrollbarData.mouseDown);
-
     // TODO: add mouseWheel info to InputEvent
     Vector2 mouseWheelDelta = GetMouseWheelMoveV();
     float mouseWheelX = mouseWheelDelta.x;
@@ -105,18 +101,18 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parent
     Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
 
     if (inputEvent.id == Event::Input::PRIMARY_UP) {
-        scrollbarData.mouseDown = false;
+        scrollbarData.isPrimaryDown = false;
     }
 
     // TODO: if this is not needed every frame, move inside below conditional
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
-    // TODO: abstract Scrollbar ElementId
-    if (isMouseDown && !scrollbarData.mouseDown && Clay_PointerOver(Clay_GetElementId(CLAY_STRING("ScrollBar")))) {
+
+    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollbarData.isPrimaryDown && Clay_PointerOver(scrollbarData.id)) {
         scrollbarData.clickOrigin = mousePosition;
         scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
-        scrollbarData.mouseDown = true;
+        scrollbarData.isPrimaryDown = true;
 
-    } else if (scrollbarData.mouseDown) {
+    } else if (scrollbarData.isPrimaryDown) {
         // Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
         if (scrollContainerData.contentDimensions.height > 0) {
             Clay_Vector2 ratio = Clay_Vector2({
@@ -142,10 +138,11 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_ElementId& parent
     }
 }
 
+// TODO: pass in scrollbar ID, to reuse this for any scrollbar
 void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
     if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
-        CLAY(CLAY_ID("ScrollBar"), {
+        CLAY(scrollbarData.id, {
             .floating = {
                 .offset = { 
                 	.y = -(scrollContainerData.scrollPosition->y / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height 
@@ -159,6 +156,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
                 .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
             }
         }) {
+            // TODO: abstract this like scrollbar.id or use CLAY_AUTO_ID
             CLAY(CLAY_ID("ScrollBarButton"), {
                 .layout = { 
                 	.sizing = { 
@@ -166,8 +164,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId) {
                 		CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                 	}
                 },
-                .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_SCROLLBAR_HL : WIDGET_COLOR_SCROLLBAR,
-                .cornerRadius = CLAY_CORNER_RADIUS(6),
+                .backgroundColor = Clay_Hovered() || scrollbarData.isPrimaryDown ? WIDGET_COLOR_SCROLLBAR_HL : WIDGET_COLOR_SCROLLBAR,
             });
         }
     }

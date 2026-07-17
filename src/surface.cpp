@@ -374,9 +374,8 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 
     // update mouse for Clay
     // TODO: refactor this bit from Widget.updateScroll and consolidate into a new method (?)
-    bool isMouseDown = inputEvent.id == Event::Input::PRIMARY_DOWN;
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
-    Clay_SetPointerState(mousePosition, isMouseDown);
+    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -399,9 +398,11 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 
 Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
+    Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
+    Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY_DOWN);
     // TODO: find a way to link this CLAY_ID to be used in update function
     // to pass through to Widget.updateScrollbar, which requires a reference to parent
-    widget.updateScrollbar(inputEvent, Clay_GetElementId(CLAY_STRING("ContentTutorial")));
+    widget.updateScrollbar(inputEvent, mousePosition, Clay_GetElementId(CLAY_STRING("ContentTutorial")));
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -442,7 +443,7 @@ void Surface::layoutWinLose() {
                 .width = CLAY_SIZING_PERCENT(window.adapt(0.8f)),
                 .height = CLAY_SIZING_PERCENT(window.adapt(0.8f)),
             },
-            .childGap = static_cast<uint16_t>(window.convert(32)),
+            .childGap = static_cast<uint16_t>(window.scale(32)),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
@@ -467,8 +468,8 @@ void Surface::layoutWinLose() {
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
                 },
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(24))),
-                .childGap = static_cast<uint16_t>(window.convert(4)),
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(24))),
+                .childGap = static_cast<uint16_t>(window.scale(4)),
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
@@ -490,7 +491,7 @@ void Surface::layoutWinLose() {
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(window.adapt(0.3f)),
                 },
-                .padding = { 0, 0, static_cast<uint16_t>(window.convert(12)), 0 },
+                .padding = { 0, 0, static_cast<uint16_t>(window.scale(12)), 0 },
             },
         }) {        
             widget.layoutButton(BUTTON_ID::RESTART);
@@ -524,7 +525,7 @@ void Surface::layoutTutorial() {
         Clay_ElementId containerId = CLAY_ID("ContentTutorial");
         CLAY(containerId, {
             .layout = { 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))), 
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
             .clip = { 
@@ -546,9 +547,13 @@ void Surface::layoutTutorial() {
             .layout = { 
                 .sizing = { 
                     .width = CLAY_SIZING_GROW(0),
-                    .height = CLAY_SIZING_PERCENT(0.2f),
                 }, 
-                .padding = { 100, 100, 24, 0 }, 
+                .padding = { 
+                    static_cast<uint16_t>(window.scale(120)),
+                    static_cast<uint16_t>(window.scale(120)),
+                    static_cast<uint16_t>(window.scale(32)),
+                    static_cast<uint16_t>(window.scale(32))
+                }, 
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
         }) {        
@@ -581,7 +586,7 @@ void Surface::layoutOptions() {
         CLAY_AUTO_ID({ 
             .layout = { 
                 .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(8))), 
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(8))), 
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             }
         }) {
@@ -611,7 +616,7 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_GROW(0),
                 }, 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(32))),
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))),
                 .childGap = 16, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
@@ -645,8 +650,10 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_PERCENT(0.2f),
                 }, 
-                .padding = { static_cast<uint16_t>(window.convert(100)), static_cast<uint16_t>(window.convert(100)), 24, 0 },
-                .childGap = static_cast<uint16_t>(window.convert(100)),
+                .padding = { 
+                    static_cast<uint16_t>(window.scale(100)), 
+                    static_cast<uint16_t>(window.scale(100)), 0, 0 },
+                .childGap = static_cast<uint16_t>(window.scale(100)),
             },
         }) {      
             widget.layoutButton(BUTTON_ID::CANCEL_OPTIONS);
@@ -669,7 +676,7 @@ void Surface::layoutMenuPause() {
                 .sizing = { 
                     .width = CLAY_SIZING_PERCENT(window.adapt(0.33f)), 
                 }, 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(48))),
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(48))),
                 .childGap = 2,
                 .layoutDirection = CLAY_TOP_TO_BOTTOM,
             },
@@ -691,7 +698,7 @@ void Surface::layoutMenuPause() {
                         .sizing = { 
                             .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)), 
                         }, 
-                        .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(42*window.unit)),
+                        .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(42))),
                         .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
                         .layoutDirection = CLAY_TOP_TO_BOTTOM,
                     },
@@ -722,7 +729,7 @@ void Surface::layoutMenuPause() {
                             .sizing = { 
                                 .width = CLAY_SIZING_GROW(0), 
                             },
-                            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.convert(24))),
+                            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(24))),
                             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
                         },
                     }) {
@@ -738,7 +745,7 @@ void Surface::layoutMenuPause() {
                             .sizing = { 
                                 .width = CLAY_SIZING_GROW(0), 
                             },
-                            .childGap = static_cast<uint16_t>(window.convert(48)),
+                            .childGap = static_cast<uint16_t>(window.scale(48)),
                             .layoutDirection = CLAY_LEFT_TO_RIGHT,
                         },
                     }) {
@@ -751,7 +758,7 @@ void Surface::layoutMenuPause() {
             CLAY_AUTO_ID({ 
                 .layout = { 
                     .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-                    .padding = { 0, 0, 0, static_cast<uint16_t>(window.convert(32)) }, 
+                    .padding = { 0, 0, 0, static_cast<uint16_t>(window.scale(32)) }, 
                     .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
                 }
             }) {
@@ -861,6 +868,7 @@ void Surface::layoutDisplayGame() {
                 widget.layoutButtonTexture(BUTTON_ID::MOVE_LEFT, &textureArrowLeft);
             }
 
+            // TODO: get the fixed size dynamically from images
             CLAY(CLAY_ID("HUDControlsMiddle"), {
                 .layout = {
                     .sizing = { 
