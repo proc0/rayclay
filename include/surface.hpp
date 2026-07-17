@@ -18,6 +18,7 @@ class Surface : public Layer {
     Texture2D textureArrowRight;
     Texture2D textureArrowDown;
     Texture2D textureArrowLeft;
+    Texture2D textureBlueTile;
     std::string formatScore = "Score";
     std::string formatTotalTime = "Time";
 
@@ -28,6 +29,7 @@ class Surface : public Layer {
     // NOTE: define scrollbar and scrollbar container ID here
     // WARNING: Clay_ElementId (CLAY_ID) cannot be const or a ref
     // TODO: research further how Clay updates ElementId for scrollbar
+    Clay_ElementId layoutTutorialId = CLAY_ID("LayoutTutorial");
     Clay_ElementId scrollbarTutorialContainerId = CLAY_ID("ContentTutorial");
     Clay_ElementId scrollbarTutorialId = CLAY_ID("ScrollbarTutorial");
 

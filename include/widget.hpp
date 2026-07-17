@@ -87,7 +87,10 @@ BUTTON(CONFIRM_OPTIONS, "ButtonConfirmOptions", CONFIRM_OPTIONS,	  "Save") \
 BUTTON(CANCEL_OPTIONS,  "ButtonCancelOptions",  CANCEL_OPTIONS, 	"Cancel") \
 BUTTON(QUIT, 		   "ButtonQuit", 			QUIT_APP, 	          "Quit")
 
-struct ScrollbarData {
+struct ScrollState {
+	Clay_ElementId id;
+	Clay_ElementId parentId;
+	Clay_ElementId proxyId;
     Clay_Vector2 clickOrigin;
     Clay_Vector2 positionOrigin;
     float scrollY;
@@ -102,24 +105,21 @@ BUTTONS
 	};
 	std::vector<char> buttonHovers;
 
-	ScrollbarData scrollbarData = {
-		.clickOrigin = {0},
-		.positionOrigin = {0},
-		.scrollY = 0.0f,
-		.isPrimaryDown = false,
-	};
 
 	Action::Surface currentButtonAction = Action::Surface::DO_NOTHING;
 	BUTTON_ID lastButtonHovered = BUTTON_ID::NIL;
 	BUTTON_ID currentButtonHovered = BUTTON_ID::NIL;
 
 public:
+	ScrollState scrollState = {0};
+
 	BUTTONS_MENU_MAIN
 	BUTTONS_MENU_PAUSE
 
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
 
+	void initScrollbar(Clay_ElementId parentId, Clay_ElementId scrollbarId, Clay_ElementId proxyId);
 	void updateScrollbar(InputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
 
 	const Button& getButton(WidgetId::ButtonId) const;

@@ -18,3 +18,5 @@
 #define URI_IMAGE_ARROW_RIGHT "arrow_right.png"
 #define URI_IMAGE_ARROW_DOWN "arrow_down.png"
 #define URI_IMAGE_ARROW_LEFT "arrow_left.png"
+
+#define URI_IMAGE_BLUE_TILE "tile.png"

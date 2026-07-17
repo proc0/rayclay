@@ -95,57 +95,61 @@ void Widget::layoutLabel(const std::string& label) {
     CLAY_TEXT(clayString, STYLE_TEXT_BANNER);
 }
 
-// TODO: pass in scrollbar ID, to reuse this for any scrollbar
-void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
-	// TODO: pass in mouse information, including mouse scroll to decouple
-	// from updating scrollbar
-    // TODO: add mouseWheel info to InputEvent
-    // Vector2 mouseWheelDelta = GetMouseWheelMoveV();
-    // float mouseWheelX = mouseWheelDelta.x;
-    // float mouseWheelY = mouseWheelDelta.y;
-    // Clay_UpdateScrollContainers(true, Clay_Vector2({ mouseWheelX, mouseWheelY }), GetFrameTime());
-    Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheelDelta.x, inputEvent.mouseWheelDelta.y }), GetFrameTime());
+// TODO: create a vector of ScrollState, and return and Id. This Id is then passed into the update and layout
+// methods of scrollbar, to look up the different Ids.
+void Widget::initScrollbar(Clay_ElementId parentId, Clay_ElementId scrollbarId, Clay_ElementId proxyId) {
+    scrollState.id = scrollbarId;
+    scrollState.parentId = parentId;
+    scrollState.proxyId = proxyId;
+}
 
-    if (inputEvent.id == Event::Input::PRIMARY_UP) {
-        scrollbarData.isPrimaryDown = false;
+// TODO: use the scrollState within Widget directly without needing to pass in parentId and scrollId, since Ids are needed as a proxy to pass in userData
+// this however would require updateScrollbar to take in a ScrollState (to decouple), and that would be unecessary unless there is a list of ScrollStates
+// for multiple scrollbars. 
+void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
+
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheelDelta.x*2.0f, inputEvent.mouseWheelDelta.y*2.0f }), GetFrameTime());
+
+    Clay_ScrollContainerData container = Clay_GetScrollContainerData(parentId);
+    // WARNING: crashes without this check!
+    if(container.scrollPosition) {
+        // update the vertical scroll movement for mouse wheel, and mouse grab (content drag)
+        scrollState.scrollY = container.scrollPosition->y - scrollState.positionOrigin.y;
     }
 
-    // TODO: if this is not needed every frame, move inside below conditional
-    Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
+    if (inputEvent.id == Event::Input::PRIMARY_UP) {
+        scrollState.isPrimaryDown = false;
+        return;
+    }
 
-    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollbarData.isPrimaryDown && Clay_PointerOver(scrollbarId)) {
-        scrollbarData.clickOrigin = mousePosition;
-        scrollbarData.positionOrigin = *scrollContainerData.scrollPosition;
-        scrollbarData.isPrimaryDown = true;
+    if (inputEvent.id == Event::Input::PRIMARY_DOWN && !scrollState.isPrimaryDown && Clay_PointerOver(scrollbarId)) {
 
-    } else if (scrollbarData.isPrimaryDown) {
-        // Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(Clay_GetElementId(CLAY_STRING("TabContent")));
-        if (scrollContainerData.contentDimensions.height > 0) {
+        scrollState.clickOrigin = mousePosition;
+        scrollState.positionOrigin = *container.scrollPosition;
+        scrollState.isPrimaryDown = true;
+
+    } else if (scrollState.isPrimaryDown) {
+
+        if (container.contentDimensions.height > 0) {
             Clay_Vector2 ratio = Clay_Vector2({
-                scrollContainerData.contentDimensions.width / scrollContainerData.scrollContainerDimensions.width,
-                scrollContainerData.contentDimensions.height / scrollContainerData.scrollContainerDimensions.height,
+                container.contentDimensions.width / container.scrollContainerDimensions.width,
+                container.contentDimensions.height / container.scrollContainerDimensions.height,
             });
 
-            if (scrollContainerData.config.vertical) {
-                scrollContainerData.scrollPosition->y = scrollbarData.positionOrigin.y + (scrollbarData.clickOrigin.y - mousePosition.y) * ratio.y;
+            if (container.config.vertical) {
+                container.scrollPosition->y = scrollState.positionOrigin.y + (scrollState.clickOrigin.y - mousePosition.y) * ratio.y;
             }
             
-            if (scrollContainerData.config.horizontal) {
-                scrollContainerData.scrollPosition->x = scrollbarData.positionOrigin.x + (scrollbarData.clickOrigin.x - mousePosition.x) * ratio.x;
+            if (container.config.horizontal) {
+                container.scrollPosition->x = scrollState.positionOrigin.x + (scrollState.clickOrigin.x - mousePosition.x) * ratio.x;
             }
         }
     }
 
-    // TODO: test this
-    if(scrollContainerData.scrollPosition) {
-    	// TODO: review this state field tracking vertical movement in order to render wrapping images in Surface.Render
-    	// either move into above conditional, or find another way to not update every frame
-        scrollbarData.scrollY = scrollContainerData.scrollPosition->y - scrollbarData.positionOrigin.y;
-        // TraceLog(LOG_INFO, "scroll %f", scrollbarData.scrollY);
-    }
+
 }
 
-// TODO: pass in scrollbar ID, to reuse this for any scrollbar
+// TODO: when scrollState becomes a list, pass in the Id instead and get parent and scrollbar from there.
 void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(parentId);
     if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
@@ -170,7 +174,7 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scro
                 		CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                 	}
                 },
-                .backgroundColor = Clay_Hovered() || scrollbarData.isPrimaryDown ? WIDGET_COLOR_SCROLLBAR_HL : WIDGET_COLOR_SCROLLBAR,
+                .backgroundColor = Clay_Hovered() || scrollState.isPrimaryDown ? WIDGET_COLOR_SCROLLBAR_HL : WIDGET_COLOR_SCROLLBAR,
             });
         }
     }

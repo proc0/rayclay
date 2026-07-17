@@ -84,6 +84,13 @@ void Surface::load(){
     textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
     textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
     textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
+
+    textureBlueTile = LoadTexture(PATH_ASSET(URI_IMAGE_BLUE_TILE));
+
+    // INIT: scrollbar Ids, one for the container, one for the scrollbar, and one for a proxy
+    // of the image that can be scrolled.
+    // TODO: make the proxyId optional by overloading
+    widget.initScrollbar(scrollbarTutorialContainerId, scrollbarTutorialId, layoutTutorialId);
 }
 
 void Surface::loadOverlay() {
@@ -186,12 +193,10 @@ static inline char *temp_render_buffer;
 static inline int temp_render_buffer_len;
 
 void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
-    for (int j = 0; j < renderCommands.length; j++)
-    {
+    for (int j = 0; j < renderCommands.length; ++j) {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
         Clay_BoundingBox boundingBox = {renderCommand->boundingBox.x, renderCommand->boundingBox.y, renderCommand->boundingBox.width, renderCommand->boundingBox.height};
-        switch (renderCommand->commandType)
-        {
+        switch (renderCommand->commandType) {
             case CLAY_RENDER_COMMAND_TYPE_TEXT: {
                 Clay_TextRenderData *textData = &renderCommand->renderData.text;
                 Font fontToUse = fonts[textData->fontId];
@@ -213,44 +218,55 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
-                Texture2D imageTexture = *(Texture2D *)renderCommand->renderData.image.imageData;
-                Clay_Color tintColor = renderCommand->renderData.image.backgroundColor;
-                if (tintColor.r == 0 && tintColor.g == 0 && tintColor.b == 0 && tintColor.a == 0) {
-                    tintColor = Clay_Color({ 255, 255, 255, 255 });
-                }
+                Texture2D texture = *static_cast<Texture2D*>(renderCommand->renderData.image.imageData);
+                // NOTE: this is applying a tint based on image.backgroundColor take from the example rendered, 
+                // but the current Clay version does not have this property on image. Keeping for backup.
+                // Color tintColor = WHITE;
+                // Clay_Color imageBgColor = renderCommand->renderData.image.backgroundColor;
+                // if (imageBgColor.r > 0 || imageBgColor.g > 0 || imageBgColor.b > 0 || imageBgColor.a > 0) {
+                //     tintColor = CLAY_COLOR_TO_RAYLIB_COLOR(imageBgColor);
+                // }
 
-                // if userData and imageData are both set, the userData has scrollBar info
-                // to calculate the offset for scrolling
-                float imageOffset = 0.0f;
-                if (renderCommand->userData) {
-                    float scrollY = static_cast<ScrollbarData*>(renderCommand->userData)->scrollY;
-                    if (scrollY + boundingBox.height <= 0) {
-                        imageOffset = static_cast<float>(static_cast<int>(scrollY) % static_cast<int>(boundingBox.height));
-                    } else {
-                        imageOffset = scrollY;
+                // NOTE: .userData + .image = scroll image feature! If userData and imageData are both set, scroll the image.
+                // If .userData is needed for something that also has an .image, modify these conditional safety checks.
+                if (ScrollState* scrollState = static_cast<ScrollState*>(renderCommand->userData)) {
+                    // match the parent ID or another "proxy" container ID with the current rendering ID.
+                    // which allows its image to be controlled by the scroll vertical movement. This prevents accidental scrolling.
+                    if (scrollState->parentId.id == renderCommand->id || scrollState->proxyId.id == renderCommand->id) {
+                        // calculate the background image offset based on the vertical scroll position
+                        // as the scroll position changes, render two backgrounds one after another
+                        float imageOffset = scrollState->scrollY;
+                        // WARNING: scrollY can be negative, wrap around
+                        if (scrollState->scrollY + boundingBox.height <= 0) {
+                            imageOffset = static_cast<float>(static_cast<int>(roundf(scrollState->scrollY)) % static_cast<int>(roundf(boundingBox.height)));
+                        }
+                        // NOTE: Scissor mode is used here to trim the extra image after doubling it for scrolling. 
+                        // This prevents any sibling elements from rendering properly. The right approach would open the Scissor tag
+                        // and then close it after all the siblings have done rendering...
+                        BeginScissorMode(static_cast<int>(roundf(boundingBox.x)), static_cast<int>(roundf(boundingBox.y)), static_cast<int>(roundf(boundingBox.width)), static_cast<int>(roundf(boundingBox.height)));
+                        DrawTexturePro(
+                            texture,
+                            Rectangle({ 0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height) }),
+                            Rectangle({boundingBox.x, boundingBox.y+imageOffset, boundingBox.width, boundingBox.height }),
+                            Vector2({}), 0, WHITE);
+                        DrawTexturePro(
+                            texture,
+                            Rectangle({ 0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height) }),
+                            Rectangle({boundingBox.x, boundingBox.y+boundingBox.height+imageOffset, boundingBox.width, boundingBox.height }),
+                            Vector2({}), 0, WHITE);
+                        EndScissorMode();
                     }
-                }
-
-                DrawTexturePro(
-                    imageTexture,
-                    Rectangle({ 0, 0, static_cast<float>(imageTexture.width), static_cast<float>(imageTexture.height) }),
-                    Rectangle({boundingBox.x, boundingBox.y+imageOffset, boundingBox.width, boundingBox.height }),
-                    Vector2({}),
-                    0,
-                    CLAY_COLOR_TO_RAYLIB_COLOR(tintColor));
-                // if userData is set, it is the scrollbarData info to render the second wrapping image 
-                if (renderCommand->userData) {
+                } else {
                     DrawTexturePro(
-                        imageTexture,
-                        Rectangle({ 0, 0, static_cast<float>(imageTexture.width), static_cast<float>(imageTexture.height) }),
-                        Rectangle({boundingBox.x, boundingBox.y+boundingBox.height+imageOffset, boundingBox.width, boundingBox.height }),
-                        Vector2({}),
-                        0,
-                        CLAY_COLOR_TO_RAYLIB_COLOR(tintColor));
+                        texture,
+                        Rectangle({ 0, 0, static_cast<float>(texture.width), static_cast<float>(texture.height) }),
+                        Rectangle({boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height }),
+                        Vector2({}), 0, WHITE);
                 }
                 break;
             }
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START: {
+
                 BeginScissorMode(static_cast<int>(roundf(boundingBox.x)), static_cast<int>(roundf(boundingBox.y)), static_cast<int>(roundf(boundingBox.width)), static_cast<int>(roundf(boundingBox.height)));
                 break;
             }
@@ -367,13 +383,8 @@ static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_Tr
 }
 
 Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
-    // TODO: find a way to link this CLAY_ID to be used in update function
-    // to pass through to Widget.updateScrollbar, which requires a reference to parent
-    // TODO: for options - uncomment this when there is a need for scrollbar and UPDATE ELEMENT ID
-    // widget.updateScrollbar(inputEvent, Clay_GetElementId(CLAY_STRING("containerTutorial")));
 
     // update mouse for Clay
-    // TODO: refactor this bit from Widget.updateScroll and consolidate into a new method (?)
     Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
 
@@ -381,16 +392,17 @@ Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
     // Use those IDs to construct the layout and then update scrollbar passing them in to Widget.updateScrollbar
     // widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
 
-    // handle mouse cursor, if there is an action
+    // check action before returning it to app
     // this function might not be called again
-    // default mouse cursor before returning
     auto action = widget.consumeButtonAction();
 
+    // tab selection, sets the active tab to the button ID, to render in the layout
     if (action == Action::Surface::CHANGE_OPTIONS_GAME || action == Action::Surface::CHANGE_OPTIONS_AUDIO || action == Action::Surface::CHANGE_OPTIONS_INPUTS) {
         const Button& buttonPressed = widget.getButton(action);
         activeOptionsTab = buttonPressed.id;
     }
 
+    // default mouse cursor before returning
     if (widget.onButtonJustHovered()) {
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
     } else if (widget.onButtonJustBlurred() || action != 0) {
@@ -410,8 +422,8 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
-    // default mouse cursor before returning
     auto action = widget.consumeButtonAction();
+    // default mouse cursor before returning
     if (widget.onButtonJustHovered()) {
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
     } else if (widget.onButtonJustBlurred() || action != 0) {
@@ -508,7 +520,7 @@ void Surface::layoutWinLose() {
 
 void Surface::layoutTutorial() {
 
-    CLAY(CLAY_ID("LayoutTutorial"), {
+    CLAY(layoutTutorialId, {
         .layout = { 
             .sizing = { 
                 .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
@@ -517,6 +529,7 @@ void Surface::layoutTutorial() {
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = SURFACE_COLOR_MENU_BG,
+        .image = { .imageData = &textureBlueTile },
         .floating = { 
             .offset = {0, 0}, 
             .zIndex = 1, 
@@ -526,6 +539,7 @@ void Surface::layoutTutorial() {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
+        .userData = &widget.scrollState
     }) {
         // TODO: find a way to link this CLAY_ID to be used in update function
         // to pass through to Widget.updateScrollbar, which requires a reference to parent
@@ -539,7 +553,6 @@ void Surface::layoutTutorial() {
                 .vertical = true, 
                 .childOffset = Clay_GetScrollOffset()
             },
-
         }) {
             CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_1), STYLE_TEXT_DEFAULT);
 
@@ -563,6 +576,8 @@ void Surface::layoutTutorial() {
                 }, 
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
+            // .backgroundColor = SURFACE_COLOR_MENU_BG,
+            .backgroundColor = Clay_Color({ 0, 0, 0, 0 }),
         }) {        
             widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
         }
@@ -1007,6 +1022,7 @@ void Surface::unload(){
     UnloadTexture(textureArrowRight);
     UnloadTexture(textureArrowDown);
     UnloadTexture(textureArrowLeft);
+    UnloadTexture(textureBlueTile);
 
     UnloadShader(overlayShader);
     UnloadFont(fonts[0]);
