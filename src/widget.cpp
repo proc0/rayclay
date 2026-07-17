@@ -71,12 +71,7 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
         // .backgroundColor = Clay_Hovered() ? WIDGET_COLOR_BUTTON_BG_HL : WIDGET_COLOR_BUTTON_BG,
         .border = { 
             .color = WIDGET_COLOR_BORDER, 
-            .width = {
-                .left = 1,
-                .right = 1,
-                .top = 1, 
-                .bottom = 0, 
-            } 
+            .width = { 0, 0, 0, active } 
         },
     }) {
         onButtonHover(id, Clay_Hovered());

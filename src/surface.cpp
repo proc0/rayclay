@@ -474,9 +474,9 @@ void Surface::layoutWinLose() {
         },
     }) {
         if (currentGameState == State::Game::WIN) {
-            CLAY_TEXT(CLAY_STRING("SUCCESS"), STYLE_TEXT_WIN);
+            CLAY_TEXT(CLAY_STRING(TEXT_GAME_WIN_TITLE), STYLE_TEXT_WIN);
         } else if (currentGameState == State::Game::OVER) {
-            CLAY_TEXT(CLAY_STRING("FAILURE"), STYLE_TEXT_LOSE);
+            CLAY_TEXT(CLAY_STRING(TEXT_GAME_LOSE_TITLE), STYLE_TEXT_LOSE);
         }
 
         CLAY(CLAY_ID("ContentWinLose"), {
@@ -491,18 +491,13 @@ void Surface::layoutWinLose() {
             },
         }) { 
             if (currentGameState == State::Game::WIN) {
-                CLAY_TEXT(CLAY_STRING("YOU WIN!"), STYLE_TEXT_DISPLAY);
+                CLAY_TEXT(CLAY_STRING(TEXT_GAME_WIN_SUBTITLE), STYLE_TEXT_DISPLAY);
             } else if (currentGameState == State::Game::OVER) {
-                CLAY_TEXT(CLAY_STRING("Game Over"), STYLE_TEXT_DISPLAY);
+                CLAY_TEXT(CLAY_STRING(TEXT_GAME_LOSE_SUBTITLE), STYLE_TEXT_DISPLAY);
             }
-            // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
 
             widget.layoutLabel(formatScore);
             widget.layoutLabel(formatTotalTime);
-            // Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
-            // CLAY_TEXT(displayScore, STYLE_TEXT_BANNER);
-            // Clay_String displayTime = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatTotalTime.length()), .chars = formatTotalTime.c_str() };
-            // CLAY_TEXT(displayTime, STYLE_TEXT_BANNER);
         }
 
         CLAY(CLAY_ID("FooterWinLose"), {
@@ -529,6 +524,8 @@ void Surface::layoutTutorial() {
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = SURFACE_COLOR_MENU_BG,
+        // example image that scrolls, this component Id
+        // should be passed into to Widget.initScrollbar
         .image = { .imageData = &textureBlueTile },
         .floating = { 
             .offset = {0, 0}, 
@@ -539,11 +536,10 @@ void Surface::layoutTutorial() {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
+        // scrollState.proxyId == layoutTutorialId
         .userData = &widget.scrollState
     }) {
-        // TODO: find a way to link this CLAY_ID to be used in update function
-        // to pass through to Widget.updateScrollbar, which requires a reference to parent
-        // Clay_ElementId containerId = CLAY_ID("ContentTutorial");
+        // scrolling content
         CLAY(scrollbarTutorialContainerId, {
             .layout = { 
                 .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
@@ -555,11 +551,9 @@ void Surface::layoutTutorial() {
             },
         }) {
             CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_1), STYLE_TEXT_DEFAULT);
-
             CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_2), STYLE_TEXT_DEFAULT);
 
             // WARNING: layoutScrollbar requires updateScrollbar call
-            // during update phase (currently in updateMenu)
             widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
         }
 
@@ -576,7 +570,6 @@ void Surface::layoutTutorial() {
                 }, 
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
-            // .backgroundColor = SURFACE_COLOR_MENU_BG,
             .backgroundColor = Clay_Color({ 0, 0, 0, 0 }),
         }) {        
             widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
@@ -585,6 +578,7 @@ void Surface::layoutTutorial() {
 }
 
 void Surface::layoutOptions() {
+    // TODO: better styling
     CLAY(CLAY_ID("LayoutOptions"), {
         .layout = { 
             .sizing = { 
@@ -595,7 +589,7 @@ void Surface::layoutOptions() {
         },
         .backgroundColor = SURFACE_COLOR_MENU_BG,
         .floating = { 
-            .offset = { 0, 0 }, 
+            .offset = {0, 0}, 
             .zIndex = 1, 
             .attachPoints = { 
                 CLAY_ATTACH_POINT_CENTER_CENTER, 
@@ -621,8 +615,8 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_FIXED(55.0f),
                 }, 
-                .padding = { 16, 16, 0, 0 }, 
-                .childGap = 0, 
+                // .padding = { 16, 0, 0, 0 }, 
+                // .childGap = 0, 
                 .childAlignment = { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_BOTTOM },
                 .layoutDirection = CLAY_LEFT_TO_RIGHT
             },
@@ -642,15 +636,15 @@ void Surface::layoutOptions() {
                 .childGap = 16, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            .border = { 
-                .color = SURFACE_COLOR_BG, 
-                .width = {
-                    .left = 0,
-                    .right = 0,
-                    .top = 1, 
-                    .bottom = 0, 
-                } 
-            },
+            // .border = { 
+            //     .color = SURFACE_COLOR_BG, 
+            //     .width = {
+            //         .left = 0,
+            //         .right = 0,
+            //         .top = 1, 
+            //         .bottom = 0, 
+            //     } 
+            // },
             // NOTE: if options need scrollbar
             // .clip = { 
             //  .vertical = true, 
