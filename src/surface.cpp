@@ -518,13 +518,14 @@ void Surface::layoutTutorial() {
             .sizing = { 
                 .width = CLAY_SIZING_PERCENT(window.adapt(0.5f)),
                 .height = CLAY_SIZING_PERCENT(0.7f),
-            }, 
+            },
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = SURFACE_COLOR_MENU_BG,
+        .cornerRadius = CLAY_CORNER_RADIUS(10),
         // example image that scrolls, this component Id
         // should be passed into to Widget.initScrollbar
-        .image = { .imageData = &textureBlueTile },
+        // .image = { .imageData = &textureBlueTile },
         .floating = { 
             .offset = {0, 0}, 
             .zIndex = 1, 
@@ -535,12 +536,13 @@ void Surface::layoutTutorial() {
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
         // scrollState.proxyId is layoutTutorialId
-        .userData = &widget.scrollState
+        // .userData = &widget.scrollState
     }) {
         // scrolling content
         CLAY(scrollbarTutorialContainerId, {
             .layout = { 
                 .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
+                .childGap = 12, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
             .clip = { 
@@ -548,8 +550,19 @@ void Surface::layoutTutorial() {
                 .childOffset = Clay_GetScrollOffset()
             },
         }) {
-            CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_1), STYLE_TEXT_DEFAULT);
-            CLAY_TEXT(CLAY_STRING(GAME_TUTORIAL_2), STYLE_TEXT_DEFAULT);
+            CLAY_AUTO_ID({ 
+                .layout = { 
+                    .sizing = { .width = CLAY_SIZING_GROW(0) }, 
+                    .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(20))), 
+                    .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
+                }
+            }) {
+                CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_TITLE), STYLE_TEXT_TITLE);
+            }
+
+            CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_1), STYLE_TEXT_DEFAULT);
+            CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_2), STYLE_TEXT_DEFAULT);
+            CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_3), STYLE_TEXT_DEFAULT);
 
             // WARNING: layoutScrollbar requires updateScrollbar call
             widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
@@ -599,11 +612,11 @@ void Surface::layoutOptions() {
         CLAY_AUTO_ID({ 
             .layout = { 
                 .sizing = { .width = CLAY_SIZING_GROW(0) }, 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(8))), 
+                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(20))), 
                 .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             }
         }) {
-            CLAY_TEXT(CLAY_STRING("Options"), STYLE_TEXT_TITLE);
+            CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TITLE), STYLE_TEXT_TITLE);
         }
 
         CLAY_AUTO_ID({ 

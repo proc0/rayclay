@@ -64,7 +64,7 @@ void Widget::layoutTab(const BUTTON_ID id, bool active) {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(active ? 12 : 8)),
+            .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(active ? 10 : 6)),
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
