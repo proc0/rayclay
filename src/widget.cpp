@@ -253,24 +253,32 @@ const BUTTON_ID Widget::getButtonHovered() const {
 }
 
 bool Widget::onButtonHover(BUTTON_ID id, bool isHovered) {
-
-	if (isHovered && !buttonHovers.at(id) && currentButtonHovered != id) {
+    // gets called on every frame with every button
+    // compare the cached buttons with the current button hovered
+    // and move the current hovered to the last hovered
+	if (isHovered && !buttonHovers[id] && currentButtonHovered != id) {
+        // mark the button as hovered
 		buttonHovers[id] = 1;
 		buttonHovers[lastButtonHovered] = 0;
 		lastButtonHovered = currentButtonHovered;
 		currentButtonHovered = id;
+
 		return true;
 	} else if (isHovered && currentButtonHovered == id && lastButtonHovered != currentButtonHovered) {
+        // this allows for one frame of propagation of when the button was hovered
+        // it can be queried to know the frame right after the button hovered
         lastButtonHovered = currentButtonHovered;
     } else if (!isHovered && currentButtonHovered == id) {
+        // blur the current button
 		buttonHovers[id] = 0;
 		currentButtonHovered = BUTTON_ID::NIL;
-		return false;
 	} else if (!isHovered && lastButtonHovered == id) {
+        // this allows for one frame of propagation of the blur
         lastButtonHovered = BUTTON_ID::NIL;
-        return false;
     } 
 
+    // return whether the button was hovered or not
+    // to allow immediate query on the hover
 	return false;
 }
 
