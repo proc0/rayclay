@@ -86,3 +86,6 @@ public:
     void transition(State::App, State::Screen);
     void unload();
 };
+
+// forward declare functions coming in from Widget
+Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionProperty properties);

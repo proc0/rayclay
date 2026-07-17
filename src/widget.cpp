@@ -7,6 +7,23 @@
 #include <cstdint>
 #include <cstring>
 
+
+// the initialState is set to a targetState for the transition, and the transition properties are set in the element
+Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+    Clay_TransitionData targetState = initialState;
+    // small slide-in effect 
+    if (properties & CLAY_TRANSITION_PROPERTY_POSITION) {
+        targetState.boundingBox.y = targetState.boundingBox.y - 10.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
+        targetState.backgroundColor.a = 0.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
+        targetState.borderColor.b = 0.0f;
+    }
+    return targetState;
+}
+
 void handleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     Widget* widget = static_cast<Widget*>(userData);
     
@@ -49,10 +66,48 @@ void Widget::layoutButton(const BUTTON_ID id) {
             .color = WIDGET_COLOR_BORDER, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     }) {
         onButtonHover(id, Clay_Hovered());
         // Clay_OnHover also handles click events
     	Clay_OnHover(handleClayHover, this);
+        CLAY_TEXT(button.label, STYLE_TEXT_CENTERED);
+    }
+}
+
+void Widget::layoutButtonSecondary(const BUTTON_ID id) {
+    const Button& button = getButton(id);
+    CLAY(button.clayId, { 
+        .layout = {
+            .sizing = {
+                .width = CLAY_SIZING_GROW(0)
+            },
+            .padding = CLAY_PADDING_ALL(8),
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
+        }, 
+        // Clay_Hovered only works inside the paramaters or Clay declaration body
+        .backgroundColor = Clay_Hovered() ? SURFACE_COLOR_SECONDARY : CLAY_BLANK,
+        .border = { 
+            .color = SURFACE_COLOR_BG, 
+            .width = CLAY_BORDER_OUTSIDE(1) 
+        },
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
+    }) {
+        onButtonHover(id, Clay_Hovered());
+        // Clay_OnHover also handles click events
+        Clay_OnHover(handleClayHover, this);
         CLAY_TEXT(button.label, STYLE_TEXT_CENTERED);
     }
 }
@@ -124,7 +179,8 @@ void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePos
         scrollState.isPrimaryDown = true;
 
     } else if (scrollState.isPrimaryDown) {
-
+        // TODO: fix pulling the content too far up or too far down causing the scrollbar to go beyond the content
+        // and if there is an image background, it offsets it too much and causes glitching
         if (container.contentDimensions.height > 0) {
             Clay_Vector2 ratio = Clay_Vector2({
                 container.contentDimensions.width / container.scrollContainerDimensions.width,

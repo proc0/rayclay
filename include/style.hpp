@@ -4,15 +4,16 @@
 #define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
 #define CLAY_BLACK Clay_Color({ 0, 0, 0, 255.0f })
 
+#define SURFACE_COLOR_BG Clay_Color({ 140, 140, 140, 255 })
+#define SURFACE_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
+#define SURFACE_COLOR_HL Clay_Color({ 235, 235, 235, 255 })
+#define SURFACE_COLOR_SECONDARY Clay_Color({ 80, 80, 80, 255 })
+
 #define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 180 })
 #define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 140, 140, 255 })
 #define SURFACE_COLOR_ACCENT_BORDER Clay_Color({ 80, 80, 80, 255 })
 #define SURFACE_COLOR_ACCENT_RED Clay_Color({ 230, 40, 45, 255 })
 #define SURFACE_COLOR_ACCENT_GOLD Clay_Color({ 216, 238, 10, 255 })
-
-#define SURFACE_COLOR_BG Clay_Color({ 140, 140, 140, 255 })
-#define SURFACE_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
-#define SURFACE_COLOR_HL Clay_Color({ 235, 235, 235, 255 })
 
 #define WIDGET_COLOR_BUTTON_BG Clay_Color({ 80, 80, 80, 255 })
 #define WIDGET_COLOR_BUTTON_BG_HL Clay_Color({ 90, 90, 90, 255 })

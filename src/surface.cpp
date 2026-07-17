@@ -364,21 +364,6 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
-// the initialState is set to a targetState for the transition, and the transition properties are set in the element
-static Clay_TransitionData EnterFadeIn(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
-    Clay_TransitionData targetState = initialState;
-    // small slide-in effect 
-    if (properties & CLAY_TRANSITION_PROPERTY_POSITION) {
-        targetState.boundingBox.y = targetState.boundingBox.y - 10.0f;
-    }
-    if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
-        targetState.backgroundColor.a = 0.0f;
-    }
-    if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
-        targetState.borderColor.b = 0.0f;
-    }
-    return targetState;
-}
 
 Action::Surface Surface::updateOptions(const InputEvent& inputEvent) {
 
@@ -448,7 +433,6 @@ void Surface::updateDisplay(const GameState gameState) {
         }
     }
 }
-
 
 void Surface::layoutWinLose() {
     CLAY(CLAY_ID("LayoutWinLose"), {
@@ -674,8 +658,8 @@ void Surface::layoutOptions() {
                 .childGap = static_cast<uint16_t>(window.scale(100)),
             },
         }) {      
-            widget.layoutButton(BUTTON_ID::CANCEL_OPTIONS);
-            widget.layoutButton(BUTTON_ID::CONFIRM_OPTIONS);
+            widget.layoutButtonSecondary(BUTTON_ID::CANCEL_OPTIONS);
+            widget.layoutButtonSecondary(BUTTON_ID::CONFIRM_OPTIONS);
         }
     }
 }
@@ -738,8 +722,8 @@ void Surface::layoutMenuPause() {
                         .handler = Clay_EaseOut,
                         .duration = 0.3f,
                         .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-                        .enter = { .setInitialState = EnterFadeIn },
-                        // .exit = { .setFinalState = EnterFadeIn },
+                        .enter = { .setInitialState = FadeSlide },
+                        // .exit = { .setFinalState = FadeSlide },
                     }
                 }) {
                     CLAY(CLAY_ID("ContentReturnToMainWarning"), {
@@ -825,8 +809,8 @@ void Surface::layoutMenuMain() {
             //     .handler = Clay_EaseOut,
             //     .duration = 0.3f,
             //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            //     .enter = { .setInitialState = EnterFadeIn },
-            //     .exit = { .setFinalState = EnterFadeIn },
+            //     .enter = { .setInitialState = FadeSlide },
+            //     .exit = { .setFinalState = FadeSlide },
             // }
         }) {
 

@@ -135,6 +135,7 @@ public:
 
 	void layoutLabel(const std::string& label);
 	void layoutButton(const BUTTON_ID);
+	void layoutButtonSecondary(const BUTTON_ID);
 	void layoutTab(const BUTTON_ID, bool active);
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
