@@ -20,6 +20,12 @@ int main(void){
 // refactoring of Layout member function pointers and
 // how App is referencing them. Watchout for perf issues.
 
+// NOTE: This could be a vector/stack of Layouts/Layers that
+// extend and abstract class, and Surface would loop
+// through the layers calling their methods, removing and
+// adding Layouts/Layers as needed. Each Layout would use
+// Widget to render its components glueing them together.
+
 // LAB: Breakup Surface into Display and Layout classes,
 // or just break up Surface into multiple files. Using
 // different classes could allow composition between
