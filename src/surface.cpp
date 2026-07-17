@@ -364,20 +364,18 @@ void Surface::renderRaylib(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
-static Clay_TransitionData ExitSlideUp(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+// the initialState is set to a targetState for the transition, and the transition properties are set in the element
+static Clay_TransitionData EnterFadeIn(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
     Clay_TransitionData targetState = initialState;
-    if (properties & CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR) {
-        targetState.overlayColor = Clay_Color({ 255, 255, 255, 200 });
-    }
-    if (properties & CLAY_TRANSITION_PROPERTY_HEIGHT) {
-        // targetState.overlayColor = Clay_Color({ 255, 255, 255, 0 });
-        targetState.boundingBox.height = 0.0f;
+    // small slide-in effect 
+    if (properties & CLAY_TRANSITION_PROPERTY_POSITION) {
+        targetState.boundingBox.y = targetState.boundingBox.y - 10.0f;
     }
     if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
         targetState.backgroundColor.a = 0.0f;
     }
     if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
-        targetState.borderColor.a = 0.0f;
+        targetState.borderColor.b = 0.0f;
     }
     return targetState;
 }
@@ -536,7 +534,7 @@ void Surface::layoutTutorial() {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
-        // scrollState.proxyId == layoutTutorialId
+        // scrollState.proxyId is layoutTutorialId
         .userData = &widget.scrollState
     }) {
         // scrolling content
@@ -570,7 +568,6 @@ void Surface::layoutTutorial() {
                 }, 
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
-            .backgroundColor = Clay_Color({ 0, 0, 0, 0 }),
         }) {        
             widget.layoutButton(BUTTON_ID::CONFIRM_TUTORIAL);
         }
@@ -615,8 +612,6 @@ void Surface::layoutOptions() {
                     .width = CLAY_SIZING_GROW(0),
                     .height = CLAY_SIZING_FIXED(55.0f),
                 }, 
-                // .padding = { 16, 0, 0, 0 }, 
-                // .childGap = 0, 
                 .childAlignment = { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_BOTTOM },
                 .layoutDirection = CLAY_LEFT_TO_RIGHT
             },
@@ -636,15 +631,6 @@ void Surface::layoutOptions() {
                 .childGap = 16, 
                 .layoutDirection = CLAY_TOP_TO_BOTTOM 
             },
-            // .border = { 
-            //     .color = SURFACE_COLOR_BG, 
-            //     .width = {
-            //         .left = 0,
-            //         .right = 0,
-            //         .top = 1, 
-            //         .bottom = 0, 
-            //     } 
-            // },
             // NOTE: if options need scrollbar
             // .clip = { 
             //  .vertical = true, 
@@ -652,11 +638,14 @@ void Surface::layoutOptions() {
             // },
         }) {
             if (activeOptionsTab == BUTTON_ID::OPTIONS_GAME) {
-                CLAY_TEXT(CLAY_STRING("Game Options"), STYLE_TEXT_DEFAULT);
+                CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_GAME), STYLE_TEXT_DEFAULT);
+                // insert game options here
             } else if (activeOptionsTab == BUTTON_ID::OPTIONS_AUDIO) {
-                CLAY_TEXT(CLAY_STRING("Audio Options"), STYLE_TEXT_DEFAULT);
+                CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_AUDIO), STYLE_TEXT_DEFAULT);
+                // insert audio options here
             } else if (activeOptionsTab == BUTTON_ID::OPTIONS_INPUTS) {
-                CLAY_TEXT(CLAY_STRING("Input Options"), STYLE_TEXT_DEFAULT);
+                CLAY_TEXT(CLAY_STRING(TEXT_OPTIONS_TAB_TITLE_INPUTS), STYLE_TEXT_DEFAULT);
+                // insert input options here
             }
         }
 
@@ -735,9 +724,9 @@ void Surface::layoutMenuPause() {
                     .transition = {
                         .handler = Clay_EaseOut,
                         .duration = 0.3f,
-                        .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-                        .enter = { .setInitialState = ExitSlideUp },
-                        .exit = { .setFinalState = ExitSlideUp },
+                        .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+                        .enter = { .setInitialState = EnterFadeIn },
+                        // .exit = { .setFinalState = EnterFadeIn },
                     }
                 }) {
                     CLAY(CLAY_ID("ContentReturnToMainWarning"), {
@@ -815,13 +804,17 @@ void Surface::layoutMenuMain() {
                 }, 
                 .attachTo = CLAY_ATTACH_TO_PARENT 
             },
-            .transition = {
-                .handler = Clay_EaseOut,
-                .duration = 0.3f,
-                .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-                .enter = { .setInitialState = ExitSlideUp },
-                .exit = { .setFinalState = ExitSlideUp },
-            }
+            // TODO: in order for layout methods to be able to transition
+            // they first need to be wrapped in a different function that gets called all the time
+            // RESEARCH: is it viable to have one layout method called from app with a shell wrapper that calls
+            // these other layout methods to allow transitioning?
+            // .transition = {
+            //     .handler = Clay_EaseOut,
+            //     .duration = 0.3f,
+            //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_DIMENSIONS | CLAY_TRANSITION_PROPERTY_POSITION | CLAY_TRANSITION_PROPERTY_OVERLAY_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            //     .enter = { .setInitialState = EnterFadeIn },
+            //     .exit = { .setFinalState = EnterFadeIn },
+            // }
         }) {
 
             for (auto buttonId : widget.buttonsMenuMain) {
@@ -852,10 +845,6 @@ void Surface::layoutDisplayGame() {
                 .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }
             },
         }) {            
-
-            // TODO: have this in some method (potentially of Display class) that returns dynamic Clay Strings
-            // Clay_String displayScore = CLAY__INIT(Clay_String){ .isStaticallyAllocated = true, .length = static_cast<int32_t>(formatScore.length()), .chars = formatScore.c_str() };
-            // CLAY_TEXT(displayScore, STYLE_TEXT_DISPLAY);
             widget.layoutLabel(formatScore);
         }
 

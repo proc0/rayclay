@@ -13,3 +13,7 @@
 
 #define TEXT_GAME_LOSE_TITLE "FAILURE"
 #define TEXT_GAME_LOSE_SUBTITLE "Game Over"
+
+#define TEXT_OPTIONS_TAB_TITLE_GAME "Game Options"
+#define TEXT_OPTIONS_TAB_TITLE_AUDIO "Audio Options"
+#define TEXT_OPTIONS_TAB_TITLE_INPUTS "Inputs Options"

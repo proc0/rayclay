@@ -1,8 +1,8 @@
 #pragma once
 
-
+#define CLAY_BLANK Clay_Color({ 0, 0, 0, 0 })
 #define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
-#define CLAY_BLACK Clay_Color({ 0.0f, 0.0f, 0.0f, 255.0f })
+#define CLAY_BLACK Clay_Color({ 0, 0, 0, 255.0f })
 
 #define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 180 })
 #define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 140, 140, 255 })
