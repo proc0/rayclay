@@ -26,8 +26,9 @@ class Surface : public Layer {
 
     Clay_Arena arena = {};
     // NOTE: define scrollbar and scrollbar container ID here
-    // WARNING: scrollbar Clay_ElementId (CLAY_ID) cannot be const or a ref
-    const Clay_ElementId& scrollbarTutorialContainerId = CLAY_ID("ContentTutorial");
+    // WARNING: Clay_ElementId (CLAY_ID) cannot be const or a ref
+    // TODO: research further how Clay updates ElementId for scrollbar
+    Clay_ElementId scrollbarTutorialContainerId = CLAY_ID("ContentTutorial");
     Clay_ElementId scrollbarTutorialId = CLAY_ID("ScrollbarTutorial");
 
     const Window& window;
