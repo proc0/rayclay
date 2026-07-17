@@ -59,14 +59,13 @@ EM_JS(int, getWindowHeight, (), {
 #endif
 
 void Window::update(InputEvent input) {
-    // fps = GetFPS();
-    #if __EMSCRIPTEN__
+#if __EMSCRIPTEN__
         int newWidth = getWindowWidth();
         int newHeight = getWindowHeight();
-    #else
+#else
         int newWidth = GetScreenWidth();
         int newHeight = GetScreenHeight();
-    #endif
+#endif
 
     if(newWidth != diagonal.x || newHeight != diagonal.y){
         if (!timer.isRunning(resizeTimerId)) {
@@ -79,18 +78,16 @@ void Window::update(InputEvent input) {
         }
     }
 
-    // TODO: move middle mouse button to Input, refactor
-    // zooming and panning
-    Vector2 mouseWheel = GetMouseWheelMoveV();
-    
-    if (mouseWheel.y > 0) {
+    if (input.mouseWheel.y > 0) {
         zoom(true);
-    } else if (mouseWheel.y < 0) {
+    } else if (input.mouseWheel.y < 0) {
         zoom(false);
-    } else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) { 
+    } else if (input.id == Event::Input::TERTIARY) { 
         isTracking = true;
     }
 
+    // allows for a UI button toggling of tracking, if toggleTracking was called
+    // TODO: is this even needed with proper button handlers? 
     if (isToggleTracking && input.id == Event::Input::PRIMARY) {
         isTracking = true;
     }
@@ -148,10 +145,10 @@ void Window::toggleTrack() {
 }
 
 void Window::track(InputEvent input) {
-    // TODO: move middle mouse button to Input, refactor
-    bool beginTrack = isToggleTracking ? input.id == Event::Input::PRIMARY : IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE);
-    bool continueTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_DOWN : IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
-    bool endTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_UP : IsMouseButtonReleased(MOUSE_BUTTON_MIDDLE);
+    // handles tracking with either tertiary (i.e. middle mouse) or primary (i.e. left mouse) buttons
+    bool beginTrack = isToggleTracking ? input.id == Event::Input::PRIMARY : input.id == Event::Input::TERTIARY;
+    bool continueTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_DOWN : input.id == Event::Input::TERTIARY_DOWN;
+    bool endTrack = isToggleTracking ? input.id == Event::Input::PRIMARY_UP : input.id == Event::Input::TERTIARY_UP;
 
     if (beginTrack) {
         Vector2 origin = { extent.x + camera.offset.x, extent.y + camera.offset.y };

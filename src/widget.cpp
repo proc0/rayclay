@@ -157,7 +157,7 @@ void Widget::initScrollbar(Clay_ElementId parentId, Clay_ElementId scrollbarId, 
 // for multiple scrollbars. 
 void Widget::updateScrollbar(InputEvent inputEvent, const Clay_Vector2& mousePosition, const Clay_ElementId& parentId, Clay_ElementId scrollbarId) {
 
-    Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheelDelta.x*2.0f, inputEvent.mouseWheelDelta.y*2.0f }), GetFrameTime());
+    Clay_UpdateScrollContainers(true, Clay_Vector2({ inputEvent.mouseWheel.x*2.0f, inputEvent.mouseWheel.y*2.0f }), GetFrameTime());
 
     Clay_ScrollContainerData container = Clay_GetScrollContainerData(parentId);
     // WARNING: crashes without this check!

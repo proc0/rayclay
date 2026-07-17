@@ -39,6 +39,9 @@ namespace Event {
         SECONDARY,
         SECONDARY_DOWN,
         SECONDARY_UP,
+        TERTIARY,
+        TERTIARY_DOWN,
+        TERTIARY_UP,
         MOVE_UP,
         MOVE_RIGHT,
         MOVE_DOWN,
@@ -103,7 +106,7 @@ namespace State {
 struct InputEvent {
     Event::Input id;
     Vector2 position;
-    Vector2 mouseWheelDelta;
+    Vector2 mouseWheel;
 };
 
 #define DEFAULT_INPUT InputEvent({ .id = Event::Input::IDLE, .position = Vector2({}) })
