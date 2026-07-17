@@ -395,7 +395,8 @@ Action::Surface Surface::updateMenu(const InputEvent& inputEvent) {
     Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
     // TODO: find a way to link this CLAY_ID to be used in update function
     // to pass through to Widget.updateScrollbar, which requires a reference to parent
-    widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
+    // widget.updateScrollbar(inputEvent, mousePosition, scrollbarTutorialContainerId, scrollbarTutorialId);
+    widget.updateScrollbar(inputEvent, mousePosition, CLAY_ID("ScrollBarContainer"), CLAY_ID("ScrollBarButton"));
 
     // handle mouse cursor, if there is an action
     // this function might not be called again
@@ -517,17 +518,7 @@ void Surface::layoutTutorial() {
         // .userData = &widget.scrollState
     }) {
         // scrolling content
-        CLAY(scrollbarTutorialContainerId, {
-            .layout = { 
-                .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
-                .childGap = 12, 
-                .layoutDirection = CLAY_TOP_TO_BOTTOM 
-            },
-            .clip = { 
-                .vertical = true, 
-                .childOffset = Clay_GetScrollOffset()
-            },
-        }) {
+        widget.BeginScrollContainer();
             CLAY_AUTO_ID({ 
                 .layout = { 
                     .sizing = { .width = CLAY_SIZING_GROW(0) }, 
@@ -541,10 +532,35 @@ void Surface::layoutTutorial() {
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_1), STYLE_TEXT_DEFAULT);
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_2), STYLE_TEXT_DEFAULT);
             CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_3), STYLE_TEXT_DEFAULT);
+        widget.EndScrollContainer();
+        // CLAY(scrollbarTutorialContainerId, {
+        //     .layout = { 
+        //         .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(32))), 
+        //         .childGap = 12, 
+        //         .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        //     },
+        //     .clip = { 
+        //         .vertical = true, 
+        //         .childOffset = Clay_GetScrollOffset()
+        //     },
+        // }) {
+        //     CLAY_AUTO_ID({ 
+        //         .layout = { 
+        //             .sizing = { .width = CLAY_SIZING_GROW(0) }, 
+        //             .padding = CLAY_PADDING_ALL(static_cast<uint16_t>(window.scale(20))), 
+        //             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
+        //         }
+        //     }) {
+        //         CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_TITLE), STYLE_TEXT_TITLE);
+        //     }
 
-            // WARNING: layoutScrollbar requires updateScrollbar call
-            widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
-        }
+        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_1), STYLE_TEXT_DEFAULT);
+        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_2), STYLE_TEXT_DEFAULT);
+        //     CLAY_TEXT(CLAY_STRING(TEXT_TUTORIAL_3), STYLE_TEXT_DEFAULT);
+
+        //     // WARNING: layoutScrollbar requires updateScrollbar call
+        //     widget.layoutScrollBar(scrollbarTutorialContainerId, scrollbarTutorialId);
+        // }
 
         CLAY(CLAY_ID("FooterTutorial"), {
             .layout = { 

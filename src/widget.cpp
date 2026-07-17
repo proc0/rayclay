@@ -231,17 +231,31 @@ void Widget::layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scro
     }
 }
 
-void Widget::BeginScrollContainer(Clay_ElementDeclaration& elementDeclaration) {
-  // Clay__OpenElement();
-  // Clay__ConfigureOpenElement((Clay_ElementDeclaration) {
-  //   .id = CLAY_ID("Container"),
-  //   .backgroundColor = { 255, 200, 200, 255 }
-  // });
-  // ...children declared here
-  // Clay__CloseElement();
+void Widget::BeginScrollContainer() {
+    // Clay__OpenElement();
+    // Clay__ConfigureOpenElement((Clay_ElementDeclaration) {
+    //   .id = CLAY_ID("Container"),
+    //   .backgroundColor = { 255, 200, 200, 255 }
+    // });
+    // ...children declared here
+    // Clay__CloseElement();
+    Clay__OpenElementWithId(CLAY_ID("ScrollBarContainer"));
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+            .layout = { 
+                .padding = CLAY_PADDING_ALL(32), 
+                .childGap = 12, 
+                .layoutDirection = CLAY_TOP_TO_BOTTOM 
+            },
+            .clip = { 
+                .vertical = true, 
+                .childOffset = Clay_GetScrollOffset()
+            },
+        });
 }
 
 void Widget::EndScrollContainer() {
+  layoutScrollBar(CLAY_ID("ScrollBarContainer"), CLAY_ID("ScrollBarButton"));
+  Clay__CloseElement();
 
 }
 

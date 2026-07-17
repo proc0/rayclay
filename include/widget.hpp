@@ -163,7 +163,7 @@ public:
 	void layoutButtonTexture(const BUTTON_ID, Texture2D* buttonTexture);
 	void layoutScrollBar(const Clay_ElementId& parentId, Clay_ElementId scrollbarId);
 
-	void BeginScrollContainer(Clay_ElementDeclaration& elementDeclaration);
+	void BeginScrollContainer();
 	void EndScrollContainer();
 };
 
