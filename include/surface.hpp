@@ -4,6 +4,8 @@
 #include "window.hpp"
 #include "widget.hpp"
 
+// silencing minor warnings due to C/C++ differences
+// -Wpedantic for one anonymous struct in Clay_LayoutElement
 extern "C" {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
