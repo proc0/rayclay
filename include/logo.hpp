@@ -11,10 +11,10 @@ class Logo : public Layer {
     int logoFontSize = 108;
 
     const char* rlLogoName = "raylib";
-    // TODO: make fontsize and border relative to logo size
-    const int rlLogoFontSize = 40;
+    // NOTE: can be resized dynamically in resize() if needed
+    const int rlLogoFontSize = round(RAYLIB_LOGO_SIZE*0.2f);
     const float rlLogoSize = RAYLIB_LOGO_SIZE;
-    const int rlLogoBorder = 16;
+    const int rlLogoBorder = round(RAYLIB_LOGO_SIZE*0.08f);
     const float rlLogoInnerSize = rlLogoSize - 2.0f*rlLogoBorder;
     Rectangle rlLogoOuterRec;
     Rectangle rlLogoInnerRec;
