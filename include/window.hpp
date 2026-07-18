@@ -2,7 +2,7 @@
 
 #include "type.hpp"
 #include "config.hpp"
-#include "macros.hpp"
+#include "tool.hpp"
 #include "timer.hpp"
 
 #include "raylib.h"
