@@ -125,5 +125,5 @@ struct WorldState {
 class Layer {
 public:
     virtual ~Layer() = default;
-    virtual void resize(int width, int height) {};
+    virtual void resize(int width, int height) {}
 };
