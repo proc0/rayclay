@@ -16,7 +16,7 @@ class World : public Layer {
     int dummyGoalTracker = 0;
 
 public:
-    World(const Window& window): window(window) {};
+    World(const Window& window): window(window) {}
     ~World() = default;
     
     void (World::*render)() const = &World::renderUnit;

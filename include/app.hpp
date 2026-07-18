@@ -36,7 +36,7 @@ class App : Layer {
     State::Screen screen = State::Screen::INTRO;
 
 public:
-	App() {};
+	App() {}
     ~App() = default;
 
     void load();

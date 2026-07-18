@@ -41,7 +41,7 @@ public:
 	bool isToggleTracking = false;
 	bool isDoneTracking = false;
 
-	Window(Camera2D& camera, Timer& timer) : camera(camera), timer(timer) {};
+	Window(Camera2D& camera, Timer& timer) : camera(camera), timer(timer) {}
 	~Window() = default;
 
 	void load();

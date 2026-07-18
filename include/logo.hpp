@@ -23,7 +23,7 @@ class Logo : public Layer {
 	const Window& window;
 
 public:
-	Logo(const Window& window): window(window)  {};
+	Logo(const Window& window): window(window)  {}
 	~Logo() = default;
 
 	void load();

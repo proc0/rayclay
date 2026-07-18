@@ -147,7 +147,7 @@ public:
 	BUTTONS_MENU_PAUSE
 	TABS_OPTIONS
 
-	Widget() : buttonHovers(buttons.size(), 0) {};
+	Widget() : buttonHovers(buttons.size(), 0) {}
 	~Widget() = default;
 
 	// TODO: to deal with proxyId in scrollState, separate out into

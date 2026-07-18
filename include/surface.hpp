@@ -50,7 +50,7 @@ public:
     Event::Surface lastEvent = Event::Surface::NO_EVENT;
     Event::Surface surfaceEvent = Event::Surface::NO_EVENT;
 
-    Surface(const Window& window): window(window) {};
+    Surface(const Window& window): window(window) {}
     ~Surface() = default;
 
     void (Surface::*render)(Clay_RenderCommandArray& renderCommands) const = &Surface::renderUnit;
