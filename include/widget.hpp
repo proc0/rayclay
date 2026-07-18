@@ -2,7 +2,14 @@
 
 #include "type.hpp"
 
+extern "C" {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wsign-compare"
 #include "clay.h"
+#pragma GCC diagnostic pop
+}
 
 #include <array>
 #include <vector>
@@ -143,6 +150,9 @@ public:
 	Widget() : buttonHovers(buttons.size(), 0) {};
 	~Widget() = default;
 
+	// TODO: to deal with proxyId in scrollState, separate out into
+	// texturedScrollState, and implement a BeginTexturedScrollbox
+	// and EndTexturedScrollbox
 	Clay_ElementId initScrollBox(const std::string& id);
 	void updateScrollBox(InputEvent, const Clay_Vector2& mousePosition);
 

@@ -4,7 +4,15 @@
 #include "window.hpp"
 #include "widget.hpp"
 
-#include "clay.h" 
+extern "C" {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include "clay.h"
+#pragma GCC diagnostic pop
+}
+
 #include "raylib.h"
 
 #include <string>

@@ -6,7 +6,7 @@
 #include "text.hpp"
 #include "style.hpp"
 
-#include "clay.h"
+// #include "clay.h"
 #include "raylib.h"
 #include "raymath.h"
 

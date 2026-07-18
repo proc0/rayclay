@@ -9,7 +9,7 @@
 #include "logo.hpp"
 
 #include "surface.hpp"
-#include "clay.h"
+// #include "clay.h"
 
 class App : Layer {
 	Input input;
