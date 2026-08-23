@@ -12,6 +12,58 @@ int main(void){
     return 0;
 }
 
+                                                                          
+//                                                ┌──────┐                   
+//                         ┌──────────────────────► Clay ◄──────────────┐    
+//                         │                      └─▲─▲──┘              │    
+//                         │        ┌───────────────┘ │                 │    
+//                         │        │                 │                 │    
+//                         │        │                 │                 │    
+//                         │        │                 │                 │    
+//                         │        │                 │                 │    
+//                         │        │                 │                 │    
+//                         │        │                 │                 │    
+//                   ┌─────┼──┐     │    ┌────────┬───┘                 │    
+//     ..............│ Layout │.....│..... Widget │. ..  . .            │    
+//     .             └────▲.──┘     │    └───▲────┘        .            │    
+//     .                  │..       │        │             .            │    
+//     ..                 │ ........│.......................            │    
+//     .                  │         │        │             .            │    
+//     .                  │         │        │             .            │    
+//     .                  │         │        │        ┌─      ─┐        │    
+//     ..                 └─────────┼────────┴────────► Style  ┼────────┘    
+//     ..                           │                 └───.────┘             
+//     ....................................................                  
+// ┌───.────┐                  ┌────┼────┐                                   
+// │ Window │-  -   -  -   -  -│ Surface │                                   
+// └───▲────┘                  └────▲────┘                                   
+//     │                            │                                        
+//     │                            │                                        
+//     │                            │                                        
+//     │                            │                                        
+//     │                            │                                        
+//     │                            │                                        
+//     │         ┌───────┐          │                                        
+//     └─────────┼  App  ┼──────────┘                                        
+//               └───────┘                                                   
+                                                                              
+// LAB: In order to handle all the different changing units
+// like padding, font size, widths, heights of UI,
+// create an intermediate class that uses Window
+// and holds all the values and can be easily configured
+// This class could be called Space or Dimension or
+// Screen? something that is handling responsiveness,
+// dimensions. It would be similar to JS Twailwind
+// that has small units of data in different types
+// and can be accessed and combined easily, and these
+// are member fields that are memoized and resize
+// dynamically on window resize. 
+// Together with a Layout, and Widget, and Window
+// it would form a fully responsive, performant,
+// and ergonomic API for a UI library
+// ALong with the small units exposed with different types
+// it could also store entire configurations for Clay
+
 // LAB: For menus, Surface should have one layout method
 // with a shell Clay element that calls the different 
 // layout layers within Surface (i.e. layoutMainMenu, or
