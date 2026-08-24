@@ -3,8 +3,8 @@ build/*
 build-*/*
 
 # Install files
-dist/*
-dist-*/*
+# dist/*
+# dist-*/*
 
 # Prerequisites
 *.d
