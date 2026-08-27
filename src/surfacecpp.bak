@@ -1,4 +1,4 @@
-#define CLAY_IMPLEMENTATION
+// #define CLAY_IMPLEMENTATION
 #include "surface.hpp"
 
 #include "index.h"

@@ -23,30 +23,30 @@ void World::renderHold() const {
     DrawText(pausedText, window.halfWidthf-pausedTextWidth*0.5f, window.halfHeightf-100.0f, 200, RAYWHITE);
 }
 
-WorldState World::updateMain(InputEvent, Action::Surface){
+WorldState World::updateMain(InputEvent){
     return { .reachedGoal = false };
 }
 
-WorldState World::updateHold(InputEvent inputEvent, Action::Surface action){
+WorldState World::updateHold(InputEvent inputEvent){
     return { .reachedGoal = false };
 }
 
-WorldState World::updateGame(InputEvent inputEvent, Action::Surface action){
+WorldState World::updateGame(InputEvent inputEvent){
 
-    if (inputEvent.id == Event::Input::MOVE_UP || action == Action::Surface::MOVE_UP ) {
-            TraceLog(LOG_INFO, "MOVE UP");
-            dummyGoalTracker++;
-    } else if (inputEvent.id == Event::Input::MOVE_RIGHT || action == Action::Surface::MOVE_RIGHT ) {
-            TraceLog(LOG_INFO, "MOVE RIGHT");
+    // if (inputEvent.id == Event::Input::MOVE_UP || action == Action::Surface::MOVE_UP ) {
+    //         TraceLog(LOG_INFO, "MOVE UP");
+    //         dummyGoalTracker++;
+    // } else if (inputEvent.id == Event::Input::MOVE_RIGHT || action == Action::Surface::MOVE_RIGHT ) {
+    //         TraceLog(LOG_INFO, "MOVE RIGHT");
 
-    } else if (inputEvent.id == Event::Input::MOVE_DOWN || action == Action::Surface::MOVE_DOWN ) {
-            TraceLog(LOG_INFO, "MOVE DOWN");
-            dummyGoalTracker--;
+    // } else if (inputEvent.id == Event::Input::MOVE_DOWN || action == Action::Surface::MOVE_DOWN ) {
+    //         TraceLog(LOG_INFO, "MOVE DOWN");
+    //         dummyGoalTracker--;
 
-    } else if (inputEvent.id == Event::Input::MOVE_LEFT || action == Action::Surface::MOVE_LEFT ) {
-            TraceLog(LOG_INFO, "MOVE LEFT");
+    // } else if (inputEvent.id == Event::Input::MOVE_LEFT || action == Action::Surface::MOVE_LEFT ) {
+    //         TraceLog(LOG_INFO, "MOVE LEFT");
 
-    }
+    // }
 
     if (dummyGoalTracker >= 3) {
         PlaySound(splat);

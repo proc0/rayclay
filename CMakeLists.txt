@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #═══════════════════════════════════════════════════════════════
 set(PROJECT_VERSION "0.2.0")
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
-project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} DESCRIPTION ${PROJECT_NAME} LANGUAGES CXX)
+project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} DESCRIPTION ${PROJECT_NAME} LANGUAGES C CXX)
 
 #                         SETTINGS
 #═══════════════════════════════════════════════════════════════

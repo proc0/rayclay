@@ -11,6 +11,12 @@
 #include <emscripten/html5.h>
 #endif
 
+#include "clay_renderer.h"
+
+#define BRICK_IMPLEMENTATION
+#include "brick.h"
+
+
 void App::load() {
 #if DEBUG == 0
     SetTraceLogLevel(LOG_NONE);
@@ -24,18 +30,22 @@ void App::load() {
     SetExitKey(KEY_NULL);
 
 	window.load();
-    surface.load();
+    // surface.load();
 	world.load();
 	game.load();
     logo.load();
 
     window.enlist(this);
-    window.enlist(&surface);
+    // window.enlist(&surface);
     window.enlist(&world);
     window.enlist(&game);
     window.enlist(&logo);
 
     loadTarget();
+
+    LoadOverlay();
+
+    buttonId = Brick_AddButton("HELLO");
 }
 
 void App::loadTarget() {
@@ -101,7 +111,7 @@ void App::runIntro() {
         if(input.updateAnyKey()) {
             state = State::App::RUN;
             screen = State::Screen::MAIN;
-            surface.transition(state, screen);
+            // surface.transition(state, screen);
             world.transition(state, screen);
             game.transition(state, screen);
 
@@ -128,7 +138,8 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
 	BeginDrawing();
         ClearBackground(BLANK);
         DrawTexturePro(target.texture, targetSource, targetDestination, Vector2({}), 0.0f, WHITE);
-        (surface.*surface.render)(renderCommands);
+        // (surface.*surface.render)(renderCommands);
+        RenderRaylib(renderCommands);
 	EndDrawing();
 }
 
@@ -153,140 +164,143 @@ Clay_RenderCommandArray App::update() {
     InputEvent inputEvent = input.update();
     window.update(inputEvent);
 
-    Action::Surface surfaceAction = (surface.*surface.update)(inputEvent);
+    // Action::Surface surfaceAction = (surface.*surface.update)(inputEvent);
 
-    // TODO: implement app member function pointer state transitions
-    // and transition self into different functions depending on screen
-    if(screen == State::Screen::GAME) {
-        // Game screen input events
-        //-----------------------------
-        if(inputEvent.id == Event::Input::KEY_ESCAPE){
-            if(state == State::App::HOLD) {
-                TraceLog(LOG_INFO, "UNPAUSE");
-                if (surface.hasEvent()) {
-                    surface.clearEvent();
-                } else {                    
-                    state = State::App::RUN;
+    // // TODO: implement app member function pointer state transitions
+    // // and transition self into different functions depending on screen
+    // if(screen == State::Screen::GAME) {
+    //     // Game screen input events
+    //     //-----------------------------
+    //     if(inputEvent.id == Event::Input::KEY_ESCAPE){
+    //         if(state == State::App::HOLD) {
+    //             TraceLog(LOG_INFO, "UNPAUSE");
+    //             if (surface.hasEvent()) {
+    //                 surface.clearEvent();
+    //             } else {                    
+    //                 state = State::App::RUN;
 
-                    game.transition(state, screen);
-                    world.transition(state, screen);
-                    surface.transition(state, screen);
-                }
-            } else if (state == State::App::RUN) {
-                TraceLog(LOG_INFO, "PAUSE");
-                state = State::App::HOLD;
+    //                 game.transition(state, screen);
+    //                 world.transition(state, screen);
+    //                 surface.transition(state, screen);
+    //             }
+    //         } else if (state == State::App::RUN) {
+    //             TraceLog(LOG_INFO, "PAUSE");
+    //             state = State::App::HOLD;
 
-                game.transition(state, screen);
-                world.transition(state, screen);
-                surface.transition(state, screen);
-            }
-        }
+    //             game.transition(state, screen);
+    //             world.transition(state, screen);
+    //             surface.transition(state, screen);
+    //         }
+    //     }
 
-        if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL || surfaceAction == Action::Surface::RESTART) {
-            TraceLog(LOG_INFO, "BEGIN GAME");
-            state = State::App::RUN;
+    //     if(surfaceAction == Action::Surface::CONFIRM_TUTORIAL || surfaceAction == Action::Surface::RESTART) {
+    //         TraceLog(LOG_INFO, "BEGIN GAME");
+    //         state = State::App::RUN;
 
-            surface.clearEvent();
-            // reset any game state
-            game.reset();
-            game.start();
-            game.transition(state, screen);
-            world.transition(state, screen);
-            surface.transition(state, screen);
+    //         surface.clearEvent();
+    //         // reset any game state
+    //         game.reset();
+    //         game.start();
+    //         game.transition(state, screen);
+    //         world.transition(state, screen);
+    //         surface.transition(state, screen);
 
-        } else if (state == State::App::HOLD) {
-            // pause button events
-            if (surfaceAction == Action::Surface::RESUME_GAME) {
-                TraceLog(LOG_INFO, "UNPAUSE");
-                state = State::App::RUN;
+    //     } else if (state == State::App::HOLD) {
+    //         // pause button events
+    //         if (surfaceAction == Action::Surface::RESUME_GAME) {
+    //             TraceLog(LOG_INFO, "UNPAUSE");
+    //             state = State::App::RUN;
             
-                game.transition(state, screen);
-                world.transition(state, screen);
-                surface.transition(state, screen);
+    //             game.transition(state, screen);
+    //             world.transition(state, screen);
+    //             surface.transition(state, screen);
 
-            } else if (surfaceAction == Action::Surface::MAIN_MENU) {
+    //         } else if (surfaceAction == Action::Surface::MAIN_MENU) {
             
-                surface.beginEvent(Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
+    //             surface.beginEvent(Event::Surface::SHOW_RETURN_MAIN_MENU_CONFIRMATION);
             
-            } else if (surfaceAction == Action::Surface::CONFIRM_RETURN) {
-                surface.clearEvent();
-                state = State::App::RUN;
-                screen = State::Screen::MAIN;
+    //         } else if (surfaceAction == Action::Surface::CONFIRM_RETURN) {
+    //             surface.clearEvent();
+    //             state = State::App::RUN;
+    //             screen = State::Screen::MAIN;
 
-                world.transition(state, screen);
-                game.transition(state, screen);
-                surface.transition(state, screen);
+    //             world.transition(state, screen);
+    //             game.transition(state, screen);
+    //             surface.transition(state, screen);
 
-            } else if (surfaceAction == Action::Surface::CANCEL_RETURN) {
+    //         } else if (surfaceAction == Action::Surface::CANCEL_RETURN) {
 
-                surface.clearEvent();
+    //             surface.clearEvent();
             
-            } else if (surfaceAction == Action::Surface::OPTIONS) {
+    //         } else if (surfaceAction == Action::Surface::OPTIONS) {
 
-                surface.beginEvent(Event::Surface::SHOW_OPTIONS);
-                surface.transition(state, screen);
+    //             surface.beginEvent(Event::Surface::SHOW_OPTIONS);
+    //             surface.transition(state, screen);
             
-            } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
-                TraceLog(LOG_INFO, "SAVE OPTIONS");
+    //         } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
+    //             TraceLog(LOG_INFO, "SAVE OPTIONS");
 
-                surface.clearEvent();
-                surface.transition(state, screen);
+    //             surface.clearEvent();
+    //             surface.transition(state, screen);
 
-            } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
-                TraceLog(LOG_INFO, "DISCARD OPTIONS");
+    //         } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
+    //             TraceLog(LOG_INFO, "DISCARD OPTIONS");
 
-                surface.clearEvent();
-                surface.transition(state, screen);
+    //             surface.clearEvent();
+    //             surface.transition(state, screen);
             
-            } else if (surfaceAction == Action::Surface::QUIT_APP) {
-                state = State::App::HALT;
-                return Clay_RenderCommandArray({ 0, 0, nullptr });
-            }
-        }
-    } else if (screen == State::Screen::MAIN) {
-        // Main screen input events
-        //-----------------------------
-        if(surfaceAction == Action::Surface::NEW_GAME) {
-            screen = State::Screen::GAME;
-            // NOTE: app state is still on HOLD until confirm
-            surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
+    //         } else if (surfaceAction == Action::Surface::QUIT_APP) {
+    //             state = State::App::HALT;
+    //             return Clay_RenderCommandArray({ 0, 0, nullptr });
+    //         }
+    //     }
+    // } else if (screen == State::Screen::MAIN) {
+    //     // Main screen input events
+    //     //-----------------------------
+    //     if(surfaceAction == Action::Surface::NEW_GAME) {
+    //         screen = State::Screen::GAME;
+    //         // NOTE: app state is still on HOLD until confirm
+    //         surface.beginEvent(Event::Surface::SHOW_TUTORIAL);
 
-            game.transition(state, screen);
-            // transition world to start showing in background
-            world.transition(state, screen);
-            surface.transition(state, screen);
+    //         game.transition(state, screen);
+    //         // transition world to start showing in background
+    //         world.transition(state, screen);
+    //         surface.transition(state, screen);
 
-        } else if (surfaceAction == Action::Surface::OPTIONS) {
+    //     } else if (surfaceAction == Action::Surface::OPTIONS) {
 
-            surface.beginEvent(Event::Surface::SHOW_OPTIONS);
-            surface.transition(state, screen);
+    //         surface.beginEvent(Event::Surface::SHOW_OPTIONS);
+    //         surface.transition(state, screen);
         
-        } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
+    //     } else if (surfaceAction == Action::Surface::CONFIRM_OPTIONS) {
             
-            surface.clearEvent();
-            surface.transition(state, screen);
+    //         surface.clearEvent();
+    //         surface.transition(state, screen);
 
-        } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
+    //     } else if (surfaceAction == Action::Surface::CANCEL_OPTIONS) {
 
-            surface.clearEvent();
-            surface.transition(state, screen);
+    //         surface.clearEvent();
+    //         surface.transition(state, screen);
         
-        } else if (surfaceAction == Action::Surface::QUIT_APP) {
-            state = State::App::HALT;
-            return Clay_RenderCommandArray({ 0, 0, nullptr });
-        }            
-    }
+    //     } else if (surfaceAction == Action::Surface::QUIT_APP) {
+    //         state = State::App::HALT;
+    //         return Clay_RenderCommandArray({ 0, 0, nullptr });
+    //     }            
+    // }
 
-	WorldState worldState = (world.*world.update)(inputEvent, surfaceAction);
+	WorldState worldState = (world.*world.update)(inputEvent);
 	GameState gameState = (game.*game.update)(inputEvent, worldState);
-    surface.updateDisplay(gameState);
+    // surface.updateDisplay(gameState);
 
-    Clay_BeginLayout();
-    (surface.*surface.layoutDisplay)();
-    (surface.*surface.layoutMenu)();
-    Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
-
+    // Clay_BeginLayout();
+    // (surface.*surface.layoutDisplay)();
+    // (surface.*surface.layoutMenu)();
+    // Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
+    Brick_BeginLayout();
+    Brick_LayoutButton(buttonId);
+    Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
     return renderCommands;
+    // return Clay_RenderCommandArray({ 0, 0, nullptr });
 }
 
 void App::resize(int width, int height) {    
@@ -299,10 +313,11 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     
 	app->game.unload();
 	app->world.unload();
-    app->surface.unload();
+    // app->surface.unload();
 
     UnloadRenderTexture(app->target);
 
+    Clay_Raylib_Close();
     CloseAudioDevice();
     CloseWindow();
 

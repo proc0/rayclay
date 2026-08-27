@@ -8,8 +8,10 @@
 #include "game.hpp"
 #include "logo.hpp"
 
-#include "surface.hpp"
+// #include "surface.hpp"
 // #include "clay.h"
+#include "clay.h"
+#include <cstdint>
 
 class App : Layer {
 	Input input;
@@ -26,12 +28,14 @@ class App : Layer {
     Rectangle targetDestination;
 
 	Window window = Window(camera, timer);
-    Surface surface = Surface(window);
+    // Surface surface = Surface(window);
 
 	World world = World(window);
     Game game = Game(window);
     Logo logo = Logo(window);
     
+    uint32_t buttonId;
+
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;
 

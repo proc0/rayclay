@@ -20,7 +20,7 @@ public:
     ~World() = default;
     
     void (World::*render)() const = &World::renderUnit;
-    WorldState (World::*update)(InputEvent, Action::Surface) = &World::updateUnit;
+    WorldState (World::*update)(InputEvent) = &World::updateUnit;
 
     void load();
     
@@ -29,10 +29,10 @@ public:
     void renderGame() const;
     void renderHold() const;
 
-    WorldState updateUnit(InputEvent, Action::Surface) { return { .reachedGoal = false }; };
-    WorldState updateMain(InputEvent, Action::Surface);
-    WorldState updateGame(InputEvent, Action::Surface);
-    WorldState updateHold(InputEvent, Action::Surface);
+    WorldState updateUnit(InputEvent) { return { .reachedGoal = false }; };
+    WorldState updateMain(InputEvent);
+    WorldState updateGame(InputEvent);
+    WorldState updateHold(InputEvent);
     
     void resize(int width, int height) override;
     void transition(State::App, State::Screen);
