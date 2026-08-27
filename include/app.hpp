@@ -27,6 +27,8 @@ class App : Layer {
     Rectangle targetSource;
     Rectangle targetDestination;
 
+    Clay_Arena clayArena;
+
 	Window window = Window(camera, timer);
     // Surface surface = Surface(window);
 

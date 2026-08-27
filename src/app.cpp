@@ -16,6 +16,8 @@
 #define BRICK_IMPLEMENTATION
 #include "brick.h"
 
+// #define CLAY_IMPLEMENTATION
+// #include "clay.h"
 
 void App::load() {
 #if DEBUG == 0
@@ -42,6 +44,16 @@ void App::load() {
     window.enlist(&logo);
 
     loadTarget();
+
+    Brick_Initialize(window.widthf, window.heightf);
+    // // 1. Query minimum memory required for default element limits
+    // uint64_t memorySize = Clay_MinMemorySize();
+    // // 2. Allocate memory (malloc, stack, or custom allocator)
+    // void* memory = malloc(memorySize);
+    // // 3. Create arena [clay.h:2150-2158]
+    // clayArena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
+    // // 4. Initialize Clay [clay.h:2186-2188]
+    // Clay_Initialize(clayArena, Clay_Dimensions({ window.widthf, window.heightf }), Clay_ErrorHandler({ .errorHandlerFunction = nullptr, .userData = nullptr }));
 
     LoadOverlay();
 
@@ -288,17 +300,38 @@ Clay_RenderCommandArray App::update() {
     //     }            
     // }
 
-	WorldState worldState = (world.*world.update)(inputEvent);
-	GameState gameState = (game.*game.update)(inputEvent, worldState);
+	// WorldState worldState = (world.*world.update)(inputEvent);
+	// GameState gameState = (game.*game.update)(inputEvent, worldState);
+
     // surface.updateDisplay(gameState);
 
     // Clay_BeginLayout();
     // (surface.*surface.layoutDisplay)();
     // (surface.*surface.layoutMenu)();
     // Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
+
     Brick_BeginLayout();
+    // Brick_BeginLayoutPanel();
     Brick_LayoutButton(buttonId);
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
+        TraceLog(LOG_INFO, "RENDER COMM %d", renderCommands.length);
+
+    // Brick_BeginLayout();
+    // Brick_BeginLayoutPanel();
+    // // CLAY(CLAY_ID("LayoutOptions"), {
+    // //     .layout = { 
+    // //         .sizing = { 
+    // //             .width = CLAY_SIZING_PERCENT(1.0f),
+    // //             .height = CLAY_SIZING_PERCENT(1.0f),
+    // //         },
+    // //         .layoutDirection = CLAY_TOP_TO_BOTTOM 
+    // //     },
+    // //     .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
+    // // }) {
+    // //     CLAY_TEXT(CLAY_STRING("BLAHBLAH"), STYLE_TEXT_CENTERED);
+    // //     Brick_LayoutButton(buttonId);
+    // // }
+    // Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
     return renderCommands;
     // return Clay_RenderCommandArray({ 0, 0, nullptr });
 }
@@ -318,6 +351,9 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     UnloadRenderTexture(app->target);
 
     Clay_Raylib_Close();
+    Brick_Destroy();
+    // if (app->clayArena.memory) free(app->clayArena.memory);
+
     CloseAudioDevice();
     CloseWindow();
 

@@ -1,4 +1,5 @@
 #include "clay_renderer.h"
+#include "raylib.h"
 
 #include <cmath>
 #include <stdio.h>
@@ -53,6 +54,7 @@ void RenderRaylib(Clay_RenderCommandArray& renderCommands) {
     for (int j = 0; j < renderCommands.length; ++j) {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
         Clay_BoundingBox boundingBox = {renderCommand->boundingBox.x, renderCommand->boundingBox.y, renderCommand->boundingBox.width, renderCommand->boundingBox.height};
+        // TraceLog(LOG_INFO, "RENDER COMM %d", renderCommand->commandType);
         switch (renderCommand->commandType) {
             case CLAY_RENDER_COMMAND_TYPE_TEXT: {
                 Clay_TextRenderData *textData = &renderCommand->renderData.text;

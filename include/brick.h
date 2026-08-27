@@ -14,11 +14,17 @@
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
+
+#ifdef BRICK_IMPLEMENTATION
+#define CLAY_IMPLEMENTATION
+#endif
+
 #include "clay.h"
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 // #include <string.h>
 
 #define BRICK_MAX_ELEMENTS 256
@@ -90,23 +96,20 @@ typedef struct Brick_EventArray {
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
 
-#define CLAY_IMPLEMENTATION
-#include "clay.h"
-
-#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontId = 1, .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Clay Global Arena
-static Clay_Arena    g_clay_arena;
+static Clay_Arena    g_clay_arena = {0};
 
 // Brick state variables
-static Brick_Window  g_window = {0};
+Brick_Window  g_window = {0};
 
-static Brick_Element g_elements[BRICK_MAX_ELEMENTS];
-static size_t        g_element_index = 0;
+Brick_Element g_elements[BRICK_MAX_ELEMENTS];
+size_t        g_element_index = 0;
 
 /* ---- Per-frame: reset at start of frame, read after PollEvents ---- */
-static Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per frame */
-static size_t        g_event_index = 0;
+Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per frame */
+size_t        g_event_index = 0;
 
 // Helper functions
 // --------------------------
@@ -172,6 +175,8 @@ static void Brick_HandleError(Clay_ErrorData errorData);
 
 // initializes Clay first, then Brick
 static void Brick_Initialize(float width, float height) {
+    printf("Initializing Brick");
+
     g_window.width = width;
     g_window.height = height;
     // 1. Query minimum memory required for default element limits
@@ -186,13 +191,58 @@ static void Brick_Initialize(float width, float height) {
 }
 
 void Brick_HandleError(Clay_ErrorData errorData) {
+
+    switch(errorData.errorType) {
+
+        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
+            printf("CLAY ERROR: Text Measurement Function not provided.");
+            break;
+        // Clay attempted to allocate its internal data structures but ran out of space.
+        // The arena passed to Clay_Initialize was created with a capacity smaller than that required by Clay_MinMemorySize().
+        case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Arena capacity exceeded.");
+            break;
+        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxElementCount().
+        case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Elements capacity exceeded.");
+            break;
+        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxMeasureTextCacheWordCount().
+        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Text measurement capacity exceeded.");
+            break;
+        // Two elements were declared with exactly the same ID within one layout.
+        case CLAY_ERROR_TYPE_DUPLICATE_ID:
+            printf("CLAY ERROR: Duplicate ID.");
+            break;
+        // A floating element was declared using CLAY_ATTACH_TO_ELEMENT_ID and either an invalid .parentId was provided or no element with the provided .parentId was found.
+        case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
+            printf("CLAY ERROR: Floating container parent not found.");
+            break;
+        // An element was declared that using CLAY_SIZING_PERCENT but the percentage value was over 1. Percentage values are expected to be in the 0-1 range.
+        case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
+            printf("CLAY ERROR: Percentage over 1.");
+            break;
+        // Clay encountered an internal error. It would be wonderful if you could report this so we can fix it!
+        case CLAY_ERROR_TYPE_INTERNAL_ERROR:
+            printf("CLAY ERROR: Internal error.");
+            break;
+        // Clay__OpenElement was called more times than Clay__CloseElement, so there were still remaining open elements when the layout ended.
+        case CLAY_ERROR_TYPE_UNBALANCED_OPEN_CLOSE:
+            printf("CLAY ERROR: Unbalanced open-close.");
+            break;
+        case CLAY_ERROR_TYPE_HASH_MAP_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Hash map capacity exceeded.");
+            break;
+        default: break;
+    }
+    
     if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
         Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
     } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
         Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
     }
 
-    Brick_Initialize(g_window.width, g_window.height);
+    // Brick_Initialize(g_window.width, g_window.height);
 }
 
 
@@ -239,6 +289,9 @@ static void Brick_LayoutButton(uint32_t id) {
     if (id > g_element_index) return;
 
     const Brick_Element* button = &g_elements[id];
+    // if (button != nullptr) {
+    //     printf("layout button %s", button->label);
+    // }
     CLAY_AUTO_ID({ 
         .layout = {
             .sizing = {
@@ -268,7 +321,20 @@ static void Brick_LayoutButton(uint32_t id) {
     }
 }
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
-static void Brick_BeginLayoutPanel(void);
+static void Brick_BeginLayoutPanel(void) {
+    CLAY(CLAY_ID("LayoutOptions"), {
+        .layout = { 
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(1.0f),
+                .height = CLAY_SIZING_PERCENT(1.0f),
+            },
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
+    }) {
+        CLAY_TEXT(CLAY_STRING("BLAHBLAH"), STYLE_TEXT_CENTERED);
+    }
+}
 static void Brick_EndLayoutPanel(void);
 
 #endif /* BRICK_IMPLEMENTATION */
