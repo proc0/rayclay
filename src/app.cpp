@@ -45,7 +45,12 @@ void App::load() {
 
     loadTarget();
 
-    Brick_Initialize(window.widthf, window.heightf);
+    fonts[0] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_MEDIUM), 48, 0, 400);
+    SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
+    fonts[1] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_REGULAR), 32, 0, 400);
+    SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
+
+    Brick_Initialize(window.widthf, window.heightf, Raylib_MeasureText, fonts);
     // // 1. Query minimum memory required for default element limits
     // uint64_t memorySize = Clay_MinMemorySize();
     // // 2. Allocate memory (malloc, stack, or custom allocator)
@@ -151,7 +156,7 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
         ClearBackground(BLANK);
         DrawTexturePro(target.texture, targetSource, targetDestination, Vector2({}), 0.0f, WHITE);
         // (surface.*surface.render)(renderCommands);
-        RenderRaylib(renderCommands);
+        RenderRaylib(fonts, renderCommands);
 	EndDrawing();
 }
 
@@ -311,10 +316,10 @@ Clay_RenderCommandArray App::update() {
     // Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
     Brick_BeginLayout();
-    // Brick_BeginLayoutPanel();
+    Brick_BeginLayoutPanel();
     Brick_LayoutButton(buttonId);
+    Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
-        TraceLog(LOG_INFO, "RENDER COMM %d", renderCommands.length);
 
     // Brick_BeginLayout();
     // Brick_BeginLayoutPanel();
@@ -351,6 +356,9 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
     UnloadRenderTexture(app->target);
 
     Clay_Raylib_Close();
+    for (auto& font : app->fonts) {
+        UnloadFont(font);
+    }
     Brick_Destroy();
     // if (app->clayArena.memory) free(app->clayArena.memory);
 

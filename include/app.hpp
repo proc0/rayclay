@@ -14,6 +14,8 @@
 #include <cstdint>
 
 class App : Layer {
+    Font fonts[2];
+    
 	Input input;
     Timer timer;
 

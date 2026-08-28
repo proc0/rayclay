@@ -5,6 +5,50 @@
 #include <stdio.h>
 #include <cstring>
 
+
+Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
+    // Measure string size for Font
+    Clay_Dimensions textSize = { 0 };
+
+    float maxTextWidth = 0.0f;
+    float lineTextWidth = 0;
+    int maxLineCharCount = 0;
+    int lineCharCount = 0;
+
+    float textHeight = config->fontSize;
+    Font* fonts = (Font*)userData;
+    Font fontToUse = fonts[config->fontId];
+    // Font failed to load, likely the fonts are in the wrong place relative to the execution dir.
+    // RayLib ships with a default font, so we can continue with that built in one. 
+    if (!fontToUse.glyphs) {
+        fontToUse = GetFontDefault();
+    }
+
+    float scaleFactor = config->fontSize/(float)fontToUse.baseSize;
+
+    for (int i = 0; i < text.length; ++i, lineCharCount++)
+    {
+        if (text.chars[i] == '\n') {
+            maxTextWidth = fmax(maxTextWidth, lineTextWidth);
+            maxLineCharCount = CLAY__MAX(maxLineCharCount, lineCharCount);
+            lineTextWidth = 0;
+            lineCharCount = 0;
+            continue;
+        }
+        int index = text.chars[i] - 32;
+        if (fontToUse.glyphs[index].advanceX != 0) lineTextWidth += fontToUse.glyphs[index].advanceX;
+        else lineTextWidth += (fontToUse.recs[index].width + fontToUse.glyphs[index].offsetX);
+    }
+
+    maxTextWidth = fmax(maxTextWidth, lineTextWidth);
+    maxLineCharCount = CLAY__MAX(maxLineCharCount, lineCharCount);
+
+    textSize.width = maxTextWidth * scaleFactor + (lineCharCount * config->letterSpacing);
+    textSize.height = textHeight;
+
+    return textSize;
+}
+
 void LoadOverlay() {
 #ifdef __EMSCRIPTEN__
     // GLSL ES 3.0 shader for WebGL 2.0 used by Emscripten for Web
@@ -50,7 +94,7 @@ void LoadOverlay() {
     overlayColorLocation = GetShaderLocation(overlayShader, "overlayColor");
 }
 
-void RenderRaylib(Clay_RenderCommandArray& renderCommands) {
+void RenderRaylib(const Font* fonts, Clay_RenderCommandArray& renderCommands) {
     for (int j = 0; j < renderCommands.length; ++j) {
         Clay_RenderCommand *renderCommand = Clay_RenderCommandArray_Get(&renderCommands, j);
         Clay_BoundingBox boundingBox = {renderCommand->boundingBox.x, renderCommand->boundingBox.y, renderCommand->boundingBox.width, renderCommand->boundingBox.height};
@@ -58,7 +102,7 @@ void RenderRaylib(Clay_RenderCommandArray& renderCommands) {
         switch (renderCommand->commandType) {
             case CLAY_RENDER_COMMAND_TYPE_TEXT: {
                 Clay_TextRenderData *textData = &renderCommand->renderData.text;
-                // Font fontToUse = fonts[textData->fontId];
+                Font fontToUse = fonts[textData->fontId];
     
                 int strlen = textData->stringContents.length + 1;
     
@@ -72,8 +116,8 @@ void RenderRaylib(Clay_RenderCommandArray& renderCommands) {
                 // Raylib uses standard C strings so isn't compatible with cheap slices, we need to clone the string to append null terminator
                 memcpy(temp_render_buffer, textData->stringContents.chars, textData->stringContents.length);
                 temp_render_buffer[textData->stringContents.length] = '\0';
-                // DrawTextEx(fontToUse, temp_render_buffer, Vector2({boundingBox.x, boundingBox.y}), static_cast<float>(textData->fontSize), static_cast<float>(textData->letterSpacing), CLAY_COLOR_TO_RAYLIB_COLOR(textData->textColor));
-                DrawText(temp_render_buffer, boundingBox.x, boundingBox.y, static_cast<float>(textData->fontSize), CLAY_COLOR_TO_RAYLIB_COLOR(textData->textColor));
+                DrawTextEx(fontToUse, temp_render_buffer, Vector2({boundingBox.x, boundingBox.y}), static_cast<float>(textData->fontSize), static_cast<float>(textData->letterSpacing), CLAY_COLOR_TO_RAYLIB_COLOR(textData->textColor));
+                // DrawText(temp_render_buffer, boundingBox.x, boundingBox.y, static_cast<float>(textData->fontSize), CLAY_COLOR_TO_RAYLIB_COLOR(textData->textColor));
     
                 break;
             }

@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
+// #include <stdio.h>
 // #include <string.h>
 
 #define BRICK_MAX_ELEMENTS 256
@@ -114,48 +114,6 @@ size_t        g_event_index = 0;
 // Helper functions
 // --------------------------
 
-static inline Clay_Dimensions Brick_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
-    // Measure string size for Font
-    Clay_Dimensions textSize = { 0 };
-
-    float maxTextWidth = 0.0f;
-    float lineTextWidth = 0;
-    int maxLineCharCount = 0;
-    int lineCharCount = 0;
-
-    float textHeight = config->fontSize;
-    Font* fonts = (Font*)userData;
-    Font fontToUse = fonts[config->fontId];
-    // Font failed to load, likely the fonts are in the wrong place relative to the execution dir.
-    // RayLib ships with a default font, so we can continue with that built in one. 
-    if (!fontToUse.glyphs) {
-        fontToUse = GetFontDefault();
-    }
-
-    float scaleFactor = config->fontSize/(float)fontToUse.baseSize;
-
-    for (int i = 0; i < text.length; ++i, lineCharCount++)
-    {
-        if (text.chars[i] == '\n') {
-            maxTextWidth = fmax(maxTextWidth, lineTextWidth);
-            maxLineCharCount = CLAY__MAX(maxLineCharCount, lineCharCount);
-            lineTextWidth = 0;
-            lineCharCount = 0;
-            continue;
-        }
-        int index = text.chars[i] - 32;
-        if (fontToUse.glyphs[index].advanceX != 0) lineTextWidth += fontToUse.glyphs[index].advanceX;
-        else lineTextWidth += (fontToUse.recs[index].width + fontToUse.glyphs[index].offsetX);
-    }
-
-    maxTextWidth = fmax(maxTextWidth, lineTextWidth);
-    maxLineCharCount = CLAY__MAX(maxLineCharCount, lineCharCount);
-
-    textSize.width = maxTextWidth * scaleFactor + (lineCharCount * config->letterSpacing);
-    textSize.height = textHeight;
-
-    return textSize;
-}
 
 static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     // Widget* widget = static_cast<Widget*>(userData);
@@ -174,7 +132,7 @@ static void Brick_OnButtonHover(uint32_t id, bool hovered) {
 static void Brick_HandleError(Clay_ErrorData errorData);
 
 // initializes Clay first, then Brick
-static void Brick_Initialize(float width, float height) {
+static void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     printf("Initializing Brick");
 
     g_window.width = width;
@@ -188,6 +146,7 @@ static void Brick_Initialize(float width, float height) {
     // 4. Initialize Clay [clay.h:2186-2188]
     Clay_Initialize(g_clay_arena, Clay_Dimensions({ width, height }), Clay_ErrorHandler({ .errorHandlerFunction = Brick_HandleError, .userData = nullptr }));
 
+    Clay_SetMeasureTextFunction(measureTextFunction, fontData);
 }
 
 void Brick_HandleError(Clay_ErrorData errorData) {
@@ -322,19 +281,32 @@ static void Brick_LayoutButton(uint32_t id) {
 }
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
 static void Brick_BeginLayoutPanel(void) {
-    CLAY(CLAY_ID("LayoutOptions"), {
-        .layout = { 
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = {
             .sizing = { 
-                .width = CLAY_SIZING_PERCENT(1.0f),
-                .height = CLAY_SIZING_PERCENT(1.0f),
+                .width = CLAY_SIZING_PERCENT(0.5f),
+                .height = CLAY_SIZING_PERCENT(0.5f),
             },
+            .padding = CLAY_PADDING_ALL(32), 
+            .childGap = 12, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
-    }) {
-        CLAY_TEXT(CLAY_STRING("BLAHBLAH"), STYLE_TEXT_CENTERED);
-    }
+        .floating = { 
+            .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+    });
 }
-static void Brick_EndLayoutPanel(void);
+
+static void Brick_EndLayoutPanel(void) {
+    Clay__CloseElement();
+}
 
 #endif /* BRICK_IMPLEMENTATION */

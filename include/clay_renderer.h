@@ -21,8 +21,9 @@ static int overlayColorLocation;
 static char *temp_render_buffer = NULL;
 static int temp_render_buffer_len = 0;
 
+Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData);
 void LoadOverlay();
-void RenderRaylib(Clay_RenderCommandArray& renderCommands);
+void RenderRaylib(const Font* fonts, Clay_RenderCommandArray& renderCommands);
 void Clay_Raylib_Close();
 
 #endif
