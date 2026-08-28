@@ -329,6 +329,9 @@ Clay_RenderCommandArray App::update() {
             case BRICK_EVENT_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
             break;
+            case BRICK_EVENT_HOVER:
+            TraceLog(LOG_INFO, "HOVERING...");
+            break;
             default: break;
         }
     }

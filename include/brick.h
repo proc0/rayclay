@@ -15,6 +15,7 @@
 #define BRICK_HEADER
 
 
+#include <cstdint>
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
 #endif
@@ -39,6 +40,8 @@ extern "C" {
 typedef struct {
     float width;
     float height;
+    uint32_t hoveredId;
+    uint32_t lastHoveredId;
 } Brick_Window;
 
 typedef struct {
@@ -144,13 +147,40 @@ static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData poi
     }
 }
 
-static void Brick_OnButtonHover(uint32_t id, bool hovered) {
+static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
+    // gets called on every frame with every button
+    // compare the cached buttons with the current button hovered
+    // and move the current hovered to the last hovered
+    if (isHovered && !g_elements[id].hovered && g_window.hoveredId != id) {
+        // mark the button as hovered
+        g_elements[id].hovered = true;
+        g_elements[g_window.lastHoveredId].hovered = false;
+        g_window.lastHoveredId = g_window.hoveredId;
+        g_window.hoveredId = id;
 
+        return true;
+    } else if (isHovered && g_window.hoveredId == id && g_window.lastHoveredId != g_window.hoveredId) {
+        // this allows for one frame of propagation of when the button was hovered
+        // it can be queried to know the frame right after the button hovered
+        g_window.lastHoveredId = g_window.hoveredId;
+    } else if (!isHovered && g_window.hoveredId == id) {
+        // blur the current button
+        g_elements[id].hovered = true;
+        g_window.hoveredId = 0;
+    } else if (!isHovered && g_window.lastHoveredId == id) {
+        // this allows for one frame of propagation of the blur
+        g_window.lastHoveredId = 0;
+    } 
+
+    // return whether the button was hovered or not
+    // to allow immediate query on the hover
+    return false;
 }
 
 // Public API
 // ----------------------------------
 static void Brick_HandleError(Clay_ErrorData errorData);
+static uint32_t Brick_CreateButton(const char* label);
 
 // initializes Clay first, then Brick
 static void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
@@ -168,6 +198,8 @@ static void Brick_Initialize(float width, float height, Clay_Dimensions (*measur
     Clay_Initialize(g_clay_arena, Clay_Dimensions({ width, height }), Clay_ErrorHandler({ .errorHandlerFunction = Brick_HandleError, .userData = nullptr }));
 
     Clay_SetMeasureTextFunction(measureTextFunction, fontData);
+
+    Brick_CreateButton("DUMMY");
 }
 
 void Brick_HandleError(Clay_ErrorData errorData) {
@@ -242,9 +274,16 @@ static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
     };
 
     for (uint32_t i = 0; i < g_element_index; i++) {
+        if(g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId) {
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = BRICK_EVENT_HOVER
+            };
+            events.length++;
+        }
         if(g_elements[i].clicked) {
             // click only lasts one frame
-            g_elements[i].clicked = false;
+            // g_elements[i].clicked = false;
             g_events[i] = {
                 .id = g_elements[i].id,
                 .eventType = BRICK_EVENT_PRESS
