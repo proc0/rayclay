@@ -42,7 +42,13 @@ typedef struct {
 } Brick_Window;
 
 typedef struct {
-    // const Clay_ElementId clayId;
+    float x;
+    float y;
+    bool pressed;
+} Brick_PointerData;
+
+typedef struct {
+    Clay_ElementId clayId;
     Clay_String label;
     uint32_t id;
     bool hovered;
@@ -99,7 +105,7 @@ typedef struct Brick_EventArray {
 #define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Clay Global Arena
-static Clay_Arena    g_clay_arena = {0};
+static Clay_Arena g_clay_arena = {0};
 
 // Brick state variables
 Brick_Window  g_window = {0};
@@ -109,17 +115,32 @@ size_t        g_element_index = 0;
 
 /* ---- Per-frame: reset at start of frame, read after PollEvents ---- */
 Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per frame */
-size_t        g_event_index = 0;
+// size_t        g_event_index = 0;
 
 // Helper functions
 // --------------------------
 
-
 static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    // Widget* widget = static_cast<Widget*>(userData);
-    
-    if (pointerData.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
-        // widget->triggerButtonAction(elementId.stringId.chars);
+    for (uint32_t i = 0; i < BRICK_MAX_ELEMENTS; i++) {
+        if(g_elements[i].clayId.id == elementId.id) {
+            switch(pointerData.state) {
+            case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
+                printf("CLICK %d\n", elementId.id);
+                g_elements[i].clicked = true;
+                break;
+            case CLAY_POINTER_DATA_PRESSED:
+                g_elements[i].pressed = true;
+                break;
+            case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
+                g_elements[i].clicked = false;
+                break;
+            case CLAY_POINTER_DATA_RELEASED:
+                g_elements[i].pressed = false;
+                break;
+            default: break;
+            }
+            break;
+        }
     }
 }
 
@@ -210,8 +231,29 @@ static void Brick_BeginLayout(void) {
     Clay_BeginLayout();
 }
 // Brick only function that will handle any potential updates of elements per frame
-static Brick_EventArray Brick_PollEvents(void) {
-    return Brick_EventArray({ 0, 0, nullptr });
+static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
+
+    Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
+    
+    Brick_EventArray events = {
+        .capacity = BRICK_MAX_ELEMENTS,
+        .length = 0,
+        .internalArray = g_events
+    };
+
+    for (uint32_t i = 0; i < g_element_index; i++) {
+        if(g_elements[i].clicked) {
+            // click only lasts one frame
+            g_elements[i].clicked = false;
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = BRICK_EVENT_PRESS
+            };
+            events.length++;
+        }
+    }
+
+    return events;
 }
 // simple wrapper around Clay_EndLayout which returns render commands
 static Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
@@ -223,25 +265,26 @@ static void Brick_Destroy(void) {
 }
 
 // Brick elements Add<Element> initializes the element and is to be called once
-static uint32_t Brick_AddButton(const char* label) {
+static uint32_t Brick_CreateButton(const char* label) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(label), 
         .chars = label 
     };
-    // Clay_ElementId containerId = CLAY_SID(clayString);
+    Clay_ElementId buttonId = CLAY_SID(clayString);
 
-    uint32_t buttonId = g_element_index;
+    uint32_t index = g_element_index;
     g_elements[g_element_index] = (Brick_Element){
+        .clayId = buttonId,
         .label = clayString,
-        .id = buttonId,
+        .id = index,
         .hovered = false,
         .clicked = false,
         .pressed = false
     };
     g_element_index++;
 
-    return buttonId;
+    return index;
 }
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
 static void Brick_LayoutButton(uint32_t id) {
@@ -251,7 +294,7 @@ static void Brick_LayoutButton(uint32_t id) {
     // if (button != nullptr) {
     //     printf("layout button %s", button->label);
     // }
-    CLAY_AUTO_ID({ 
+    CLAY(button->clayId, { 
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0)

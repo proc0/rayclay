@@ -62,7 +62,7 @@ void App::load() {
 
     LoadOverlay();
 
-    buttonId = Brick_AddButton("HELLO");
+    buttonId = Brick_CreateButton("HELLO");
 }
 
 void App::loadTarget() {
@@ -314,6 +314,24 @@ Clay_RenderCommandArray App::update() {
     // (surface.*surface.layoutDisplay)();
     // (surface.*surface.layoutMenu)();
     // Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
+    // Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
+    // Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
+    
+    Brick_EventArray eventArray = Brick_PollEvents({ 
+        .x = inputEvent.position.x, 
+        .y = inputEvent.position.y, 
+        .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
+    });
+    
+    for (int i=0; i<eventArray.length; i++) {
+        Brick_Event* event = &eventArray.internalArray[i];
+        switch(event->eventType) {
+            case BRICK_EVENT_PRESS:
+            TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
+            break;
+            default: break;
+        }
+    }
 
     Brick_BeginLayout();
     Brick_BeginLayoutPanel();
