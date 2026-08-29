@@ -135,14 +135,17 @@ static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
         // mark the button as hovered
         g_elements[id].hovered = true;
         g_elements[g_window.lastHoveredId].hovered = false;
+        // NOTE: resetting lastHovered blur here prevents fast hover changes
+        // that prevent the blur from being reset in the last conditional
+        g_elements[g_window.lastHoveredId].blurred = false;
         g_window.lastHoveredId = g_window.hoveredId;
         g_window.hoveredId = id;
 
         return true;
-    } else if (isHovered && g_window.hoveredId == id && g_window.lastHoveredId != g_window.hoveredId) {
+    } else if (isHovered && g_window.hoveredId == id && g_window.lastHoveredId != id) {
         // this allows for one frame of propagation of when the button was hovered
         // it can be queried to know the frame right after the button hovered
-        g_window.lastHoveredId = g_window.hoveredId;
+        g_window.lastHoveredId = id;
     } else if (!isHovered && g_window.hoveredId == id) {
         // blur the current button
         g_elements[id].hovered = false;
@@ -161,7 +164,7 @@ static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
 
 static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     
-    for (uint32_t i = 0; i < BRICK_MAX_ELEMENTS; i++) {
+    for (uint32_t i = 1; i < BRICK_MAX_ELEMENTS; i++) {
         if(g_elements[i].clayId.id == elementId.id) {
             switch(pointerData.state) {
             case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
@@ -177,7 +180,8 @@ static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData poi
                 g_elements[i].released = true;
                 break;
             case CLAY_POINTER_DATA_RELEASED:
-                // g_elements[i].released = true;
+                // NOTE: This is just the same as hover, Clay triggers this if pointer 
+                // is on the button not pressing, and after pressing
                 break;
             default: break;
             }
@@ -217,72 +221,6 @@ static void Brick_BeginLayout(void) {
     Clay_BeginLayout();
 }
 
-static bool Brick_PointerJustHovered() {
-    return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
-}
-
-static bool Brick_PointerJustBlurred() {
-    return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
-}
-
-// Brick only function that will handle any potential updates of elements per frame
-static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
-
-    Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
-    
-    Brick_EventArray events = {
-        .capacity = BRICK_MAX_ELEMENTS,
-        .length = 0,
-        .internalArray = g_events
-    };
-
-    for (uint32_t i = 0; i < g_element_index; i++) {
-
-        if(g_elements[i].clicked && !g_elements[i].pressed) {
-            // click only lasts one frame
-            // g_elements[i].clicked = false;
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = BRICK_EVENT_PRESS
-            };
-            events.length++;
-        } 
-        else if (g_elements[i].pressed) { 
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = BRICK_EVENT_PRESSING
-            };
-            events.length++;
-        } 
-        else if(g_elements[i].released) {
-            g_elements[i].released = false;
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = BRICK_EVENT_RELEASE
-            };
-            events.length++;
-        }
-        else if(g_elements[i].hovered) {
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING
-            };
-            events.length++;
-        } 
-        else if(g_elements[i].blurred) {
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = BRICK_EVENT_BLUR
-            };
-            events.length++;
-        } 
-
-    }
-
-    return events;
-}
-
-
 // simple wrapper around Clay_EndLayout which returns render commands
 static Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
     return Clay_EndLayout(deltaTime);
@@ -316,6 +254,72 @@ static uint32_t Brick_CreateButton(const char* label) {
 
     return index;
 }
+
+static bool Brick_PointerJustHovered() {
+    return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
+}
+
+static bool Brick_PointerJustBlurred() {
+    return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
+}
+
+// Brick only function that will handle any potential updates of elements per frame
+static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
+
+    Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
+    
+    Brick_EventArray events = {
+        .capacity = BRICK_MAX_ELEMENTS,
+        .length = 0,
+        .internalArray = g_events
+    };
+
+    for (uint32_t i = 1; i < g_element_index; i++) {
+
+        if(g_elements[i].clicked && !g_elements[i].pressed) {
+            // click only lasts one frame
+            // g_elements[i].clicked = false;
+            g_events[events.length] = {
+                .id = i,
+                .eventType = BRICK_EVENT_PRESS
+            };
+            events.length++;
+        } 
+        else if (g_elements[i].pressed) { 
+            g_events[events.length] = {
+                .id = i,
+                .eventType = BRICK_EVENT_PRESSING
+            };
+            events.length++;
+        } 
+        else if(g_elements[i].released) {
+            g_elements[i].released = false;
+            g_events[events.length] = {
+                .id = i,
+                .eventType = BRICK_EVENT_RELEASE
+            };
+            events.length++;
+        }
+        else if(g_elements[i].hovered) {
+            g_events[events.length] = {
+                .id = i,
+                .eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING
+            };
+            events.length++;
+        } 
+        else if(g_elements[i].blurred) {
+            g_events[events.length] = {
+                .id = i,
+                .eventType = BRICK_EVENT_BLUR
+            };
+            events.length++;
+        } 
+
+    }
+
+    return events;
+}
+
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
 static void Brick_LayoutButton(uint32_t id) {
     if (id > g_element_index) return;
@@ -352,6 +356,7 @@ static void Brick_LayoutButton(uint32_t id) {
         CLAY_TEXT(button->label, STYLE_TEXT_CENTERED);
     }
 }
+
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
 static void Brick_BeginLayoutPanel(void) {
     Clay__OpenElement();

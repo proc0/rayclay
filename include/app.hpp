@@ -15,7 +15,7 @@
 
 class App : Layer {
     Font fonts[2];
-    
+
 	Input input;
     Timer timer;
 
@@ -39,6 +39,7 @@ class App : Layer {
     Logo logo = Logo(window);
     
     uint32_t buttonId;
+    uint32_t buttonId2;
 
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;

@@ -63,6 +63,7 @@ void App::load() {
     LoadOverlay();
 
     buttonId = Brick_CreateButton("HELLO");
+    buttonId2 = Brick_CreateButton("HELLO 2");
 }
 
 void App::loadTarget() {
@@ -322,27 +323,28 @@ Clay_RenderCommandArray App::update() {
         .y = inputEvent.position.y, 
         .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
     });
+    // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
     
     for (int i=0; i<eventArray.length; i++) {
-        Brick_Event* event = &eventArray.internalArray[i+1];
+        Brick_Event* event = &eventArray.internalArray[i];
         switch(event->eventType) {
             case BRICK_EVENT_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
             break;
             case BRICK_EVENT_PRESSING:
-            TraceLog(LOG_INFO, "CLICKING...");
+            // TraceLog(LOG_INFO, "CLICKING...");
             break;
             case BRICK_EVENT_RELEASE:
-            TraceLog(LOG_INFO, "RELEASE");
+            // TraceLog(LOG_INFO, "RELEASE");
             break;
             case BRICK_EVENT_HOVER:
-            TraceLog(LOG_INFO, "HOVER");
+            // TraceLog(LOG_INFO, "HOVER");
             break;
             case BRICK_EVENT_HOVERING:
-            TraceLog(LOG_INFO, "HOVERING...");
+            // TraceLog(LOG_INFO, "HOVERING...");
             break;
             case BRICK_EVENT_BLUR:
-            TraceLog(LOG_INFO, "BLUR");
+            TraceLog(LOG_INFO, "BLUR ID:%d", event->id);
             break;
             default: break;
         }
@@ -351,6 +353,7 @@ Clay_RenderCommandArray App::update() {
     Brick_BeginLayout();
     Brick_BeginLayoutPanel();
     Brick_LayoutButton(buttonId);
+    Brick_LayoutButton(buttonId2);
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 
