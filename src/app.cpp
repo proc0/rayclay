@@ -326,27 +326,28 @@ Clay_RenderCommandArray App::update() {
     // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
     
     for (int i=0; i<eventArray.length; i++) {
-        Brick_Event* event = &eventArray.internalArray[i];
+        Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
+
         switch(event->eventType) {
-            case BRICK_EVENT_PRESS:
+        case BRICK_EVENT_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
-            break;
-            case BRICK_EVENT_PRESSING:
+        break;
+        case BRICK_EVENT_PRESSING:
             // TraceLog(LOG_INFO, "CLICKING...");
-            break;
-            case BRICK_EVENT_RELEASE:
+        break;
+        case BRICK_EVENT_RELEASE:
             // TraceLog(LOG_INFO, "RELEASE");
-            break;
-            case BRICK_EVENT_HOVER:
+        break;
+        case BRICK_EVENT_HOVER:
             // TraceLog(LOG_INFO, "HOVER");
-            break;
-            case BRICK_EVENT_HOVERING:
+        break;
+        case BRICK_EVENT_HOVERING:
             // TraceLog(LOG_INFO, "HOVERING...");
-            break;
-            case BRICK_EVENT_BLUR:
+        break;
+        case BRICK_EVENT_BLUR:
             TraceLog(LOG_INFO, "BLUR ID:%d", event->id);
-            break;
-            default: break;
+        break;
+        default: break;
         }
     }
 
@@ -357,24 +358,7 @@ Clay_RenderCommandArray App::update() {
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 
-    // Brick_BeginLayout();
-    // Brick_BeginLayoutPanel();
-    // // CLAY(CLAY_ID("LayoutOptions"), {
-    // //     .layout = { 
-    // //         .sizing = { 
-    // //             .width = CLAY_SIZING_PERCENT(1.0f),
-    // //             .height = CLAY_SIZING_PERCENT(1.0f),
-    // //         },
-    // //         .layoutDirection = CLAY_TOP_TO_BOTTOM 
-    // //     },
-    // //     .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
-    // // }) {
-    // //     CLAY_TEXT(CLAY_STRING("BLAHBLAH"), STYLE_TEXT_CENTERED);
-    // //     Brick_LayoutButton(buttonId);
-    // // }
-    // Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
     return renderCommands;
-    // return Clay_RenderCommandArray({ 0, 0, nullptr });
 }
 
 void App::resize(int width, int height) {    

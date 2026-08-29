@@ -10,29 +10,19 @@
     DESC: Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
 */
 
-
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
-
-#include <cstdint>
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
 #endif
-
 #include "clay.h"
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-// #include <stdio.h>
-// #include <string.h>
 
 #define BRICK_MAX_ELEMENTS 256
 
-// -----------------------------------------
-// PUBLIC TYPES ----------------------------
-// -----------------------------------------
+// Public Types 
+// ---------------------------------------------------------------
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,8 +78,6 @@ typedef struct Brick_Event {
 
 // A sized array of events
 typedef struct Brick_EventArray {
-    // The underlying max capacity of the array, not necessarily all initialized.
-    int32_t capacity;
     // The number of initialized elements in this array. Used for loops and iteration.
     int32_t length;
     // A pointer to the first element in the internal array.
@@ -100,22 +88,31 @@ typedef struct Brick_EventArray {
 }
 #endif
 
+// Function Forward Declarations ---------------------------------
+// Public API functions ------------------------------------------
+
+Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
+
 #endif /* BRICK_HEADER */
 
-// -----------------------------------------
-// IMPLEMENTATION --------------------------
-// -----------------------------------------
+// IMPLEMENTATION 
+// ---------------------------------------------------------------
 
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
 
+Brick_Event Brick_Event_DEFAULT = CLAY__DEFAULT_STRUCT;
+Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
+    return index < array->length && index >= 0 ? &array->internalArray[index] : &Brick_Event_DEFAULT;
+}    
+
 #define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Clay Global Arena
-static Clay_Arena g_clay_arena = {0};
+Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
 // Brick state variables
-Brick_Window  g_window = {0};
+Brick_Window  g_window = CLAY__DEFAULT_STRUCT;
 
 Brick_Element g_elements[BRICK_MAX_ELEMENTS];
 size_t        g_element_index = 0;
@@ -127,7 +124,7 @@ Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per f
 // Helper functions
 // --------------------------
 
-static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
+void Brick_OnButtonHover(uint32_t id, bool isHovered) {
     // gets called on every frame with every button
     // compare the cached buttons with the current button hovered
     // and move the current hovered to the last hovered
@@ -141,7 +138,6 @@ static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
         g_window.lastHoveredId = g_window.hoveredId;
         g_window.hoveredId = id;
 
-        return true;
     } else if (isHovered && g_window.hoveredId == id && g_window.lastHoveredId != id) {
         // this allows for one frame of propagation of when the button was hovered
         // it can be queried to know the frame right after the button hovered
@@ -155,14 +151,10 @@ static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
         // this allows for one frame of propagation of the blur
         g_window.lastHoveredId = 0;
         g_elements[id].blurred = false;
-    } 
-
-    // return whether the button was hovered or not
-    // to allow immediate query on the hover
-    return false;
+    }
 }
 
-static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
+void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     
     for (uint32_t i = 1; i < BRICK_MAX_ELEMENTS; i++) {
         if(g_elements[i].clayId.id == elementId.id) {
@@ -193,11 +185,11 @@ static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData poi
 
 // Public API
 // ----------------------------------
-static void Brick_HandleError(Clay_ErrorData errorData);
-static uint32_t Brick_CreateButton(const char* label);
+void Brick_HandleError(Clay_ErrorData errorData);
+uint32_t Brick_CreateButton(const char* label);
 
 // initializes Clay first, then Brick
-static void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
+void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     printf("Initializing Brick");
 
     g_window.width = width;
@@ -213,25 +205,25 @@ static void Brick_Initialize(float width, float height, Clay_Dimensions (*measur
 
     Clay_SetMeasureTextFunction(measureTextFunction, fontData);
 
-    Brick_CreateButton("DUMMY");
+    Brick_CreateButton("BRICK");
 }
 
 // simple wrapper around Clay_BeginLayout
-static void Brick_BeginLayout(void) {
+void Brick_BeginLayout(void) {
     Clay_BeginLayout();
 }
 
 // simple wrapper around Clay_EndLayout which returns render commands
-static Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
+Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
     return Clay_EndLayout(deltaTime);
 }
 // cleans up Brick then Clay
-static void Brick_Destroy(void) {
+void Brick_Destroy(void) {
     if(g_clay_arena.memory) free(g_clay_arena.memory);
 }
 
 // Brick elements Add<Element> initializes the element and is to be called once
-static uint32_t Brick_CreateButton(const char* label) {
+uint32_t Brick_CreateButton(const char* label) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(label), 
@@ -255,21 +247,20 @@ static uint32_t Brick_CreateButton(const char* label) {
     return index;
 }
 
-static bool Brick_PointerJustHovered() {
+bool Brick_PointerJustHovered() {
     return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
 }
 
-static bool Brick_PointerJustBlurred() {
+bool Brick_PointerJustBlurred() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
 }
 
 // Brick only function that will handle any potential updates of elements per frame
-static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
+Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 
     Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
     
     Brick_EventArray events = {
-        .capacity = BRICK_MAX_ELEMENTS,
         .length = 0,
         .internalArray = g_events
     };
@@ -321,7 +312,7 @@ static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 }
 
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
-static void Brick_LayoutButton(uint32_t id) {
+void Brick_LayoutButton(uint32_t id) {
     if (id > g_element_index) return;
 
     const Brick_Element* button = &g_elements[id];
@@ -358,7 +349,7 @@ static void Brick_LayoutButton(uint32_t id) {
 }
 
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
-static void Brick_BeginLayoutPanel(void) {
+void Brick_BeginLayoutPanel(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
         .layout = {
@@ -383,7 +374,7 @@ static void Brick_BeginLayoutPanel(void) {
     });
 }
 
-static void Brick_EndLayoutPanel(void) {
+void Brick_EndLayoutPanel(void) {
     Clay__CloseElement();
 }
 
@@ -443,3 +434,29 @@ void Brick_HandleError(Clay_ErrorData errorData) {
 }
 
 #endif /* BRICK_IMPLEMENTATION */
+
+/*
+LICENSE
+zlib/libpng license
+
+Copyright (c) 2026 Alan Vincenzi
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the
+use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software in a
+    product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+    2. Altered source versions must be plainly marked as such, and must not
+    be misrepresented as being the original software.
+
+    3. This notice may not be removed or altered from any source
+    distribution.
+*/
