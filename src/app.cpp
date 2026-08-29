@@ -324,13 +324,25 @@ Clay_RenderCommandArray App::update() {
     });
     
     for (int i=0; i<eventArray.length; i++) {
-        Brick_Event* event = &eventArray.internalArray[i];
+        Brick_Event* event = &eventArray.internalArray[i+1];
         switch(event->eventType) {
             case BRICK_EVENT_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
             break;
+            case BRICK_EVENT_PRESSING:
+            TraceLog(LOG_INFO, "CLICKING...");
+            break;
+            case BRICK_EVENT_RELEASE:
+            TraceLog(LOG_INFO, "RELEASE");
+            break;
             case BRICK_EVENT_HOVER:
+            TraceLog(LOG_INFO, "HOVER");
+            break;
+            case BRICK_EVENT_HOVERING:
             TraceLog(LOG_INFO, "HOVERING...");
+            break;
+            case BRICK_EVENT_BLUR:
+            TraceLog(LOG_INFO, "BLUR");
             break;
             default: break;
         }

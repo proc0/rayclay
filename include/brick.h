@@ -57,20 +57,24 @@ typedef struct {
     bool hovered;
     bool clicked;
     bool pressed;
+    bool blurred;
+    bool released;
 } Brick_Element;
 
 // Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
     // This event should be skipped.
     BRICK_EVENT_NONE,
-    // Triggers when the element is pressed with the primary input (first frame only)
-    BRICK_EVENT_PRESS,
-    // Triggers while the element is being pressed on across frames
-    BRICK_EVENT_PRESSING,
     // Triggers when the element is hovered (first frame only)
     BRICK_EVENT_HOVER,
     // Triggers when the element is being hovered
     BRICK_EVENT_HOVERING,
+    // Triggers on the frame hovering stops
+    BRICK_EVENT_BLUR,
+    // Triggers when the element is pressed with the primary input (first frame only)
+    BRICK_EVENT_PRESS,
+    // Triggers while the element is being pressed on across frames
+    BRICK_EVENT_PRESSING,
     // Triggers on the exact frame (or delayed by one) the press was released
     BRICK_EVENT_RELEASE,
 } Brick_EventType;
@@ -123,30 +127,6 @@ Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per f
 // Helper functions
 // --------------------------
 
-static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    for (uint32_t i = 0; i < BRICK_MAX_ELEMENTS; i++) {
-        if(g_elements[i].clayId.id == elementId.id) {
-            switch(pointerData.state) {
-            case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
-                printf("CLICK %d\n", elementId.id);
-                g_elements[i].clicked = true;
-                break;
-            case CLAY_POINTER_DATA_PRESSED:
-                g_elements[i].pressed = true;
-                break;
-            case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
-                g_elements[i].clicked = false;
-                break;
-            case CLAY_POINTER_DATA_RELEASED:
-                g_elements[i].pressed = false;
-                break;
-            default: break;
-            }
-            break;
-        }
-    }
-}
-
 static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
     // gets called on every frame with every button
     // compare the cached buttons with the current button hovered
@@ -165,17 +145,47 @@ static bool Brick_OnButtonHover(uint32_t id, bool isHovered) {
         g_window.lastHoveredId = g_window.hoveredId;
     } else if (!isHovered && g_window.hoveredId == id) {
         // blur the current button
-        g_elements[id].hovered = true;
+        g_elements[id].hovered = false;
+        g_elements[id].blurred = true;
         g_window.hoveredId = 0;
     } else if (!isHovered && g_window.lastHoveredId == id) {
         // this allows for one frame of propagation of the blur
         g_window.lastHoveredId = 0;
+        g_elements[id].blurred = false;
     } 
 
     // return whether the button was hovered or not
     // to allow immediate query on the hover
     return false;
 }
+
+static void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
+    
+    for (uint32_t i = 0; i < BRICK_MAX_ELEMENTS; i++) {
+        if(g_elements[i].clayId.id == elementId.id) {
+            switch(pointerData.state) {
+            case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
+                // printf("CLICK %d\n", elementId.id);
+                g_elements[i].clicked = true;
+                break;
+            case CLAY_POINTER_DATA_PRESSED:
+                g_elements[i].pressed = true;
+                break;
+            case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
+                g_elements[i].clicked = false;
+                g_elements[i].pressed = false;
+                g_elements[i].released = true;
+                break;
+            case CLAY_POINTER_DATA_RELEASED:
+                // g_elements[i].released = true;
+                break;
+            default: break;
+            }
+            break;
+        }
+    }
+}
+
 
 // Public API
 // ----------------------------------
@@ -202,66 +212,19 @@ static void Brick_Initialize(float width, float height, Clay_Dimensions (*measur
     Brick_CreateButton("DUMMY");
 }
 
-void Brick_HandleError(Clay_ErrorData errorData) {
-
-    switch(errorData.errorType) {
-
-        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
-            printf("CLAY ERROR: Text Measurement Function not provided.");
-            break;
-        // Clay attempted to allocate its internal data structures but ran out of space.
-        // The arena passed to Clay_Initialize was created with a capacity smaller than that required by Clay_MinMemorySize().
-        case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
-            printf("CLAY ERROR: Arena capacity exceeded.");
-            break;
-        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxElementCount().
-        case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
-            printf("CLAY ERROR: Elements capacity exceeded.");
-            break;
-        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxMeasureTextCacheWordCount().
-        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
-            printf("CLAY ERROR: Text measurement capacity exceeded.");
-            break;
-        // Two elements were declared with exactly the same ID within one layout.
-        case CLAY_ERROR_TYPE_DUPLICATE_ID:
-            printf("CLAY ERROR: Duplicate ID.");
-            break;
-        // A floating element was declared using CLAY_ATTACH_TO_ELEMENT_ID and either an invalid .parentId was provided or no element with the provided .parentId was found.
-        case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
-            printf("CLAY ERROR: Floating container parent not found.");
-            break;
-        // An element was declared that using CLAY_SIZING_PERCENT but the percentage value was over 1. Percentage values are expected to be in the 0-1 range.
-        case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
-            printf("CLAY ERROR: Percentage over 1.");
-            break;
-        // Clay encountered an internal error. It would be wonderful if you could report this so we can fix it!
-        case CLAY_ERROR_TYPE_INTERNAL_ERROR:
-            printf("CLAY ERROR: Internal error.");
-            break;
-        // Clay__OpenElement was called more times than Clay__CloseElement, so there were still remaining open elements when the layout ended.
-        case CLAY_ERROR_TYPE_UNBALANCED_OPEN_CLOSE:
-            printf("CLAY ERROR: Unbalanced open-close.");
-            break;
-        case CLAY_ERROR_TYPE_HASH_MAP_CAPACITY_EXCEEDED:
-            printf("CLAY ERROR: Hash map capacity exceeded.");
-            break;
-        default: break;
-    }
-    
-    if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
-        Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
-    } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
-        Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
-    }
-
-    // Brick_Initialize(g_window.width, g_window.height);
-}
-
-
 // simple wrapper around Clay_BeginLayout
 static void Brick_BeginLayout(void) {
     Clay_BeginLayout();
 }
+
+static bool Brick_PointerJustHovered() {
+    return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
+}
+
+static bool Brick_PointerJustBlurred() {
+    return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
+}
+
 // Brick only function that will handle any potential updates of elements per frame
 static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 
@@ -274,14 +237,8 @@ static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
     };
 
     for (uint32_t i = 0; i < g_element_index; i++) {
-        if(g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId) {
-            g_events[i] = {
-                .id = g_elements[i].id,
-                .eventType = BRICK_EVENT_HOVER
-            };
-            events.length++;
-        }
-        if(g_elements[i].clicked) {
+
+        if(g_elements[i].clicked && !g_elements[i].pressed) {
             // click only lasts one frame
             // g_elements[i].clicked = false;
             g_events[i] = {
@@ -289,11 +246,43 @@ static Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
                 .eventType = BRICK_EVENT_PRESS
             };
             events.length++;
+        } 
+        else if (g_elements[i].pressed) { 
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = BRICK_EVENT_PRESSING
+            };
+            events.length++;
+        } 
+        else if(g_elements[i].released) {
+            g_elements[i].released = false;
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = BRICK_EVENT_RELEASE
+            };
+            events.length++;
         }
+        else if(g_elements[i].hovered) {
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING
+            };
+            events.length++;
+        } 
+        else if(g_elements[i].blurred) {
+            g_events[i] = {
+                .id = g_elements[i].id,
+                .eventType = BRICK_EVENT_BLUR
+            };
+            events.length++;
+        } 
+
     }
 
     return events;
 }
+
+
 // simple wrapper around Clay_EndLayout which returns render commands
 static Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
     return Clay_EndLayout(deltaTime);
@@ -319,7 +308,9 @@ static uint32_t Brick_CreateButton(const char* label) {
         .id = index,
         .hovered = false,
         .clicked = false,
-        .pressed = false
+        .pressed = false,
+        .blurred = false,
+        .released = false,
     };
     g_element_index++;
 
@@ -389,6 +380,61 @@ static void Brick_BeginLayoutPanel(void) {
 
 static void Brick_EndLayoutPanel(void) {
     Clay__CloseElement();
+}
+
+void Brick_HandleError(Clay_ErrorData errorData) {
+
+    switch(errorData.errorType) {
+
+        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
+            printf("CLAY ERROR: Text Measurement Function not provided.");
+            break;
+        // Clay attempted to allocate its internal data structures but ran out of space.
+        // The arena passed to Clay_Initialize was created with a capacity smaller than that required by Clay_MinMemorySize().
+        case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Arena capacity exceeded.");
+            break;
+        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxElementCount().
+        case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Elements capacity exceeded.");
+            break;
+        // Clay ran out of capacity in its internal array for storing elements. This limit can be increased with Clay_SetMaxMeasureTextCacheWordCount().
+        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Text measurement capacity exceeded.");
+            break;
+        // Two elements were declared with exactly the same ID within one layout.
+        case CLAY_ERROR_TYPE_DUPLICATE_ID:
+            printf("CLAY ERROR: Duplicate ID.");
+            break;
+        // A floating element was declared using CLAY_ATTACH_TO_ELEMENT_ID and either an invalid .parentId was provided or no element with the provided .parentId was found.
+        case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
+            printf("CLAY ERROR: Floating container parent not found.");
+            break;
+        // An element was declared that using CLAY_SIZING_PERCENT but the percentage value was over 1. Percentage values are expected to be in the 0-1 range.
+        case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
+            printf("CLAY ERROR: Percentage over 1.");
+            break;
+        // Clay encountered an internal error. It would be wonderful if you could report this so we can fix it!
+        case CLAY_ERROR_TYPE_INTERNAL_ERROR:
+            printf("CLAY ERROR: Internal error.");
+            break;
+        // Clay__OpenElement was called more times than Clay__CloseElement, so there were still remaining open elements when the layout ended.
+        case CLAY_ERROR_TYPE_UNBALANCED_OPEN_CLOSE:
+            printf("CLAY ERROR: Unbalanced open-close.");
+            break;
+        case CLAY_ERROR_TYPE_HASH_MAP_CAPACITY_EXCEEDED:
+            printf("CLAY ERROR: Hash map capacity exceeded.");
+            break;
+        default: break;
+    }
+    
+    if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
+        Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
+    } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
+        Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
+    }
+
+    // Brick_Initialize(g_window.width, g_window.height);
 }
 
 #endif /* BRICK_IMPLEMENTATION */
