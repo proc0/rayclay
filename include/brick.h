@@ -23,7 +23,9 @@
 // Default Settings 
 // ---------------------------------------------------------------
 
-#define BRICK_MAX_ELEMENTS 256
+#define BRICK_MAX_BUTTONS 128
+#define BRICK_MAX_SCROLLBOXES 32
+#define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_SCROLLBOXES)
 
 // Default Styles 
 // ---------------------------------------------------------------
@@ -128,29 +130,31 @@ typedef struct Brick__Elements {
     Brick_ButtonArray buttons;
 } Brick__Elements;
 
-// Global State
+// Global Context
 // --------------------------
 
-// Clay Global Arena
+// Clay context
 Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
-// Brick state variables
+// Window state also holds pointer state
 Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
-Brick_Button g_buttons[BRICK_MAX_ELEMENTS];
+// Main element state arrays
+Brick_Button g_buttons[BRICK_MAX_BUTTONS];
 Brick__Elements g_elements = {
     .buttons = {
         .length = 0,
         .data = g_buttons
     },
 };
-
+// keeps track of total elements created
 size_t g_element_count = 0;
 
+// event array passed back to user to handle events
 Brick_Event g_events[BRICK_MAX_ELEMENTS];
 
-// Helper functions
-// --------------------------
+// Button internals
+// ---------------------------------------------------------------
 
 void Brick_OnButtonHover(uint32_t id, bool isHovered) {
     Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, id);
@@ -188,7 +192,7 @@ void Brick_OnButtonHover(uint32_t id, bool isHovered) {
 
 void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     
-    for (uint32_t i = 1; i < BRICK_MAX_ELEMENTS; i++) {
+    for (uint32_t i = 1; i < g_elements.buttons.length; i++) {
         Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
         
         if(button->clayId.id == elementId.id) {
@@ -219,15 +223,18 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
 
 // Public API
 // ----------------------------------
+
 void Brick_HandleError(Clay_ErrorData errorData);
+
 uint32_t Brick_CreateButton(const char* label);
 
 // initializes Clay first, then Brick
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     printf("Initializing Brick");
-
+    // cache window dimensions
     g_window.width = width;
     g_window.height = height;
+
     // 1. Query minimum memory required for default element limits
     uint64_t memorySize = Clay_MinMemorySize();
     // 2. Allocate memory (malloc, stack, or custom allocator)
@@ -236,9 +243,11 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     g_clay_arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
     // 4. Initialize Clay [clay.h:2186-2188]
     Clay_Initialize(g_clay_arena, Clay_Dimensions({ width, height }), Clay_ErrorHandler({ .errorHandlerFunction = Brick_HandleError, .userData = nullptr }));
-
+    // 5. Set the MeasureText function along with pointer to fonts
     Clay_SetMeasureTextFunction(measureTextFunction, fontData);
 
+    // seed button array at index 0
+    // for safety and as a neutral value
     Brick_CreateButton("BRICK");
 }
 
