@@ -23,7 +23,9 @@
 // Default Settings 
 // ---------------------------------------------------------------
 
-#define BRICK_MAX_BUTTONS 128
+#define BRICK_MAX_BUTTONS 256
+#define BRICK_MAX_BUTTON_GROUP_SIZE 16
+#define BRICK_MAX_BUTTON_GROUPS 16
 #define BRICK_MAX_SCROLLBOXES 32
 #define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_SCROLLBOXES)
 
@@ -62,6 +64,11 @@ typedef struct {
     bool blurred;
     bool released;
 } Brick_Button;
+
+typedef struct {
+    size_t length;
+    uint32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
+} Brick_ElementGroup;
 
 // Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
@@ -126,9 +133,20 @@ Brick_Button* Brick_ButtonArray_Get(Brick_ButtonArray* array, int32_t index) {
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Button_DEFAULT;
 }    
 
-typedef struct Brick__Elements {
+typedef struct Brick_ButtonGroupArray {
+    size_t length;
+    Brick_ElementGroup* data;
+} Brick_ButtonGroupArray;
+
+Brick_ElementGroup Brick_ElementGroup_DEFAULT = CLAY__DEFAULT_STRUCT;
+Brick_ElementGroup* Brick_ButtonGroupArray_Get(Brick_ButtonGroupArray* array, int32_t index) {                                                    
+    return index < array->length && index >= 0 ? &array->data[index] : &Brick_ElementGroup_DEFAULT;
+}
+
+typedef struct Brick_Elements {
     Brick_ButtonArray buttons;
-} Brick__Elements;
+    Brick_ButtonGroupArray buttonGroups;
+} Brick_Elements;
 
 // Global Context
 // --------------------------
@@ -141,10 +159,16 @@ Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
 // Main element state arrays
 Brick_Button g_buttons[BRICK_MAX_BUTTONS];
-Brick__Elements g_elements = {
+Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
+
+Brick_Elements g_elements = {
     .buttons = {
         .length = 0,
         .data = g_buttons
+    },
+    .buttonGroups = {
+        .length = 0,
+        .data = g_button_groups
     },
 };
 // keeps track of total elements created
@@ -227,10 +251,11 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
 void Brick_HandleError(Clay_ErrorData errorData);
 
 uint32_t Brick_CreateButton(const char* label);
+uint32_t Brick_GroupButtons(const uint32_t* buttonIds, size_t groupSize);
 
 // initializes Clay first, then Brick
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
-    printf("Initializing Brick");
+    printf("Initializing Brick\n");
     // cache window dimensions
     g_window.width = width;
     g_window.height = height;
@@ -249,6 +274,12 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     // seed button array at index 0
     // for safety and as a neutral value
     Brick_CreateButton("BRICK");
+    // seed button groups, needs to bypass GroupButton
+    // because it is used to check validity
+    // g_button_groups[0] = {
+    //     .length = 1,
+    //     .ids = &Brick_ElementGroup_DEFAULT
+    // }
 }
 
 // simple wrapper around Clay_BeginLayout
@@ -288,6 +319,34 @@ uint32_t Brick_CreateButton(const char* label) {
     g_elements.buttons.length++;
     g_element_count++;
 
+    return index;
+}
+
+uint32_t Brick_GroupButtons(const uint32_t* buttonIds, size_t groupSize) {
+
+    bool validGroup = true;
+    Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
+
+    for (uint32_t i = 0; i < groupSize; i++) {
+        Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonIds[i]);
+
+        if (button->id <= 0 || button->id > g_elements.buttons.length) {
+            printf("Brick Error: Cannot create button group. Invalid button ID %d.", buttonIds[i]);
+            validGroup = false;
+            break;
+        }
+
+        group.ids[i] = button->id;
+        group.length++;
+    }
+
+    // TODO: exit or handle error instead of return 0 here (0 is valid group!)
+    if (!validGroup) return 0;
+
+    uint32_t index = g_elements.buttonGroups.length;
+    g_button_groups[index] = group;
+    g_elements.buttonGroups.length++;
+    
     return index;
 }
 
@@ -388,6 +447,14 @@ void Brick_LayoutButton(uint32_t id) {
         // Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHover, nullptr);
         CLAY_TEXT(button->label, STYLE_TEXT_CENTERED);
+    }
+}
+
+void Brick_LayoutButtonGroup(int32_t groupId) {
+    const Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, groupId);
+
+    for (uint32_t i = 0; i < buttonGroup->length; i++) {
+        Brick_LayoutButton(buttonGroup->ids[i]);
     }
 }
 
