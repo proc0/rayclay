@@ -70,6 +70,7 @@ typedef struct {
     uint32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
 } Brick_ElementGroup;
 
+//TODO: rename HOVER to HOVER_START, HOVER, HOVER_END
 // Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
     // This event should be skipped.
@@ -180,43 +181,62 @@ Brick_Event g_events[BRICK_MAX_ELEMENTS];
 // Button internals
 // ---------------------------------------------------------------
 
-void Brick_OnButtonHover(uint32_t id, bool isHovered) {
+void Brick_OnButtonHover(uint32_t id, bool isHovering) {
     // NOTE: gets called on every frame with every button
     Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, id);
     
+    if (isHovering) {
+        if (g_window.hoveredId != id && g_window.lastHoveredId != id) {
+            g_window.hoveredId = id;
+            button->hovered = true;
+        } else if (g_window.hoveredId == id && g_window.lastHoveredId != id) {
+            g_window.lastHoveredId = id;
+        } 
+        // else if (g_window.hoveredId != id && g_window.lastHoveredId == id) { }
+    } else {
+        if (g_window.hoveredId == id && g_window.lastHoveredId == id) {
+            g_window.hoveredId = 0;
+            button->hovered = false;
+            button->blurred = true;
+        // } else if (g_window.hoveredId == id && g_window.lastHoveredId != id) {
+        } else if (g_window.hoveredId != id && g_window.lastHoveredId == id) {
+            g_window.lastHoveredId = 0;
+            button->blurred = false;
+        }
+    }
     // Compares the cached pointer state with the current button hovered.
     // WARN: Conditional order is very sensitive.
     // 1. pointer enters button area - HOVER
     // 2. pointer is still in button area - HOVERING
     // 3. pointer leaves button area - BLUR
     // 4. clear pointer cache and button state after #3
-    if (!isHovered && g_window.hoveredId == id) {
-        // 3. BLUR: blur the current button
-        button->hovered = false;
-        button->blurred = true;
-        g_window.hoveredId = 0;
-    } else if (!isHovered && g_window.lastHoveredId == id) {
-        // 4. Clear BLUR. This allows for one frame of propagation of the blur
-        g_window.lastHoveredId = 0;
-        button->blurred = false;
-    } else if (isHovered && !button->hovered && g_window.hoveredId != id) {
-        // 1. HOVER: mark button as hovered
-        button->hovered = true;
-        // clear the state from the last button
-        Brick_Button* lastButton = Brick_ButtonArray_Get(&g_elements.buttons, g_window.lastHoveredId);
-        lastButton->hovered = false;
-        // NOTE: resetting lastHovered blur here in case pointer moves
-        // between buttons very quickly and did not clear properly
-        lastButton->blurred = false;
-        // save whatever is currently hovering as the last hover
-        g_window.lastHoveredId = g_window.hoveredId;
-        // cache the button id on the global window
-        g_window.hoveredId = id;
-    } else if (isHovered && g_window.hoveredId == id && g_window.lastHoveredId != id) {
-        // 2. HOVERING: this allows for one frame of propagation when the button was hovered
-        // and is queried to know the frame right after the button hovered
-        g_window.lastHoveredId = id;
-    }
+    // if (!isHovering && g_window.hoveredId == id) {
+    //     // 3. BLUR: blur the current button
+    //     button->hovered = false;
+    //     button->blurred = true;
+    //     g_window.hoveredId = 0;
+    // } else if (!isHovering && g_window.lastHoveredId == id) {
+    //     // 4. Clear BLUR. This allows for one frame of propagation of the blur
+    //     g_window.lastHoveredId = 0;
+    //     button->blurred = false;
+    // } else if (isHovering && !button->hovered && g_window.hoveredId != id) {
+    //     // 1. HOVER: mark button as hovered
+    //     button->hovered = true;
+    //     // clear the state from the last button
+    //     Brick_Button* lastButton = Brick_ButtonArray_Get(&g_elements.buttons, g_window.lastHoveredId);
+    //     lastButton->hovered = false;
+    //     // NOTE: resetting lastHovered blur here in case pointer moves
+    //     // between buttons very quickly and did not clear properly
+    //     lastButton->blurred = false;
+    //     // save whatever is currently hovering as the last hover
+    //     g_window.lastHoveredId = g_window.hoveredId;
+    //     // cache the button id on the global window
+    //     g_window.hoveredId = id;
+    // } else if (isHovering && g_window.hoveredId == id && g_window.lastHoveredId != id) {
+    //     // 2. HOVERING: this allows for one frame of propagation when the button was hovered
+    //     // and is queried to know the frame right after the button hovered
+    //     g_window.lastHoveredId = id;
+    // }
 }
 
 void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
@@ -408,7 +428,7 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
             events.length++;
         } 
         else if(button->blurred) {
-            button->blurred = false;
+            // button->blurred = false;
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_BLUR
