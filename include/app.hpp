@@ -40,6 +40,7 @@ class App : Layer {
     
     uint32_t buttonId;
     uint32_t buttonId2;
+    uint32_t buttonId3;
 
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;

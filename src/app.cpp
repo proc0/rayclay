@@ -64,6 +64,7 @@ void App::load() {
 
     buttonId = Brick_CreateButton("HELLO");
     buttonId2 = Brick_CreateButton("HELLO 2");
+    buttonId3 = Brick_CreateButton("HELLO 3");
 }
 
 void App::loadTarget() {
@@ -351,10 +352,17 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
+    if (Brick_PointerJustHovered()) {
+        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    } else if (Brick_PointerJustBlurred()) {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    }
+
     Brick_BeginLayout();
     Brick_BeginLayoutPanel();
     Brick_LayoutButton(buttonId);
     Brick_LayoutButton(buttonId2);
+    Brick_LayoutButton(buttonId3);
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 

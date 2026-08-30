@@ -1,11 +1,13 @@
 // VERSION: 0.1
 
-/*
-    NOTE: In order to use this library you must define
-    the following macro in exactly one file, _before_ including brick.h:
-
+/* 
+    USAGE: Define BRICK_IMPLEMENTATION in exactly ONE file, then include brick.h:
+    
     #define BRICK_IMPLEMENTATION
     #include "brick.h"
+    
+    Other files can include either brick.h or clay.h for types and utility functions.
+
 
     DESC: Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
 */
@@ -18,7 +20,15 @@
 #endif
 #include "clay.h"
 
+// Default Settings 
+// ---------------------------------------------------------------
+
 #define BRICK_MAX_ELEMENTS 256
+
+// Default Styles 
+// ---------------------------------------------------------------
+
+#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Public Types 
 // ---------------------------------------------------------------
@@ -106,7 +116,8 @@ Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {
     return index < array->length && index >= 0 ? &array->internalArray[index] : &Brick_Event_DEFAULT;
 }    
 
-#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+// Global State
+// --------------------------
 
 // Clay Global Arena
 Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
@@ -117,9 +128,8 @@ Brick_Window  g_window = CLAY__DEFAULT_STRUCT;
 Brick_Element g_elements[BRICK_MAX_ELEMENTS];
 size_t        g_element_index = 0;
 
-/* ---- Per-frame: reset at start of frame, read after PollEvents ---- */
-Brick_Event   g_events[BRICK_MAX_ELEMENTS];   /* max one event per element per frame */
-// size_t        g_event_index = 0;
+// tracks g_elements, each event maps to each element
+Brick_Event   g_events[BRICK_MAX_ELEMENTS];
 
 // Helper functions
 // --------------------------
