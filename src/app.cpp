@@ -362,10 +362,10 @@ Clay_RenderCommandArray App::update() {
 
     Brick_BeginLayout();
     Brick_BeginLayoutPanel();
-    // Brick_LayoutButton(buttonId);
-    // Brick_LayoutButton(buttonId2);
-    // Brick_LayoutButton(buttonId3);
-    Brick_LayoutButtonGroup(buttonGroupId1);
+    Brick_LayoutButton(buttonId);
+    Brick_LayoutButton(buttonId2);
+    Brick_LayoutButton(buttonId3);
+    // Brick_LayoutButtonGroup(buttonGroupId1);
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 
