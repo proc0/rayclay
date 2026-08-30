@@ -8,7 +8,8 @@ int main(void){
     app->unload(0, 0, app);
 
     delete app;
-
+    app = nullptr;
+    
     return 0;
 }
 

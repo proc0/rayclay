@@ -59,7 +59,7 @@ typedef struct {
     bool pressed;
     bool blurred;
     bool released;
-} Brick_Element;
+} Brick_Button;
 
 // Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
@@ -80,18 +80,16 @@ typedef CLAY_PACKED_ENUM {
 } Brick_EventType;
 
 typedef struct Brick_Event {
-    // The id of this element
+    // internal brick id
     uint32_t id;
-    // The event that this element is in
+    // event state for the element
     Brick_EventType eventType;
 } Brick_Event;
 
-// A sized array of events
+// events array container
 typedef struct Brick_EventArray {
-    // The number of initialized elements in this array. Used for loops and iteration.
     int32_t length;
-    // A pointer to the first element in the internal array.
-    Brick_Event* internalArray;
+    Brick_Event* data;
 } Brick_EventArray;
 
 #ifdef __cplusplus
@@ -113,8 +111,22 @@ Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
 
 Brick_Event Brick_Event_DEFAULT = CLAY__DEFAULT_STRUCT;
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
-    return index < array->length && index >= 0 ? &array->internalArray[index] : &Brick_Event_DEFAULT;
+    return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
 }    
+
+typedef struct Brick_ButtonArray {
+    int32_t length;
+    Brick_Button* data;
+} Brick_ButtonArray;
+
+Brick_Button Brick_Button_DEFAULT = CLAY__DEFAULT_STRUCT;
+Brick_Button* Brick_ButtonArray_Get(Brick_ButtonArray* array, int32_t index) {                                                    
+    return index < array->length && index >= 0 ? &array->data[index] : &Brick_Button_DEFAULT;
+}    
+
+typedef struct Brick__Elements {
+    Brick_ButtonArray buttons;
+} Brick__Elements;
 
 // Global State
 // --------------------------
@@ -123,28 +135,38 @@ Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {
 Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
 // Brick state variables
-Brick_Window  g_window = CLAY__DEFAULT_STRUCT;
+Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
-Brick_Element g_elements[BRICK_MAX_ELEMENTS];
-size_t        g_element_index = 0;
+Brick_Button g_buttons[BRICK_MAX_ELEMENTS];
+Brick__Elements g_elements = {
+    .buttons = {
+        .length = 0,
+        .data = g_buttons
+    },
+};
 
-// tracks g_elements, each event maps to each element
-Brick_Event   g_events[BRICK_MAX_ELEMENTS];
+size_t g_element_count = 0;
+
+Brick_Event g_events[BRICK_MAX_ELEMENTS];
 
 // Helper functions
 // --------------------------
 
 void Brick_OnButtonHover(uint32_t id, bool isHovered) {
+    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, id);
     // gets called on every frame with every button
     // compare the cached buttons with the current button hovered
     // and move the current hovered to the last hovered
-    if (isHovered && !g_elements[id].hovered && g_window.hoveredId != id) {
+    if (isHovered && !button->hovered && g_window.hoveredId != id) {
         // mark the button as hovered
-        g_elements[id].hovered = true;
-        g_elements[g_window.lastHoveredId].hovered = false;
+        button->hovered = true;
+
+        Brick_Button* lastButton = Brick_ButtonArray_Get(&g_elements.buttons, g_window.lastHoveredId);
+        lastButton->hovered = false;
         // NOTE: resetting lastHovered blur here prevents fast hover changes
         // that prevent the blur from being reset in the last conditional
-        g_elements[g_window.lastHoveredId].blurred = false;
+        lastButton->blurred = false;
+
         g_window.lastHoveredId = g_window.hoveredId;
         g_window.hoveredId = id;
 
@@ -154,32 +176,34 @@ void Brick_OnButtonHover(uint32_t id, bool isHovered) {
         g_window.lastHoveredId = id;
     } else if (!isHovered && g_window.hoveredId == id) {
         // blur the current button
-        g_elements[id].hovered = false;
-        g_elements[id].blurred = true;
+        button->hovered = false;
+        button->blurred = true;
         g_window.hoveredId = 0;
     } else if (!isHovered && g_window.lastHoveredId == id) {
         // this allows for one frame of propagation of the blur
         g_window.lastHoveredId = 0;
-        g_elements[id].blurred = false;
+        button->blurred = false;
     }
 }
 
 void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     
     for (uint32_t i = 1; i < BRICK_MAX_ELEMENTS; i++) {
-        if(g_elements[i].clayId.id == elementId.id) {
+        Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
+        
+        if(button->clayId.id == elementId.id) {
             switch(pointerData.state) {
             case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
                 // printf("CLICK %d\n", elementId.id);
-                g_elements[i].clicked = true;
+                button->clicked = true;
                 break;
             case CLAY_POINTER_DATA_PRESSED:
-                g_elements[i].pressed = true;
+                button->pressed = true;
                 break;
             case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
-                g_elements[i].clicked = false;
-                g_elements[i].pressed = false;
-                g_elements[i].released = true;
+                button->clicked = false;
+                button->pressed = false;
+                button->released = true;
                 break;
             case CLAY_POINTER_DATA_RELEASED:
                 // NOTE: This is just the same as hover, Clay triggers this if pointer 
@@ -241,8 +265,8 @@ uint32_t Brick_CreateButton(const char* label) {
     };
     Clay_ElementId buttonId = CLAY_SID(clayString);
 
-    uint32_t index = g_element_index;
-    g_elements[g_element_index] = (Brick_Element){
+    uint32_t index = g_elements.buttons.length;
+    g_buttons[index] = (Brick_Button){
         .clayId = buttonId,
         .label = clayString,
         .id = index,
@@ -252,7 +276,8 @@ uint32_t Brick_CreateButton(const char* label) {
         .blurred = false,
         .released = false,
     };
-    g_element_index++;
+    g_elements.buttons.length++;
+    g_element_count++;
 
     return index;
 }
@@ -272,43 +297,44 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
     
     Brick_EventArray events = {
         .length = 0,
-        .internalArray = g_events
+        .data = g_events
     };
 
-    for (uint32_t i = 1; i < g_element_index; i++) {
+    for (uint32_t i = 1; i < g_element_count; i++) {
+        Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
 
-        if(g_elements[i].clicked && !g_elements[i].pressed) {
+        if(button->clicked && !button->pressed) {
             // click only lasts one frame
-            // g_elements[i].clicked = false;
+            // button->clicked = false;
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_PRESS
             };
             events.length++;
         } 
-        else if (g_elements[i].pressed) { 
+        else if (button->pressed) { 
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_PRESSING
             };
             events.length++;
         } 
-        else if(g_elements[i].released) {
-            g_elements[i].released = false;
+        else if(button->released) {
+            button->released = false;
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_RELEASE
             };
             events.length++;
         }
-        else if(g_elements[i].hovered) {
+        else if(button->hovered) {
             g_events[events.length] = {
                 .id = i,
                 .eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING
             };
             events.length++;
         } 
-        else if(g_elements[i].blurred) {
+        else if(button->blurred) {
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_BLUR
@@ -323,13 +349,11 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
 void Brick_LayoutButton(uint32_t id) {
-    if (id > g_element_index) return;
+    if (id > g_elements.buttons.length) return;
 
-    const Brick_Element* button = &g_elements[id];
-    // if (button != nullptr) {
-    //     printf("layout button %s", button->label);
-    // }
-    CLAY(button->clayId, { 
+    const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, id);
+
+    CLAY(button->clayId, {
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0)
@@ -434,13 +458,16 @@ void Brick_HandleError(Clay_ErrorData errorData) {
         default: break;
     }
     
-    if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
-        Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
-    } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
-        Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
-    }
-
-    // Brick_Initialize(g_window.width, g_window.height);
+    // NOTE: this handles Clay exceed element count
+    // TODO: decide to initialize Clay only or Brick & Clay, and how this would work
+    // with Brick element max count
+    // if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED) {
+    //     Clay_SetMaxElementCount(Clay_GetMaxElementCount() * 2);
+    //     Brick_Initialize(g_window.width, g_window.height);
+    // } else if (errorData.errorType == CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED) {
+    //     Clay_SetMaxMeasureTextCacheWordCount(Clay_GetMaxMeasureTextCacheWordCount() * 2);
+    //     Brick_Initialize(g_window.width, g_window.height);
+    // }
 }
 
 #endif /* BRICK_IMPLEMENTATION */
