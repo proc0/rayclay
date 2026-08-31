@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <cstring>
 
+static Shader overlayShader;
+static int overlayColorLocation;
+
+static char *temp_render_buffer = NULL;
+static int temp_render_buffer_len = 0;
 
 Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData) {
     // Measure string size for Font

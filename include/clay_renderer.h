@@ -14,12 +14,6 @@
 #define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
 #define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(color.r), static_cast<float>(color.g), static_cast<float>(color.b), static_cast<float>(color.a) })
 
-static Shader overlayShader;
-static int colorLoc;
-static int overlayColorLocation;
-
-static char *temp_render_buffer = NULL;
-static int temp_render_buffer_len = 0;
 
 Clay_Dimensions Raylib_MeasureText(Clay_StringSlice text, Clay_TextElementConfig *config, void *userData);
 void LoadOverlay();
