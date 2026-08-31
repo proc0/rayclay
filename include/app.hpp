@@ -41,7 +41,7 @@ class App : Layer {
     Brick_ElementId buttonId;
     Brick_ElementId buttonId2;
     Brick_ElementId buttonId3;
-    uint32_t buttonGroupId1;
+    Brick_ElementId buttonGroupId1;
 
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;

@@ -329,7 +329,7 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
 void Brick_HandleError(Clay_ErrorData errorData);
 
 Brick_ElementId Brick_CreateButton(const char* label);
-uint32_t Brick_GroupButtons(const uint32_t* buttonIds, size_t groupSize);
+Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, size_t groupSize);
 
 // initializes Clay first, then Brick
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
@@ -351,7 +351,9 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
 
     // seed button array at index 0
     // for safety and as a neutral value
-    Brick_CreateButton("BRICK");
+    Brick_ElementId buttonIdSeed = Brick_CreateButton("BRICK");
+    Brick_ElementId buttonGroupSeed[1] = { buttonIdSeed };
+    Brick_GroupButtons(buttonGroupSeed, 1);
     // seed button groups, needs to bypass GroupButton
     // because it is used to check validity
     // g_button_groups[0] = {
@@ -405,7 +407,7 @@ Brick_ElementId Brick_CreateButton(const char* label) {
     return buttonId;
 }
 
-uint32_t Brick_GroupButtons(const Brick_ElementId* buttonIds, size_t groupSize) {
+Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, size_t groupSize) {
 
     bool validGroup = true;
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
@@ -430,13 +432,18 @@ uint32_t Brick_GroupButtons(const Brick_ElementId* buttonIds, size_t groupSize) 
     }
 
     // TODO: exit or handle error instead of return 0 here (0 is valid group!)
-    if (!validGroup) return 0;
+    if (!validGroup) return (Brick_ElementId){ .index = 0, .type = BRICK_ELEMENT_TYPE_BUTTON_GROUP };
 
     uint32_t index = g_elements.buttonGroups.length;
     g_button_groups[index] = group;
     g_elements.buttonGroups.length++;
+
+    Brick_ElementId buttonGroupId = (Brick_ElementId){
+        .index = index,
+        .type = BRICK_ELEMENT_TYPE_BUTTON_GROUP
+    };
     
-    return index;
+    return buttonGroupId;
 }
 
 bool Brick_PointerJustHovered() {
@@ -558,8 +565,11 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
     }
 }
 
-void Brick_LayoutButtonGroup(int32_t groupId) {
-    const Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, groupId);
+void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
+    // TODO: add error handling
+    if (groupId.type != BRICK_ELEMENT_TYPE_BUTTON_GROUP) return;
+
+    const Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, groupId.index);
 
     for (uint32_t i = 0; i < buttonGroup->length; i++) {
         // TODO: create another internal interface to skip constructing brick_elementID
