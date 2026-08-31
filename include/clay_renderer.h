@@ -3,7 +3,7 @@
 #ifndef RAYLIB_CLAY_RENDERER
 #define RAYLIB_CLAY_RENDERER
 
-#include "clay.h"
+#include "brick.h"
 
 #include "raylib.h"
 

@@ -10,7 +10,7 @@
 
 // #include "surface.hpp"
 // #include "clay.h"
-#include "clay.h"
+#include "brick.h"
 #include <cstdint>
 
 class App : Layer {
@@ -38,9 +38,9 @@ class App : Layer {
     Game game = Game(window);
     Logo logo = Logo(window);
     
-    uint32_t buttonId;
-    uint32_t buttonId2;
-    uint32_t buttonId3;
+    Brick_ElementId buttonId;
+    Brick_ElementId buttonId2;
+    Brick_ElementId buttonId3;
     uint32_t buttonGroupId1;
 
 	State::App state = State::App::LOAD;

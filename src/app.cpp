@@ -65,7 +65,7 @@ void App::load() {
     buttonId = Brick_CreateButton("HELLO");
     buttonId2 = Brick_CreateButton("HELLO 2");
     buttonId3 = Brick_CreateButton("HELLO 3");
-    uint32_t buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
+    Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
     buttonGroupId1 = Brick_GroupButtons(buttonGroup1, 3);
 }
 
@@ -362,10 +362,13 @@ Clay_RenderCommandArray App::update() {
 
     Brick_BeginLayout();
     Brick_BeginLayoutPanel();
-    Brick_LayoutButton(buttonId);
-    Brick_LayoutButton(buttonId2);
-    Brick_LayoutButton(buttonId3);
-    // Brick_LayoutButtonGroup(buttonGroupId1);
+    // Brick_LayoutButton(buttonId);
+    // Brick_LayoutButton(buttonId2);
+    // Brick_LayoutButton(buttonId3);
+    Brick_LayoutButtonGroup(buttonGroupId1);
+    Brick_BeginLayoutTogglePanel(buttonId2);
+        CLAY_TEXT(CLAY_STRING("HAHAAHHAHA"), STYLE_TEXT_DEFAULT);
+    Brick_EndLayoutTogglePanel(buttonId2);
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 
