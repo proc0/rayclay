@@ -336,7 +336,7 @@ Clay_RenderCommandArray App::update() {
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
         break;
         case BRICK_EVENT_PRESSING:
-            TraceLog(LOG_INFO, "CLICKING...");
+            // TraceLog(LOG_INFO, "CLICKING...");
         break;
         case BRICK_EVENT_RELEASE:
             TraceLog(LOG_INFO, "RELEASE");
@@ -346,7 +346,7 @@ Clay_RenderCommandArray App::update() {
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         break;
         case BRICK_EVENT_HOVERING:
-            TraceLog(LOG_INFO, "HOVERING...");
+            // TraceLog(LOG_INFO, "HOVERING...");
         break;
         case BRICK_EVENT_CLEAR:
             TraceLog(LOG_INFO, "JUST CLEARED");
@@ -370,9 +370,16 @@ Clay_RenderCommandArray App::update() {
     // Brick_LayoutButton(buttonId2);
     // Brick_LayoutButton(buttonId3);
     Brick_LayoutButtonGroup(buttonGroupId1);
-    Brick_BeginLayoutTogglePanel(buttonId2);
+    if(Brick_BeginLayoutTogglePanel(buttonId)) {
         CLAY_TEXT(CLAY_STRING("HAHAAHHAHA"), STYLE_TEXT_DEFAULT);
-    Brick_EndLayoutTogglePanel(buttonId2);
+        Brick_EndLayoutPanel();
+    } else if(Brick_BeginLayoutTogglePanel(buttonId2)) {
+        CLAY_TEXT(CLAY_STRING("MUQAHAHAHAHA"), STYLE_TEXT_DEFAULT);
+        Brick_EndLayoutPanel();
+    } else if(Brick_BeginLayoutTogglePanel(buttonId3)) {
+        CLAY_TEXT(CLAY_STRING("TAB333333"), STYLE_TEXT_DEFAULT);
+        Brick_EndLayoutPanel();
+    }
     Brick_EndLayoutPanel();
     Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
 

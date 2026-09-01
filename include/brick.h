@@ -108,6 +108,7 @@ typedef struct {
     Clay_ElementId clayId;
     Clay_String label;
     Brick_ElementId id;
+    int32_t groupIndex;
     bool hovered;
     bool cleared;
     bool clicked;
@@ -284,9 +285,19 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
         if(button->clayId.id == elementId.id) {
             switch(pointerData.state) {
             case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
-                // printf("CLICK %d\n", elementId.id);
+                // if button is part of a group, clear
+                // the toggled flag
+                if (button->groupIndex > 0) {
+                    Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, button->groupIndex);
+                    for(int32_t j = 0; j < buttonGroup->length; j++) {
+                        int32_t buttonIdx = buttonGroup->ids[j];
+                        Brick_Button* groupBtn = Brick_ButtonArray_Get(&g_elements.buttons, buttonIdx);
+                        groupBtn->toggled = false;
+                    }
+                }
                 button->clicked = true;
                 button->toggled = !button->toggled;
+
                 break;
             case CLAY_POINTER_DATA_PRESSED:
                 button->clicked = false;
@@ -381,6 +392,7 @@ Brick_ElementId Brick_CreateButton(const char* label) {
         .clayId = CLAY_SID(clayString),
         .label = clayString,
         .id = buttonId,
+        .groupIndex = 0,
         .hovered = false,
         .cleared = false,
         .clicked = false,
@@ -398,8 +410,12 @@ Brick_ElementId Brick_CreateButton(const char* label) {
 
 Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize) {
 
+    // get the next index to store in button
+    int32_t index = g_elements.buttonGroups.length;
+    // default group init
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
 
+    // iterate over the button ids
     for (int32_t i = 0; i < groupSize; i++) {
         if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON) {
             // TODO: exit or handle error 
@@ -415,11 +431,14 @@ Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t gro
             return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
         }
 
+        // cross reference the group
+        button->groupIndex = index;
+        // store the button id in the group
         group.ids[i] = button->id.index;
         group.length++;
     }
 
-    int32_t index = g_elements.buttonGroups.length;
+    // if all buttons are valid, store the group
     g_elements.buttonGroups.data[index] = group;
     g_elements.buttonGroups.length++;
 
@@ -604,15 +623,18 @@ void Brick_EndLayoutPanel(void) {
     Clay__CloseElement();
 }
 
-void Brick_BeginLayoutTogglePanel(Brick_ElementId buttonId) {
+bool Brick_BeginLayoutTogglePanel(Brick_ElementId buttonId) {
     // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return;
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return false;
 
     const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
 
     if (button->toggled) {
         Brick_BeginLayoutPanel();
+        return true;
     }
+
+    return false;
 }
 
 void Brick_EndLayoutTogglePanel(Brick_ElementId buttonId) {
