@@ -328,33 +328,33 @@ Clay_RenderCommandArray App::update() {
     });
     // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
     
-    // for (int i=0; i<eventArray.length; i++) {
-    //     Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
+    for (int i=0; i<eventArray.length; i++) {
+        Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
 
-    //     switch(event->eventType) {
-    //     case BRICK_EVENT_PRESS:
-    //         TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
-    //     break;
-    //     case BRICK_EVENT_PRESSING:
-    //         TraceLog(LOG_INFO, "CLICKING...");
-    //     break;
-    //     case BRICK_EVENT_RELEASE:
-    //         TraceLog(LOG_INFO, "RELEASE");
-    //     break;
-    //     case BRICK_EVENT_HOVER:
-    //         TraceLog(LOG_INFO, "JUST HOVERED");
-    //         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    //     break;
-    //     case BRICK_EVENT_HOVERING:
-    //         TraceLog(LOG_INFO, "HOVERING...");
-    //     break;
-    //     case BRICK_EVENT_CLEAR:
-    //         TraceLog(LOG_INFO, "JUST CLEARED");
-    //         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-    //     break;
-    //     default: break;
-    //     }
-    // }
+        switch(event->eventType) {
+        case BRICK_EVENT_PRESS:
+            TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
+        break;
+        case BRICK_EVENT_PRESSING:
+            TraceLog(LOG_INFO, "CLICKING...");
+        break;
+        case BRICK_EVENT_RELEASE:
+            TraceLog(LOG_INFO, "RELEASE");
+        break;
+        case BRICK_EVENT_HOVER:
+            TraceLog(LOG_INFO, "JUST HOVERED");
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+        break;
+        case BRICK_EVENT_HOVERING:
+            TraceLog(LOG_INFO, "HOVERING...");
+        break;
+        case BRICK_EVENT_CLEAR:
+            TraceLog(LOG_INFO, "JUST CLEARED");
+            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        break;
+        default: break;
+        }
+    }
 
     if (Brick_OnEventTriggered(BRICK_EVENT_HOVER)) {
         TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
