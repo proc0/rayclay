@@ -347,16 +347,18 @@ Clay_RenderCommandArray App::update() {
         case BRICK_EVENT_HOVERING:
             // TraceLog(LOG_INFO, "HOVERING...");
         break;
-        case BRICK_EVENT_BLUR:
-            TraceLog(LOG_INFO, "BLUR ID:%d", event->id);
+        case BRICK_EVENT_CLEAR:
+            TraceLog(LOG_INFO, "CLEAR ID:%d", event->id);
         break;
         default: break;
         }
     }
 
     if (Brick_PointerJustHovered()) {
+        TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    } else if (Brick_PointerJustBlurred()) {
+    } else if (Brick_PointerJustCleared()) {
+        TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 

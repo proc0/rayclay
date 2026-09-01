@@ -21,8 +21,14 @@
     7. provide an easy way to localize, i.e. through Brick_TextEx or TextPro or a Brick_LocalizedText, that would stand in for normal strings and can be globally configured
 */
 
-// TODO: double check cleanup of global state in Destroy
-// TODO: separate element ids from array indices, create a global incremental id, and getters and setters
+// TODO: make the button events and flags consistent:
+// hover
+// hovering
+// hovered
+// press
+// pressing
+// pressed
+
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
 #endif
@@ -30,7 +36,6 @@
 
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
-
 
 // Default Settings 
 // ---------------------------------------------------------------
@@ -127,7 +132,7 @@ typedef CLAY_PACKED_ENUM {
     // Triggers when the element is being hovered
     BRICK_EVENT_HOVERING,
     // Triggers on the frame hovering stops
-    BRICK_EVENT_BLUR,
+    BRICK_EVENT_CLEAR,
     // Triggers when the element is pressed with the primary input (first frame only)
     BRICK_EVENT_PRESS,
     // Triggers while the element is being pressed on across frames
@@ -204,16 +209,16 @@ typedef struct Brick_Elements {
 // --------------------------
 
 // Clay context
-Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
+static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
 // Window state also holds pointer state
-Brick_Window g_window = CLAY__DEFAULT_STRUCT;
+static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
 // Main element state arrays
-Brick_Button g_buttons[BRICK_MAX_BUTTONS];
-Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
+static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
+static Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
 
-Brick_Elements g_elements = {
+static Brick_Elements g_elements = {
     .buttons = {
         .length = 0,
         .data = g_buttons
@@ -224,10 +229,10 @@ Brick_Elements g_elements = {
     },
 };
 // keeps track of total elements created
-int32_t g_element_count = 0;
+static int32_t g_element_count = 0;
 
 // event array passed back to user to handle events
-Brick_Event g_events[BRICK_MAX_ELEMENTS];
+static Brick_Event g_events[BRICK_MAX_ELEMENTS];
 
 // Button internals
 // ---------------------------------------------------------------
@@ -256,12 +261,14 @@ void Brick_OnButtonHover(int32_t idx, bool isHovering) {
     } else {
         // exiting hover
         if (g_window.hoveredId == idx) {
+            printf("BRICK: HOVER CLEAR BEGIN\n");
             g_window.hoveredId = 0;
             button->hovered = false;
             button->cleared = true;
         // one frame after exiting hover. Note: checking both last hover state, 
         // and the cleared flag for cases when pointer is moving really fast
         } else if (g_window.lastHoveredId == idx || button->cleared) {
+            printf("BRICK: HOVER CLEARED\n");
             g_window.lastHoveredId = 0;
             button->cleared = false;
         }
@@ -281,6 +288,7 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
                 button->toggled = !button->toggled;
                 break;
             case CLAY_POINTER_DATA_PRESSED:
+                button->clicked = false;
                 button->pressed = true;
                 break;
             case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
@@ -425,7 +433,7 @@ bool Brick_PointerJustHovered() {
     return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
 }
 
-bool Brick_PointerJustBlurred() {
+bool Brick_PointerJustCleared() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
 }
 
@@ -443,8 +451,9 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
 
         if(button->clicked && !button->pressed) {
-            // click only lasts one frame
-            // button->clicked = false;
+            // prevents event from firing after button is
+            // not rendered, i.e. clicking to change panels
+            button->clicked = false;
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_PRESS
@@ -459,6 +468,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
             events.length++;
         } 
         else if(button->released) {
+            // prevents from firing after button is
+            // blocked or not rendered, i.e. showing a popup window
             button->released = false;
             g_events[events.length] = {
                 .id = i,
@@ -474,10 +485,9 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
             events.length++;
         } 
         else if(button->cleared) {
-            // button->cleared = false;
             g_events[events.length] = {
                 .id = i,
-                .eventType = BRICK_EVENT_BLUR
+                .eventType = BRICK_EVENT_CLEAR
             };
             events.length++;
         }
