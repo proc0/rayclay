@@ -121,22 +121,27 @@ typedef struct {
     int32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
 } Brick_ElementGroup;
 
+// WARN: CHECK MAX COUNT WHEN ADDING EVENTS
 #define BRICK_MAX_EVENT_TYPES 10
-// Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
-    // This event should be skipped.
     BRICK_EVENT_NONE,
-    // Triggers when the element is hovered (first frame only)
+    // Pointer enters hover
+    // Duration: single frame
     BRICK_EVENT_HOVER,
-    // Triggers when the element is being hovered
+    // Pointer is hovering
+    // Duration: continuous frames
     BRICK_EVENT_HOVERING,
-    // Triggers on the frame hovering stops
+    // Pointer exits hover
+    // Duration: single frame
     BRICK_EVENT_CLEAR,
-    // Triggers when the element is pressed with the primary input (first frame only)
+    // Element is pressed and 
+    // released quickly (click event)
     BRICK_EVENT_PRESS,
-    // Triggers while the element is being pressed on across frames
+    // Element is being pressed
+    // Duration: continuous frames
     BRICK_EVENT_PRESSING,
-    // Triggers on the exact frame (or delayed by one) the press was released
+    // Element stopped being pressed
+    // Duration: single frame
     BRICK_EVENT_RELEASE,
 } Brick_EventType;
 
@@ -226,10 +231,11 @@ static Brick_Elements g_elements = {
     },
 };
 
-static bool g_is_events_snapshot_dirty = false;
-static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 // event array passed back to user to handle events
 static Brick_Event g_events[BRICK_MAX_ELEMENTS];
+// events snapshot array stores which events were triggered per frame
+static bool g_is_events_snapshot_dirty = false;
+static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
 // Button internals
 // ---------------------------------------------------------------
@@ -396,7 +402,7 @@ Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t gro
 
     for (int32_t i = 0; i < groupSize; i++) {
         if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON) {
-            // TODO: exit or handle error instead of return 0 here (0 is valid group!)
+            // TODO: exit or handle error 
             printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
             return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
         }
@@ -404,7 +410,7 @@ Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t gro
         Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonIds[i].index);
 
         if (button->id.index == 0) {
-            // TODO: exit or handle error instead of return 0 here (0 is valid group!)
+            // TODO: exit or handle error 
             printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
             return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
         }
@@ -441,6 +447,7 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         .data = g_events
     };
 
+    // clear the events snapshot
     if (g_is_events_snapshot_dirty) {
         for (int32_t i = 1; i < BRICK_MAX_EVENT_TYPES; i++) {
             g_events_snapshot[i] = false;
@@ -506,12 +513,13 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         }
     }
 
+    // flag the events snapshot for clear
     if (events.length) g_is_events_snapshot_dirty = true;
 
     return events;
 }
 
-bool Brick_OnEventTriggered(Brick_EventType eventType) {
+bool Brick_IsEventTriggered(Brick_EventType eventType) {
     // TODO: add some error handling
     if (eventType > BRICK_MAX_EVENT_TYPES) return false;
     

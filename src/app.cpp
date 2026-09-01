@@ -356,10 +356,10 @@ Clay_RenderCommandArray App::update() {
         }
     }
 
-    if (Brick_OnEventTriggered(BRICK_EVENT_HOVER)) {
+    if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
         TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    } else if (Brick_OnEventTriggered(BRICK_EVENT_CLEAR)) {
+    } else if (Brick_IsEventTriggered(BRICK_EVENT_CLEAR)) {
         TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
