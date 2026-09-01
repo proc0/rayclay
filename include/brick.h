@@ -1,33 +1,32 @@
-// VERSION: 0.1
+/*
 
-/* 
-    USAGE: Define BRICK_IMPLEMENTATION in exactly ONE file, then include brick.h:
-    
-    #define BRICK_IMPLEMENTATION
-    #include "brick.h"
-    
-    Other files can include either brick.h or clay.h for types and utility functions.
+# BRICK UI 
+v0.1
 
+## USAGE
+Define BRICK_IMPLEMENTATION in exactly ONE file only.
+Then include brick.h in the line after, and/or other files.
 
-    DESC: Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
+```C/C++
+#define BRICK_IMPLEMENTATION
+#include "brick.h"
+```
 
-    OBJ:
-    1. add basic UI state, i.e. button hover or not, button is toggled, panel is visible or hidden
-    2. separate content from layout, i.e. declar button and labels in one place, use them in the layout later
-    3. uses 'embeded scope constructs' like Raylib to match this C style of API
-    4. provide sensible defaults where possible, windows grow, have some padding, etc
-    5. provide a global config that overrides defaults, change colors, adjust padding
-    6. add responsive reactive behavior to the window, i.e. resize on event window resizing and adjust layout dynamically
-    7. provide an easy way to localize, i.e. through Brick_TextEx or TextPro or a Brick_LocalizedText, that would stand in for normal strings and can be globally configured
+DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h for types or other utilities.
+
+## DESCRIPTION
+Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
+
+OBJ:
+1. add basic UI state, i.e. button hover or not, button is toggled, panel is visible or hidden
+2. separate content from layout, i.e. declar button and labels in one place, use them in the layout later
+3. uses 'embeded scope constructs' like Raylib to match this C style of API
+4. provide sensible defaults where possible, windows grow, have some padding, etc
+5. provide a global config that overrides defaults, change colors, adjust padding
+6. add responsive reactive behavior to the window, i.e. resize on event window resizing and adjust layout dynamically
+7. provide an easy way to localize, i.e. through Brick_TextEx or TextPro or a Brick_LocalizedText, that would stand in for normal strings and can be globally configured
+
 */
-
-// TODO: make the button events and flags consistent:
-// hover
-// hovering
-// hovered
-// press
-// pressing
-// pressed
 
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
@@ -110,9 +109,9 @@ typedef struct {
     Clay_String label;
     Brick_ElementId id;
     bool hovered;
+    bool cleared;
     bool clicked;
     bool pressed;
-    bool cleared;
     bool released;
     bool toggled;
 } Brick_Button;
@@ -122,7 +121,7 @@ typedef struct {
     int32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
 } Brick_ElementGroup;
 
-//TODO: rename HOVER to HOVER_START, HOVER, HOVER_END
+#define BRICK_MAX_EVENT_TYPES 10
 // Different event types triggered by element interactions
 typedef CLAY_PACKED_ENUM {
     // This event should be skipped.
@@ -139,10 +138,6 @@ typedef CLAY_PACKED_ENUM {
     BRICK_EVENT_PRESSING,
     // Triggers on the exact frame (or delayed by one) the press was released
     BRICK_EVENT_RELEASE,
-    // Triggers when the button is switched on
-    // BRICK_EVENT_TOGGLED_ON,
-    // Triggers when the button is switched off
-    // BRICK_EVENT_TOGGLED_OFF
 } Brick_EventType;
 
 typedef struct Brick_Event {
@@ -201,6 +196,7 @@ Brick_ElementGroup* Brick_ButtonGroupArray_Get(Brick_ButtonGroupArray* array, in
 }
 
 typedef struct Brick_Elements {
+    int32_t total_count;
     Brick_ButtonArray buttons;
     Brick_ButtonGroupArray buttonGroups;
 } Brick_Elements;
@@ -211,14 +207,15 @@ typedef struct Brick_Elements {
 // Clay context
 static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
-// Window state also holds pointer state
+// window state also holds pointer state
 static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
-// Main element state arrays
+// element state arrays
 static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
 static Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
 
 static Brick_Elements g_elements = {
+    .total_count = 0,
     .buttons = {
         .length = 0,
         .data = g_buttons
@@ -228,9 +225,9 @@ static Brick_Elements g_elements = {
         .data = g_button_groups
     },
 };
-// keeps track of total elements created
-static int32_t g_element_count = 0;
 
+static bool g_is_events_snapshot_dirty = false;
+static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 // event array passed back to user to handle events
 static Brick_Event g_events[BRICK_MAX_ELEMENTS];
 
@@ -261,14 +258,12 @@ void Brick_OnButtonHover(int32_t idx, bool isHovering) {
     } else {
         // exiting hover
         if (g_window.hoveredId == idx) {
-            printf("BRICK: HOVER CLEAR BEGIN\n");
             g_window.hoveredId = 0;
             button->hovered = false;
             button->cleared = true;
         // one frame after exiting hover. Note: checking both last hover state, 
         // and the cleared flag for cases when pointer is moving really fast
         } else if (g_window.lastHoveredId == idx || button->cleared) {
-            printf("BRICK: HOVER CLEARED\n");
             g_window.lastHoveredId = 0;
             button->cleared = false;
         }
@@ -375,64 +370,63 @@ Brick_ElementId Brick_CreateButton(const char* label) {
         .index = index,
         .type = BRICK_ELEMENT_TYPE_BUTTON,
     };
+
     Brick_Button new_button = {
         .clayId = CLAY_SID(clayString),
         .label = clayString,
         .id = buttonId,
         .hovered = false,
+        .cleared = false,
         .clicked = false,
         .pressed = false,
-        .cleared = false,
         .released = false,
         .toggled = false,
     };
+
     g_buttons[index] = new_button;
     g_elements.buttons.length++;
-    g_element_count++;
+    g_elements.total_count++;
 
     return buttonId;
 }
 
 Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize) {
 
-    bool validGroup = true;
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
 
     for (int32_t i = 0; i < groupSize; i++) {
         if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON) {
+            // TODO: exit or handle error instead of return 0 here (0 is valid group!)
             printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
-            validGroup = false;
-            break;
+            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
         }
 
         Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonIds[i].index);
 
-        if (button->id.index <= 0 || button->id.index > g_elements.buttons.length) {
+        if (button->id.index == 0) {
+            // TODO: exit or handle error instead of return 0 here (0 is valid group!)
             printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
-            validGroup = false;
-            break;
+            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
         }
 
         group.ids[i] = button->id.index;
         group.length++;
     }
 
-    // TODO: exit or handle error instead of return 0 here (0 is valid group!)
-    if (!validGroup) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
-
     int32_t index = g_elements.buttonGroups.length;
     g_elements.buttonGroups.data[index] = group;
     g_elements.buttonGroups.length++;
 
-    Brick_ElementId buttonGroupId = Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
-    
-    return buttonGroupId;
+    return Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
 }
 
+// Global pointer hover check on any button. This is meant to be used in PollEvents.
+// WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustHovered() {
     return g_window.hoveredId != 0 && g_window.lastHoveredId != g_window.hoveredId;
 }
-
+// Global pointer hover clear check on any button. This is meant to be used in PollEvents.
+// WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustCleared() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
 }
@@ -447,7 +441,15 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         .data = g_events
     };
 
-    for (int32_t i = 1; i < g_element_count; i++) {
+    if (g_is_events_snapshot_dirty) {
+        for (int32_t i = 1; i < BRICK_MAX_EVENT_TYPES; i++) {
+            g_events_snapshot[i] = false;
+        }
+    }
+
+    // Button Events ------------------------------------
+    // skip unit button at index 0
+    for (int32_t i = 1; i < g_elements.total_count; i++) {
         Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
 
         if(button->clicked && !button->pressed) {
@@ -459,6 +461,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
                 .eventType = BRICK_EVENT_PRESS
             };
             events.length++;
+
+            g_events_snapshot[BRICK_EVENT_PRESS] = true;
         } 
         else if (button->pressed) { 
             g_events[events.length] = {
@@ -466,7 +470,9 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
                 .eventType = BRICK_EVENT_PRESSING
             };
             events.length++;
-        } 
+
+            g_events_snapshot[BRICK_EVENT_PRESSING] = true;
+        }
         else if(button->released) {
             // prevents from firing after button is
             // blocked or not rendered, i.e. showing a popup window
@@ -476,24 +482,40 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
                 .eventType = BRICK_EVENT_RELEASE
             };
             events.length++;
+
+            g_events_snapshot[BRICK_EVENT_RELEASE] = true;
         }
         else if(button->hovered) {
+            Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING;
             g_events[events.length] = {
                 .id = i,
-                .eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING
+                .eventType = eventType
             };
             events.length++;
-        } 
+
+            g_events_snapshot[eventType] = true;
+        }
         else if(button->cleared) {
             g_events[events.length] = {
                 .id = i,
                 .eventType = BRICK_EVENT_CLEAR
             };
             events.length++;
+
+            g_events_snapshot[BRICK_EVENT_CLEAR] = true;
         }
     }
 
+    if (events.length) g_is_events_snapshot_dirty = true;
+
     return events;
+}
+
+bool Brick_OnEventTriggered(Brick_EventType eventType) {
+    // TODO: add some error handling
+    if (eventType > BRICK_MAX_EVENT_TYPES) return false;
+    
+    return g_events_snapshot[eventType];
 }
 
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
