@@ -96,7 +96,6 @@ typedef struct {
 typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_BUTTON,
-    BRICK_ELEMENT_TYPE_PANEL,
     BRICK_ELEMENT_TYPE_BUTTON_GROUP,
 } Brick_ElementType;
 
@@ -573,6 +572,16 @@ void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
     button->toggled = isToggled;
 }
 
+void Brick_LayoutText(const char* text) {
+    Clay_String clayString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
+
+    CLAY_TEXT(clayString, STYLE_TEXT_DEFAULT);
+}
+
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
 void Brick_LayoutButton(Brick_ElementId buttonId) {
     // TODO: add error handling
@@ -622,7 +631,21 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
 }
 
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
-void Brick_BeginLayoutPanel(void) {
+void Brick_BeginPanel(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = {
+            .padding = CLAY_PADDING_ALL(12), 
+        },
+        .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
+    });
+}
+
+void Brick_EndPanel(void) {
+    Clay__CloseElement();
+}
+
+void Brick_BeginFloatingPanel(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
         .layout = {
@@ -647,7 +670,45 @@ void Brick_BeginLayoutPanel(void) {
     });
 }
 
-void Brick_EndLayoutPanel(void) {
+void Brick_EndFloatingPanel(void) {
+    Clay__CloseElement();
+}
+
+void Brick_BeginHorizontalStack(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(1.0f),
+            },
+            .padding = CLAY_PADDING_ALL(32), 
+            .childGap = 12, 
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+    });
+}
+
+void Brick_EndHorizontalStack(void) {
+    Clay__CloseElement();
+}
+
+void Brick_BeginVerticalStack(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(1.0f),
+            },
+            .padding = CLAY_PADDING_ALL(32), 
+            .childGap = 12, 
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+    });
+}
+
+void Brick_EndVerticalStack(void) {
     Clay__CloseElement();
 }
 

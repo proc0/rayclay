@@ -366,31 +366,26 @@ Clay_RenderCommandArray App::update() {
     }
 
     Brick_BeginLayout();
-    Brick_BeginLayoutPanel();
-    // Brick_LayoutButton(buttonId);
-    // Brick_LayoutButton(buttonId2);
-    // Brick_LayoutButton(buttonId3);
-    // Brick_BeginStack(BRICK_STACK_HORIZONTAL);
-    Brick_LayoutButtonGroup(buttonGroupId1);
-    // Brick_EndStack();
+        Brick_BeginFloatingPanel();
+            Brick_BeginHorizontalStack();
+                Brick_LayoutButtonGroup(buttonGroupId1);
+            Brick_EndHorizontalStack();
 
-    if(Brick_IsButtonToggled(buttonId)) {
-        Brick_BeginLayoutPanel();
-        CLAY_TEXT(CLAY_STRING("HAHAAHHAHA"), STYLE_TEXT_DEFAULT);
-        Brick_EndLayoutPanel();
-    } else if(Brick_IsButtonToggled(buttonId2)) {
-        Brick_BeginLayoutPanel();
-        CLAY_TEXT(CLAY_STRING("MUQAHAHAHAHA"), STYLE_TEXT_DEFAULT);
-        Brick_EndLayoutPanel();
-    } else if(Brick_IsButtonToggled(buttonId3)) {
-        Brick_BeginLayoutPanel();
-        CLAY_TEXT(CLAY_STRING("TAB333333"), STYLE_TEXT_DEFAULT);
-        Brick_EndLayoutPanel();
-    }
-    Brick_EndLayoutPanel();
-    Clay_RenderCommandArray renderCommands = Brick_EndLayout(GetFrameTime());
-
-    return renderCommands;
+            if(Brick_IsButtonToggled(buttonId)) {
+                Brick_BeginPanel();
+                    Brick_LayoutText("TAB 1");
+                Brick_EndPanel();
+            } else if(Brick_IsButtonToggled(buttonId2)) {
+                Brick_BeginPanel();
+                    Brick_LayoutText("This is the second tab.");
+                Brick_EndPanel();
+            } else if(Brick_IsButtonToggled(buttonId3)) {
+                Brick_BeginPanel();
+                    Brick_LayoutText("3rd TAB!!");
+                Brick_EndPanel();
+            }
+        Brick_EndFloatingPanel();
+    return Brick_EndLayout(GetFrameTime());
 }
 
 void App::resize(int width, int height) {    
