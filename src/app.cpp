@@ -63,6 +63,7 @@ void App::load() {
     LoadOverlay();
 
     buttonId = Brick_CreateButton("HELLO");
+    Brick_ToggleButton(buttonId);
     buttonId2 = Brick_CreateButton("HELLO 2");
     buttonId3 = Brick_CreateButton("HELLO 3");
     Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
@@ -369,14 +370,20 @@ Clay_RenderCommandArray App::update() {
     // Brick_LayoutButton(buttonId);
     // Brick_LayoutButton(buttonId2);
     // Brick_LayoutButton(buttonId3);
+    // Brick_BeginStack(BRICK_STACK_HORIZONTAL);
     Brick_LayoutButtonGroup(buttonGroupId1);
-    if(Brick_BeginLayoutTogglePanel(buttonId)) {
+    // Brick_EndStack();
+
+    if(Brick_IsButtonToggled(buttonId)) {
+        Brick_BeginLayoutPanel();
         CLAY_TEXT(CLAY_STRING("HAHAAHHAHA"), STYLE_TEXT_DEFAULT);
         Brick_EndLayoutPanel();
-    } else if(Brick_BeginLayoutTogglePanel(buttonId2)) {
+    } else if(Brick_IsButtonToggled(buttonId2)) {
+        Brick_BeginLayoutPanel();
         CLAY_TEXT(CLAY_STRING("MUQAHAHAHAHA"), STYLE_TEXT_DEFAULT);
         Brick_EndLayoutPanel();
-    } else if(Brick_BeginLayoutTogglePanel(buttonId3)) {
+    } else if(Brick_IsButtonToggled(buttonId3)) {
+        Brick_BeginLayoutPanel();
         CLAY_TEXT(CLAY_STRING("TAB333333"), STYLE_TEXT_DEFAULT);
         Brick_EndLayoutPanel();
     }

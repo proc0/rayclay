@@ -94,6 +94,7 @@ typedef struct {
 } Brick_PointerData;
 
 typedef CLAY_PACKED_ENUM {
+    BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_BUTTON,
     BRICK_ELEMENT_TYPE_PANEL,
     BRICK_ELEMENT_TYPE_BUTTON_GROUP,
@@ -545,6 +546,33 @@ bool Brick_IsEventTriggered(Brick_EventType eventType) {
     return g_events_snapshot[eventType];
 }
 
+bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
+    // TODO: add error handling
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return false;
+
+    const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+
+    return button->toggled;
+}
+
+void Brick_ToggleButton(Brick_ElementId buttonId) {
+    // TODO: add error handling
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return;
+
+    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+
+    button->toggled = !button->toggled;
+}
+
+void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
+    // TODO: add error handling
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return;
+
+    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+
+    button->toggled = isToggled;
+}
+
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
 void Brick_LayoutButton(Brick_ElementId buttonId) {
     // TODO: add error handling
@@ -621,31 +649,6 @@ void Brick_BeginLayoutPanel(void) {
 
 void Brick_EndLayoutPanel(void) {
     Clay__CloseElement();
-}
-
-bool Brick_BeginLayoutTogglePanel(Brick_ElementId buttonId) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return false;
-
-    const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
-
-    if (button->toggled) {
-        Brick_BeginLayoutPanel();
-        return true;
-    }
-
-    return false;
-}
-
-void Brick_EndLayoutTogglePanel(Brick_ElementId buttonId) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return;
-
-    const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
-    
-    if (button->toggled) {
-        Clay__CloseElement();
-    }
 }
 
 void Brick_HandleError(Clay_ErrorData errorData) {
