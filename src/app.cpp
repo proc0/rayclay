@@ -167,7 +167,6 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
 
 void App::run(void* self) {
     App* app = static_cast<App*>(self);
-
     Clay_RenderCommandArray renderCommands = app->update();
     app->render(renderCommands);
 }

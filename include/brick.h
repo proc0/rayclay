@@ -36,6 +36,13 @@ OBJ:
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
+// NOTE: MSVC C++ compiler does not support compound literals (C99 feature)
+#if defined(__cplusplus)
+    #define PLEX(type) type
+#else
+    #define PLEX(type) (type)
+#endif
+
 // Default Settings 
 // ---------------------------------------------------------------
 
@@ -45,33 +52,59 @@ OBJ:
 #define BRICK_MAX_SCROLLBOXES 32
 #define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_SCROLLBOXES)
 
+// Default Colors
+// ---------------------------------------------------------------
+#define BRICK_COLOR_BLANK       PLEX(Clay_Color){ 0, 0, 0, 0 }
+#define BRICK_COLOR_WHITE       PLEX(Clay_Color){ 255, 255, 255, 255 }
+#define BRICK_COLOR_BLACK       PLEX(Clay_Color){ 0, 0, 0, 255 }
+#define BRICK_COLOR_BRICKRED    PLEX(Clay_Color){ 245, 245, 245, 255 }
+
+#define BRICK_COLOR_GRAY_LIGHT  PLEX(Clay_Color){ 189, 195, 199, 255 }
+#define BRICK_COLOR_GRAY        PLEX(Clay_Color){ 149, 165, 166, 255 }
+#define BRICK_COLOR_GRAY_DARK   PLEX(Clay_Color){ 77, 77, 77, 255 }
+
+#define BRICK_COLOR_BLACK_A80   PLEX(Clay_Color){ 0, 0, 0, 80 }
+
+// Material UI Metro Colors - https://materialui.co/metrocolors
+#define BRICK_COLOR_LIME        PLEX(Clay_Color){ 164, 196, 0, 255 }
+#define BRICK_COLOR_GREEN       PLEX(Clay_Color){ 96, 169, 23, 255 }
+#define BRICK_COLOR_EMERALD     PLEX(Clay_Color){ 0, 138, 0, 255 }
+#define BRICK_COLOR_TEAL        PLEX(Clay_Color){ 0, 171, 169, 255 }
+#define BRICK_COLOR_CYAN        PLEX(Clay_Color){ 27, 161, 226, 255 }
+#define BRICK_COLOR_BLUE        PLEX(Clay_Color){ 41, 98, 255, 255 }
+#define BRICK_COLOR_COBALT      PLEX(Clay_Color){ 0, 80, 239, 255 }
+#define BRICK_COLOR_INDIGO      PLEX(Clay_Color){ 106, 0, 255, 255 }
+#define BRICK_COLOR_VIOLET      PLEX(Clay_Color){ 170, 0, 255, 255 }
+#define BRICK_COLOR_PINK        PLEX(Clay_Color){ 244, 114, 208, 255 }
+#define BRICK_COLOR_MAGENTA     PLEX(Clay_Color){ 216, 0, 115, 255 }
+#define BRICK_COLOR_CRIMSON     PLEX(Clay_Color){ 162, 0, 37, 255 }
+#define BRICK_COLOR_RED         PLEX(Clay_Color){ 229, 20, 0, 255 }
+#define BRICK_COLOR_ORANGE      PLEX(Clay_Color){ 250, 104, 0, 255 }
+#define BRICK_COLOR_AMBER       PLEX(Clay_Color){ 240, 163, 10, 255 }
+#define BRICK_COLOR_YELLOW      PLEX(Clay_Color){ 227, 200, 0, 255 }   
+#define BRICK_COLOR_BROWN       PLEX(Clay_Color){ 130, 90, 44, 255 }
+#define BRICK_COLOR_OLIVE       PLEX(Clay_Color){ 109, 135, 100, 255 }
+#define BRICK_COLOR_STEEL       PLEX(Clay_Color){ 100, 118, 135, 255 }
+#define BRICK_COLOR_MAUVE       PLEX(Clay_Color){ 118, 96, 138, 255 }
+#define BRICK_COLOR_SIENNA      PLEX(Clay_Color){ 160, 82, 45, 255 }
+
+
+// Default Theme 
+// ---------------------------------------------------------------
+
+#define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
+#define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_LIGHT
+#define BRICK_THEME_PRIMARY     BRICK_COLOR_CRIMSON
+#define BRICK_THEME_SECONDARY   BRICK_COLOR_TEAL
+#define BRICK_THEME_TERTIARY    BRICK_COLOR_MAUVE
+#define BRICK_THEME_ACCENT      BRICK_COLOR_RED
+
 // Default Styles 
 // ---------------------------------------------------------------
-#define CLAY_BLANK Clay_Color({ 0, 0, 0, 0 })
-#define CLAY_WHITE Clay_Color({ 255.0f, 255.0f, 255.0f, 255.0f })
-#define CLAY_BLACK Clay_Color({ 0, 0, 0, 255.0f })
+#define BRICK_STYLE_FONT_SIZE_DEFAULT 24
 
-#define SURFACE_COLOR_BG Clay_Color({ 140, 140, 140, 255 })
-#define SURFACE_COLOR_FG Clay_Color({ 200, 200, 200, 255 })
-#define SURFACE_COLOR_HL Clay_Color({ 235, 235, 235, 255 })
-#define SURFACE_COLOR_SECONDARY Clay_Color({ 80, 80, 80, 255 })
-
-#define SURFACE_COLOR_MENU_BG Clay_Color({ 0, 0, 0, 180 })
-#define SURFACE_COLOR_ACCENT_BG Clay_Color({ 140, 140, 140, 255 })
-#define SURFACE_COLOR_ACCENT_BORDER Clay_Color({ 80, 80, 80, 255 })
-#define SURFACE_COLOR_ACCENT_RED Clay_Color({ 230, 40, 45, 255 })
-#define SURFACE_COLOR_ACCENT_GOLD Clay_Color({ 216, 238, 10, 255 })
-
-#define WIDGET_COLOR_BUTTON_BG Clay_Color({ 80, 80, 80, 255 })
-#define WIDGET_COLOR_BUTTON_BG_HL Clay_Color({ 90, 90, 90, 255 })
-#define WIDGET_COLOR_BORDER Clay_Color({ 200, 200, 200, 255 })
-
-#define WIDGET_COLOR_SCROLLBAR Clay_Color({80, 80, 80, 255})
-#define WIDGET_COLOR_SCROLLBAR_HL Clay_Color({140, 140, 140, 255})
-
-#define STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = SURFACE_COLOR_FG, .fontId = 1, .fontSize = 24 })
-
-#define STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = Clay_Color({ 200, 200, 200, 255 }), .fontSize = 24, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define BRICK_STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
+#define BRICK_STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Public Types 
 // ---------------------------------------------------------------
@@ -579,7 +612,7 @@ void Brick_LayoutText(const char* text) {
         .chars = text 
     };
 
-    CLAY_TEXT(clayString, STYLE_TEXT_DEFAULT);
+    CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 }
 
 // Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
@@ -598,9 +631,9 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
         // Clay_Hovered only works inside the paramaters or Clay declaration body
-        .backgroundColor = Clay_Hovered() ? Clay_Color({ 140, 140, 140, 255 }) : Clay_Color({ 216, 238, 10, 255 }),
+        .backgroundColor = Clay_Hovered() ? BRICK_THEME_ACCENT : BRICK_THEME_PRIMARY,
         .border = { 
-            .color = Clay_Color({ 140, 140, 140, 255 }), 
+            .color = BRICK_THEME_FOREGROUND, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         }
         // .transition = {
@@ -614,7 +647,7 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
         Brick_OnButtonHover(button->id.index, Clay_Hovered());
         // Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHover, nullptr);
-        CLAY_TEXT(button->label, STYLE_TEXT_CENTERED);
+        CLAY_TEXT(button->label, BRICK_STYLE_TEXT_CENTERED);
     }
 }
 
@@ -635,9 +668,13 @@ void Brick_BeginPanel(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
         .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
             .padding = CLAY_PADDING_ALL(12), 
         },
-        .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
+        .backgroundColor = BRICK_THEME_BACKGROUND,
     });
 }
 
@@ -657,7 +694,7 @@ void Brick_BeginFloatingPanel(void) {
             .childGap = 12, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
-        .backgroundColor = Clay_Color({ 140, 140, 140, 255 }),
+        .backgroundColor = BRICK_THEME_BACKGROUND,
         .floating = { 
             .offset = {0, 0}, 
             .zIndex = 1, 
