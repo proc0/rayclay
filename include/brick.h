@@ -1,20 +1,54 @@
-/*
+/* v0.1
++-------------+
+|    BRICK    |
++-------------+ 
+Clay Extension
 
-# BRICK UI 
-v0.1
+USAGE SUMMARY
+This is a very high level overview.
+For more details see docs: 
 
-## USAGE
+1. Import library
+DO NOT define CLAY_IMPLEMENTATION
+----------------------------------
+- #define BRICK_IMPLEMENTATION
+- #include "brick.h"
+
+2. Initialize 
+DO NOT call these in a loop!
+----------------------------------
+- Brick_Initialize 
+- Create Elements and save Ids
+
+3. Update
+Call update before layout
+----------------------------------
+- Brick_Update -> events
+- Loop and handle events
+
+4. Layout
+DO NOT forget to close containers!
+----------------------------------
+- Brick_BeginLayout
+- Brick_Begin<Container>
+- Brick_Layout<Element> with Ids
+- Brick_End<Container>
+- Brick_EndLayout -> render-commands 
+
+5. Render
+----------------------------------
+- Loop and render render-commands
+
 Define BRICK_IMPLEMENTATION in exactly ONE file only.
 Then include brick.h in the line after, and/or other files.
-
 ```C/C++
 #define BRICK_IMPLEMENTATION
 #include "brick.h"
 ```
-
 DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h for types or other utilities.
 
-## DESCRIPTION
+
+DESCRIPTION
 Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
 
 OBJ:
@@ -36,7 +70,6 @@ OBJ:
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
-// NOTE: MSVC C++ compiler does not support compound literals (C99 feature)
 #if defined(__cplusplus)
     #define PLEX(type) type
 #else
@@ -102,6 +135,7 @@ OBJ:
 // Default Styles 
 // ---------------------------------------------------------------
 #define BRICK_STYLE_FONT_SIZE_DEFAULT 24
+#define BRICK_STYLE_PADDING_DEFAULT 8
 
 #define BRICK_STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
 #define BRICK_STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
@@ -672,7 +706,7 @@ void Brick_BeginPanel(void) {
                 .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(12), 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_DEFAULT), 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
     });
@@ -690,8 +724,8 @@ void Brick_BeginFloatingPanel(void) {
                 .width = CLAY_SIZING_PERCENT(0.5f),
                 .height = CLAY_SIZING_PERCENT(0.5f),
             },
-            .padding = CLAY_PADDING_ALL(32), 
-            .childGap = 12, 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_DEFAULT), 
+            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
@@ -716,10 +750,9 @@ void Brick_BeginHorizontalStack(void) {
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
-                .width = CLAY_SIZING_GROW(1.0f),
+                .width = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(32), 
-            .childGap = 12, 
+            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
@@ -735,10 +768,9 @@ void Brick_BeginVerticalStack(void) {
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
-                .width = CLAY_SIZING_GROW(1.0f),
+                .height = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(32), 
-            .childGap = 12, 
+            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
