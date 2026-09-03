@@ -31,7 +31,7 @@ DO NOT forget to close containers!
 ----------------------------------
 - Brick_BeginLayout
 - Brick_Begin<Container>
-- Brick_Layout<Element> with Ids
+- Brick_Layout<Element>
 - Brick_End<Container>
 - Brick_EndLayout -> render-commands 
 
@@ -78,7 +78,6 @@ OBJ:
 
 // Default Settings 
 // ---------------------------------------------------------------
-
 #define BRICK_MAX_BUTTONS 256
 #define BRICK_MAX_BUTTON_GROUP_SIZE 16
 #define BRICK_MAX_BUTTON_GROUPS 16
@@ -121,10 +120,8 @@ OBJ:
 #define BRICK_COLOR_MAUVE       PLEX(Clay_Color){ 118, 96, 138, 255 }
 #define BRICK_COLOR_SIENNA      PLEX(Clay_Color){ 160, 82, 45, 255 }
 
-
 // Default Theme 
 // ---------------------------------------------------------------
-
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
 #define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_LIGHT
 #define BRICK_THEME_PRIMARY     BRICK_COLOR_CRIMSON
@@ -142,7 +139,6 @@ OBJ:
 
 // Public Types 
 // ---------------------------------------------------------------
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -231,18 +227,23 @@ typedef struct Brick_EventArray {
 }
 #endif
 
-// Function Forward Declarations ---------------------------------
-// Public API functions ------------------------------------------
+// Public API
+// --------------------------
 
+Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type);
+Brick_ElementId Brick_CreateButton(const char* label);
+Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize);
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
 
 #endif /* BRICK_HEADER */
 
-// IMPLEMENTATION 
+// Implementation 
 // ---------------------------------------------------------------
-
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
+
+// Array functions
+// --------------------------
 
 Brick_Event Brick_Event_DEFAULT = CLAY__DEFAULT_STRUCT;
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
@@ -275,7 +276,7 @@ typedef struct Brick_Elements {
     Brick_ButtonGroupArray buttonGroups;
 } Brick_Elements;
 
-// Global Context
+// Global State
 // --------------------------
 
 // Clay context
@@ -306,8 +307,14 @@ static Brick_Event g_events[BRICK_MAX_ELEMENTS];
 static bool g_is_events_snapshot_dirty = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
-// Button internals
+// Button functions
 // ---------------------------------------------------------------
+
+Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return &Brick_Button_DEFAULT;
+
+    return Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+}
 
 void Brick_OnButtonHover(int32_t idx, bool isHovering) {
     // Sets the following flags on the button:
@@ -387,19 +394,16 @@ void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerDat
     }
 }
 
-
-// Public API
+// Internal forward declarations
 // ----------------------------------
-
 void Brick_HandleError(Clay_ErrorData errorData);
 
-Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type);
-Brick_ElementId Brick_CreateButton(const char* label);
-Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize);
-
-// initializes Clay first, then Brick
+// Setup functions
+// ----------------------------------
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
+    // initializes Clay first, then Brick
     printf("Initializing Brick\n");
+    
     // cache window dimensions
     g_window.width = width;
     g_window.height = height;
@@ -422,21 +426,13 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     g_elements.buttonGroups.length++;
 }
 
-// simple wrapper around Clay_BeginLayout
-void Brick_BeginLayout(void) {
-    Clay_BeginLayout();
-}
-
-// simple wrapper around Clay_EndLayout which returns render commands
-Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
-    return Clay_EndLayout(deltaTime);
-}
-
 // cleans up Brick then Clay
 void Brick_Destroy(void) {
     if(g_clay_arena.memory) free(g_clay_arena.memory);
 }
 
+// Element creation
+// ----------------------------------
 Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     Brick_ElementId id = { index, type };
     return id;
@@ -538,6 +534,8 @@ bool Brick_PointerJustCleared() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
 }
 
+// Update and query
+// ----------------------------------
 // Brick only function that will handle any potential updates of elements per frame
 Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 
@@ -628,32 +626,35 @@ bool Brick_IsEventTriggered(Brick_EventType eventType) {
 }
 
 bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return false;
-
-    const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+    Brick_Button* button = Brick_Button_Get(buttonId);
 
     return button->toggled;
 }
 
 void Brick_ToggleButton(Brick_ElementId buttonId) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
-
-    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+    Brick_Button* button = Brick_Button_Get(buttonId);
 
     button->toggled = !button->toggled;
 }
 
 void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
-
-    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
+    Brick_Button* button = Brick_Button_Get(buttonId);
 
     button->toggled = isToggled;
 }
 
+// simple wrapper around Clay_BeginLayout
+void Brick_BeginLayout(void) {
+    Clay_BeginLayout();
+}
+
+// simple wrapper around Clay_EndLayout which returns render commands
+Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
+    return Clay_EndLayout(deltaTime);
+}
+
+// Layout Elements
+// ----------------------------------
 void Brick_LayoutText(const char* text) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
@@ -718,6 +719,8 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     }
 }
 
+// Layout Containers
+// ----------------------------------
 // BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
 void Brick_BeginPanel(void) {
     Clay__OpenElement();
@@ -802,6 +805,8 @@ void Brick_EndVerticalStack(void) {
     Clay__CloseElement();
 }
 
+// Error Handling
+// ----------------------------------
 void Brick_HandleError(Clay_ErrorData errorData) {
 
     switch(errorData.errorType) {
