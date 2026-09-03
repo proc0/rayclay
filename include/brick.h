@@ -76,7 +76,11 @@ OBJ:
     #define PLEX(type) (type)
 #endif
 
-// Default Settings 
+// ========================================================================================
+//                                      DEFAULTS
+// ========================================================================================
+
+// Settings 
 // ---------------------------------------------------------------
 #define BRICK_MAX_BUTTONS 256
 #define BRICK_MAX_BUTTON_GROUP_SIZE 16
@@ -84,7 +88,14 @@ OBJ:
 #define BRICK_MAX_SCROLLBOXES 32
 #define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_SCROLLBOXES)
 
-// Default Colors
+// General Style Settings
+// ---------------------------------------------------------------
+#define BRICK_STYLE_FONT_SIZE_DEFAULT 24
+#define BRICK_STYLE_PADDING_SMALL 8
+#define BRICK_STYLE_PADDING_MEDIUM 12
+#define BRICK_STYLE_PADDING_LARGE 16
+
+// Colors
 // ---------------------------------------------------------------
 #define BRICK_COLOR_BLANK       PLEX(Clay_Color){ 0, 0, 0, 0 }
 #define BRICK_COLOR_WHITE       PLEX(Clay_Color){ 255, 255, 255, 255 }
@@ -120,29 +131,40 @@ OBJ:
 #define BRICK_COLOR_MAUVE       PLEX(Clay_Color){ 118, 96, 138, 255 }
 #define BRICK_COLOR_SIENNA      PLEX(Clay_Color){ 160, 82, 45, 255 }
 
-// Default Theme 
+// Theme 
 // ---------------------------------------------------------------
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
 #define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_LIGHT
-#define BRICK_THEME_PRIMARY     BRICK_COLOR_CRIMSON
-#define BRICK_THEME_SECONDARY   BRICK_COLOR_TEAL
-#define BRICK_THEME_TERTIARY    BRICK_COLOR_MAUVE
-#define BRICK_THEME_ACCENT      BRICK_COLOR_RED
+#define BRICK_THEME_PRIMARY     BRICK_COLOR_MAGENTA
+#define BRICK_THEME_SECONDARY   BRICK_COLOR_MAUVE
+#define BRICK_THEME_TERTIARY    BRICK_COLOR_OLIVE
+#define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
 
-// Default Styles 
+// Styles 
 // ---------------------------------------------------------------
-#define BRICK_STYLE_FONT_SIZE_DEFAULT 24
-#define BRICK_STYLE_PADDING_DEFAULT 8
 
-#define BRICK_STYLE_TEXT_DEFAULT CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
-#define BRICK_STYLE_TEXT_CENTERED CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
+#define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
-// Public Types 
+// Theme Map 
 // ---------------------------------------------------------------
+#define BRICK_STYLE_BUTTON_LABEL            BRICK_STYLE_TEXT_DEFAULT
+#define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_PRIMARY
+#define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_PRIMARY
+#define BRICK_COLOR_BUTTON_BG               BRICK_THEME_BACKGROUND
+#define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_PRIMARY
+#define BRICK_COLOR_BUTTON_BG_HOVER         BRICK_THEME_ACCENT
+
+// ========================================================================================
+//                                   PUBLIC HEADER
+// ========================================================================================
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// Public Types
+// --------------------------
 typedef struct {
     float width;
     float height;
@@ -230,19 +252,21 @@ typedef struct Brick_EventArray {
 // Public API
 // --------------------------
 
-Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type);
+// TODO: add the rest of the API prototypes
 Brick_ElementId Brick_CreateButton(const char* label);
 Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize);
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
 
 #endif /* BRICK_HEADER */
 
-// Implementation 
-// ---------------------------------------------------------------
+// ========================================================================================
+//                                  IMPLEMENTATION
+// ========================================================================================
+
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
 
-// Array functions
+// Element and Event Arrays
 // --------------------------
 
 Brick_Event Brick_Event_DEFAULT = CLAY__DEFAULT_STRUCT;
@@ -307,8 +331,13 @@ static Brick_Event g_events[BRICK_MAX_ELEMENTS];
 static bool g_is_events_snapshot_dirty = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
-// Button functions
-// ---------------------------------------------------------------
+// Internal forward declarations
+// ----------------------------------
+
+void Brick_HandleError(Clay_ErrorData errorData);
+
+// Getters and Setters
+// ----------------------------------
 
 Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
     if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return &Brick_Button_DEFAULT;
@@ -316,89 +345,7 @@ Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
     return Brick_ButtonArray_Get(&g_elements.buttons, buttonId.index);
 }
 
-void Brick_OnButtonHover(int32_t idx, bool isHovering) {
-    // Sets the following flags on the button:
-    // hovered: the pointer is over the button (multiple frames)
-    // cleared: the pointer has just stopped hovering (1 frame)
-
-    // NOTE: gets called on every frame with every button
-    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, idx);
-    
-    // The button indexes are saved on the global context (g_window)
-    // hoveredId: the current button being hovered
-    // lastHoveredId: the last button that was hovered (after hovering on a new one) 
-    if (isHovering) {
-        // entering hover on button
-        if (g_window.hoveredId != idx && g_window.lastHoveredId != idx) {
-            g_window.hoveredId = idx;
-            button->hovered = true;
-        // one frame after entering hover
-        } else if (g_window.hoveredId == idx && g_window.lastHoveredId != idx) {
-            // propagate the cache to the last hover state
-            g_window.lastHoveredId = idx;
-        } 
-    } else {
-        // exiting hover
-        if (g_window.hoveredId == idx) {
-            g_window.hoveredId = 0;
-            button->hovered = false;
-            button->cleared = true;
-        // one frame after exiting hover. Note: checking both last hover state, 
-        // and the cleared flag for cases when pointer is moving really fast
-        } else if (g_window.lastHoveredId == idx || button->cleared) {
-            g_window.lastHoveredId = 0;
-            button->cleared = false;
-        }
-    }
-}
-
-void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    
-    for (int32_t i = 1; i < g_elements.buttons.length; i++) {
-        Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
-        
-        if(button->clayId.id == elementId.id) {
-            switch(pointerData.state) {
-            case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
-                // if button is part of a group clear the toggled buttons
-                if (button->groupIndex > 0) {
-                    Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, button->groupIndex);
-                    for(int32_t j = 0; j < buttonGroup->length; j++) {
-                        int32_t buttonIdx = buttonGroup->ids[j];
-                        Brick_Button* groupBtn = Brick_ButtonArray_Get(&g_elements.buttons, buttonIdx);
-                        if (groupBtn->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON){
-                            groupBtn->toggled = false;
-                        }
-                    }
-                }
-                button->clicked = true;
-                button->toggled = !button->toggled;
-                break;
-            case CLAY_POINTER_DATA_PRESSED:
-                button->clicked = false;
-                button->pressed = true;
-                break;
-            case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
-                button->clicked = false;
-                button->pressed = false;
-                button->released = true;
-                break;
-            case CLAY_POINTER_DATA_RELEASED:
-                // NOTE: This is just the same as hover, Clay triggers this if pointer 
-                // is on the button not pressing, and after pressing
-                break;
-            default: break;
-            }
-            break;
-        }
-    }
-}
-
-// Internal forward declarations
-// ----------------------------------
-void Brick_HandleError(Clay_ErrorData errorData);
-
-// Setup functions
+// Global lifecycle
 // ----------------------------------
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     // initializes Clay first, then Brick
@@ -426,19 +373,19 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     g_elements.buttonGroups.length++;
 }
 
-// cleans up Brick then Clay
 void Brick_Destroy(void) {
     if(g_clay_arena.memory) free(g_clay_arena.memory);
 }
 
-// Element creation
-// ----------------------------------
+// CreateElement<Element>
+// initializes the element state and returns the element ID for layout
+// ---------------------------------------------------------------------------
+
 Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     Brick_ElementId id = { index, type };
     return id;
 }
 
-// Brick elements Add<Element> initializes the element and is to be called once
 Brick_ElementId Brick_CreateButton(const char* label) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
@@ -523,6 +470,9 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
     return Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
 }
 
+// Update and queries
+// -------------------------------------------------------------------------
+
 // Global pointer hover check on any button. This is meant to be used in PollEvents.
 // WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustHovered() {
@@ -534,8 +484,6 @@ bool Brick_PointerJustCleared() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
 }
 
-// Update and query
-// ----------------------------------
 // Brick only function that will handle any potential updates of elements per frame
 Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
 
@@ -643,6 +591,10 @@ void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
     button->toggled = isToggled;
 }
 
+// ========================================================================================
+//                                      LAYOUT
+// ========================================================================================
+
 // simple wrapper around Clay_BeginLayout
 void Brick_BeginLayout(void) {
     Clay_BeginLayout();
@@ -653,8 +605,25 @@ Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
     return Clay_EndLayout(deltaTime);
 }
 
-// Layout Elements
-// ----------------------------------
+// Inline<Element>
+// called inside containers with literal values
+// ---------------------------------------------------------------
+
+void Brick_InlineText(const char* text) {
+    Clay_String clayString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
+
+    CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
+}
+
+// Layout<Element>
+// called inside containers with Begin and End
+// ---------------------------------------------------------------
+
+// TODO: add createText, store text state and use ID here
 void Brick_LayoutText(const char* text) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
@@ -665,24 +634,110 @@ void Brick_LayoutText(const char* text) {
     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 }
 
-// Layout<element> is to be called within CLAY macros which are also encapsulated in other Brick elements
+// Button handlers
+// ----------------------------------
+void Brick_OnButtonHover(int32_t idx, bool isHovering) {
+    // Sets the following flags on the button:
+    // hovered: the pointer is over the button (multiple frames)
+    // cleared: the pointer has just stopped hovering (1 frame)
+
+    // NOTE: gets called on every frame with every button
+    Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, idx);
+    
+    // The button indexes are saved on the global context (g_window)
+    // hoveredId: the current button being hovered
+    // lastHoveredId: the last button that was hovered (after hovering on a new one) 
+    if (isHovering) {
+        // entering hover on button
+        if (g_window.hoveredId != idx && g_window.lastHoveredId != idx) {
+            g_window.hoveredId = idx;
+            button->hovered = true;
+        // one frame after entering hover
+        } else if (g_window.hoveredId == idx && g_window.lastHoveredId != idx) {
+            // propagate the cache to the last hover state
+            g_window.lastHoveredId = idx;
+        } 
+    } else {
+        // exiting hover
+        if (g_window.hoveredId == idx) {
+            g_window.hoveredId = 0;
+            button->hovered = false;
+            button->cleared = true;
+        // one frame after exiting hover. Note: checking both last hover state, 
+        // and the cleared flag for cases when pointer is moving really fast
+        } else if (g_window.lastHoveredId == idx || button->cleared) {
+            g_window.lastHoveredId = 0;
+            button->cleared = false;
+        }
+    }
+}
+
+void Brick_HandleClayHover(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
+    
+    for (int32_t i = 1; i < g_elements.buttons.length; i++) {
+        Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, i);
+        
+        if(button->clayId.id == elementId.id) {
+            switch(pointerData.state) {
+            case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
+                // if button is part of a group clear the toggled buttons
+                if (button->groupIndex > 0) {
+                    Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, button->groupIndex);
+                    for(int32_t j = 0; j < buttonGroup->length; j++) {
+                        int32_t buttonIdx = buttonGroup->ids[j];
+                        Brick_Button* groupBtn = Brick_ButtonArray_Get(&g_elements.buttons, buttonIdx);
+                        if (groupBtn->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON){
+                            groupBtn->toggled = false;
+                        }
+                    }
+                }
+                button->clicked = true;
+                button->toggled = !button->toggled;
+                break;
+            case CLAY_POINTER_DATA_PRESSED:
+                button->clicked = false;
+                button->pressed = true;
+                break;
+            case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
+                button->clicked = false;
+                button->pressed = false;
+                button->released = true;
+                break;
+            case CLAY_POINTER_DATA_RELEASED:
+                // NOTE: This is almost the same as hover, Clay triggers this if pointer 
+                // is on the button not pressing, and after pressing
+                break;
+            default: break;
+            }
+            break;
+        }
+    }
+}
+
+// internal button layout function using internal index
 void Brick__LayoutButtonIndex(int32_t index) {
 
     const Brick_Button* button = Brick_ButtonArray_Get(&g_elements.buttons, index);
-    Clay_Color bgColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->toggled ? BRICK_THEME_ACCENT : BRICK_THEME_PRIMARY;
+    Clay_Color bgColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : BRICK_COLOR_BUTTON_BG;
+    Clay_Color borderColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : BRICK_COLOR_BUTTON_BORDER;
 
     CLAY(button->clayId, {
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0)
             },
-            .padding = CLAY_PADDING_ALL(8),
+            .padding = {
+                BRICK_STYLE_PADDING_SMALL,
+                BRICK_STYLE_PADDING_SMALL,
+                BRICK_STYLE_PADDING_MEDIUM,
+                BRICK_STYLE_PADDING_MEDIUM
+            },
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
-        // Clay_Hovered only works inside the paramaters or Clay declaration body
-        .backgroundColor = Clay_Hovered() ? BRICK_THEME_ACCENT : bgColor,
+        // Clay_Hovered only works inside the paramaters or declaration body
+        .backgroundColor = Clay_Hovered() ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
-            .color = BRICK_THEME_FOREGROUND, 
+            .color = borderColor, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         }
         // .transition = {
@@ -696,7 +751,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
         Brick_OnButtonHover(button->id.index, Clay_Hovered());
         // Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHover, nullptr);
-        CLAY_TEXT(button->label, BRICK_STYLE_TEXT_CENTERED);
+        CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
     }
 }
 
@@ -707,6 +762,7 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
     Brick__LayoutButtonIndex(buttonId.index);
 }
 
+// TODO: add Group_Get to consolidate error checking
 void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     // TODO: add error handling
     if (groupId.type != BRICK_ELEMENT_TYPE_BUTTON_GROUP) return;
@@ -714,14 +770,14 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     const Brick_ElementGroup* buttonGroup = Brick_ButtonGroupArray_Get(&g_elements.buttonGroups, groupId.index);
 
     for (int32_t i = 0; i < buttonGroup->length; i++) {
-        // TODO: create another internal interface to skip constructing brick_elementID
         Brick__LayoutButtonIndex(buttonGroup->ids[i]);
     }
 }
 
 // Layout Containers
-// ----------------------------------
-// BeginLayout<element> and EndLayout<element> are the opening and close functions for container elements
+// BeginLayout<Element> and EndLayout<Element>
+// ---------------------------------------------------------------------------------------------
+
 void Brick_BeginPanel(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
@@ -730,7 +786,7 @@ void Brick_BeginPanel(void) {
                 .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_DEFAULT), 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
     });
@@ -748,8 +804,8 @@ void Brick_BeginFloatingPanel(void) {
                 .width = CLAY_SIZING_PERCENT(0.5f),
                 .height = CLAY_SIZING_PERCENT(0.5f),
             },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_DEFAULT), 
-            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
@@ -776,7 +832,7 @@ void Brick_BeginHorizontalStack(void) {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
             },
-            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
@@ -794,7 +850,7 @@ void Brick_BeginVerticalStack(void) {
             .sizing = { 
                 .height = CLAY_SIZING_GROW(0),
             },
-            .childGap = BRICK_STYLE_PADDING_DEFAULT, 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
@@ -805,8 +861,10 @@ void Brick_EndVerticalStack(void) {
     Clay__CloseElement();
 }
 
-// Error Handling
-// ----------------------------------
+// ========================================================================================
+//                                     ERROR HANDLING
+// ========================================================================================
+
 void Brick_HandleError(Clay_ErrorData errorData) {
 
     switch(errorData.errorType) {

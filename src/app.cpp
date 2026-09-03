@@ -371,15 +371,15 @@ Clay_RenderCommandArray App::update() {
 
             if(Brick_IsButtonToggled(buttonId)) {
                 Brick_BeginPanel();
-                    Brick_LayoutText("TAB 1");
+                    Brick_InlineText("TAB 1");
                 Brick_EndPanel();
             } else if(Brick_IsButtonToggled(buttonId2)) {
                 Brick_BeginPanel();
-                    Brick_LayoutText("This is the second tab.");
+                    Brick_InlineText("This is the second tab.");
                 Brick_EndPanel();
             } else if(Brick_IsButtonToggled(buttonId3)) {
                 Brick_BeginPanel();
-                    Brick_LayoutText("3rd TAB!!");
+                    Brick_InlineText("3rd TAB!!");
                 Brick_EndPanel();
             }
         Brick_EndFloatingPanel();
