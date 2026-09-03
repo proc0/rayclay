@@ -233,8 +233,10 @@ typedef CLAY_PACKED_ENUM {
 } Brick_EventType;
 
 typedef struct Brick_Event {
-    // internal brick id
-    int32_t id;
+    // internal index
+    int32_t index;
+    // type of element
+    Brick_ElementType elementType;
     // event state for the element
     Brick_EventType eventType;
 } Brick_Event;
@@ -327,6 +329,7 @@ static Brick_Elements g_elements = {
 
 // event array passed back to user to handle events
 static Brick_Event g_events[BRICK_MAX_ELEMENTS];
+static int32_t g_events_last_length = 0;
 // events snapshot array stores which events were triggered per frame
 static bool g_is_events_snapshot_dirty = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
@@ -485,7 +488,7 @@ bool Brick_PointerJustCleared() {
 }
 
 // Brick only function that will handle any potential updates of elements per frame
-Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
+Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData) {
 
     Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
     
@@ -511,7 +514,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
             // not rendered, i.e. clicking to change panels
             button->clicked = false;
             g_events[events.length] = {
-                .id = i,
+                .index = i,
+                .elementType = button->id.type,
                 .eventType = BRICK_EVENT_PRESS
             };
             events.length++;
@@ -520,7 +524,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         } 
         else if (button->pressed) { 
             g_events[events.length] = {
-                .id = i,
+                .index = i,
+                .elementType = button->id.type,
                 .eventType = BRICK_EVENT_PRESSING
             };
             events.length++;
@@ -532,7 +537,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
             // blocked or not rendered, i.e. showing a popup window
             button->released = false;
             g_events[events.length] = {
-                .id = i,
+                .index = i,
+                .elementType = button->id.type,
                 .eventType = BRICK_EVENT_RELEASE
             };
             events.length++;
@@ -542,7 +548,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         else if(button->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING;
             g_events[events.length] = {
-                .id = i,
+                .index = i,
+                .elementType = button->id.type,
                 .eventType = eventType
             };
             events.length++;
@@ -551,7 +558,8 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         }
         else if(button->cleared) {
             g_events[events.length] = {
-                .id = i,
+                .index = i,
+                .elementType = button->id.type,
                 .eventType = BRICK_EVENT_CLEAR
             };
             events.length++;
@@ -560,10 +568,35 @@ Brick_EventArray Brick_PollEvents(Brick_PointerData pointerData) {
         }
     }
 
+    // update the length cache for querying events
+    g_events_last_length = events.length;
+
     // flag the events snapshot for clear
     if (events.length) g_is_events_snapshot_dirty = true;
 
     return events;
+}
+
+Brick_EventArray Brick_PollEvents(void) {
+    Brick_EventArray events = {
+        .length = g_events_last_length,
+        .data = g_events
+    };
+
+    return events;
+}
+
+bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId) {
+    // TODO: add some error handling
+    if (eventType > BRICK_MAX_EVENT_TYPES) return false;
+    
+    for (int32_t i = 0; i < g_events_last_length; i++) {
+        if (g_events[i].eventType == eventType && g_events[i].elementType == elementId.type && g_events[i].index == elementId.index) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Brick_IsEventTriggered(Brick_EventType eventType) {

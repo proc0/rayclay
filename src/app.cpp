@@ -320,7 +320,7 @@ Clay_RenderCommandArray App::update() {
     // Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     // Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
     
-    Brick_EventArray eventArray = Brick_PollEvents({ 
+    Brick_EventArray eventArray = Brick_UpdateEvents({ 
         .x = inputEvent.position.x, 
         .y = inputEvent.position.y, 
         .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
