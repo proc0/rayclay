@@ -62,12 +62,11 @@ void App::load() {
 
     LoadOverlay();
 
-    buttonId = Brick_CreateButton("HELLO");
-    Brick_ToggleButton(buttonId);
-    buttonId2 = Brick_CreateButton("HELLO 2");
-    buttonId3 = Brick_CreateButton("HELLO 3");
+    buttonId = Brick_CreateToggleButton("HELLO");
+    buttonId2 = Brick_CreateToggleButton("HELLO 2");
+    buttonId3 = Brick_CreateToggleButton("HELLO 3");
     Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
-    buttonGroupId1 = Brick_GroupButtons(buttonGroup1, 3);
+    buttonGroupId1 = Brick_CreateButtonGroup(buttonGroup1, 3);
 }
 
 void App::loadTarget() {
@@ -339,28 +338,28 @@ Clay_RenderCommandArray App::update() {
             // TraceLog(LOG_INFO, "CLICKING...");
         break;
         case BRICK_EVENT_RELEASE:
-            TraceLog(LOG_INFO, "RELEASE");
+            // TraceLog(LOG_INFO, "RELEASE");
         break;
         case BRICK_EVENT_HOVER:
-            TraceLog(LOG_INFO, "JUST HOVERED");
-            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+            // TraceLog(LOG_INFO, "JUST HOVERED");
+            // SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         break;
         case BRICK_EVENT_HOVERING:
             // TraceLog(LOG_INFO, "HOVERING...");
         break;
         case BRICK_EVENT_CLEAR:
-            TraceLog(LOG_INFO, "JUST CLEARED");
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            // TraceLog(LOG_INFO, "JUST CLEARED");
+            // SetMouseCursor(MOUSE_CURSOR_DEFAULT);
         break;
         default: break;
         }
     }
 
     if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
-        TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
+        // TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
     } else if (Brick_IsEventTriggered(BRICK_EVENT_CLEAR)) {
-        TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
+        // TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 
