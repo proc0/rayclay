@@ -352,8 +352,8 @@ void Interface::render(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
-void Interface::transition(State::Screen screen) {
-	menu.transition(screen);
+void Interface::transition(State::App state, State::Screen screen) {
+	menu.transition(state, screen);
 }
 
 void Interface::unload() {

@@ -8,6 +8,8 @@ namespace Action {
     enum Interface {
         NOTHING,
         MENU_GAME_NEW,
+        // MENU_GAME_PAUSE,
+        MENU_GAME_RESUME,
         MENU_CONFIRM_TUTORIAL,
         MENU_OPTIONS,
         MENU_OPTIONS_GAME,

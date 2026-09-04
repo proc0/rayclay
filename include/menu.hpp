@@ -5,7 +5,12 @@
 
 class Menu {
     Brick_ElementId bid_new;
+    Brick_ElementId bid_options;
     Brick_ElementId bid_quit;
+    
+    // Brick_ElementId bid_pause;
+    Brick_ElementId bid_resume;
+
     Brick_ElementId bid_optionGame;
     Brick_ElementId bid_optionInput;
     Brick_ElementId bid_optionAudio;
@@ -26,6 +31,6 @@ public:
 	Action::Interface update();
 	void render() const;
 
-	void transition(State::Screen);
+	void transition(State::App, State::Screen);
 	void unload();
 };

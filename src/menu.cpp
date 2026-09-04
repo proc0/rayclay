@@ -4,7 +4,11 @@
 
 void Menu::load() {
     bid_new = Brick_CreateButton("New Game");
+    bid_options = Brick_CreateButton("Options");
     bid_quit = Brick_CreateButton("Quit");
+
+    // bid_pause = Brick_CreateButton("Pause");
+    bid_resume = Brick_CreateButton("Resume");
 
 	bid_optionGame = Brick_CreateToggleButton("Game");
     bid_optionInput = Brick_CreateToggleButton("Input");
@@ -18,6 +22,8 @@ Action::Interface Menu::update() {
 
     if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_new)) {
         action = Action::Interface::MENU_GAME_NEW;
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_resume)) {
+        action = Action::Interface::MENU_GAME_RESUME;
     } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_quit)) {
         action = Action::Interface::MENU_GAME_QUIT;
     }
@@ -28,12 +34,15 @@ Action::Interface Menu::update() {
 void Menu::layoutMain() {
     Brick_BeginFloatingPanel();
         Brick_LayoutButton(bid_new);
+        Brick_LayoutButton(bid_options);
         Brick_LayoutButton(bid_quit);
     Brick_EndFloatingPanel();
 }
 
 void Menu::layoutGame() {
-
+    Brick_BeginFloatingPanel();
+        Brick_LayoutButton(bid_resume);
+    Brick_EndFloatingPanel();
 }
 
 void Menu::layoutOptions() {
@@ -62,13 +71,13 @@ void Menu::render() const {
 	
 }
 
-void Menu::transition(State::Screen screen) {
+void Menu::transition(State::App state, State::Screen screen) {
     switch(screen) {
     case State::Screen::MAIN:
         layout = &Menu::layoutMain;
     break;
     case State::Screen::GAME:
-        layout = &Menu::layoutGame;
+        layout = state == State::App::HOLD ? &Menu::layoutGame : &Menu::layoutUnit;
     break;
     default: 
         layout = &Menu::layoutUnit;

@@ -128,9 +128,9 @@ void App::runIntro() {
             state = State::App::RUN;
             screen = State::Screen::MAIN;
             // surface.transition(state, screen);
-            interface.transition(screen);
             world.transition(state, screen);
             game.transition(state, screen);
+            interface.transition(state, screen);
 
 #ifdef __EMSCRIPTEN__
             // cancel the main loop before setting it to run
@@ -385,6 +385,32 @@ Clay_RenderCommandArray App::update() {
     Action::Interface action = interface.update(inputEvent);
 
     if(screen == State::Screen::GAME) {
+        if(action == Action::Interface::MENU_GAME_RESUME){
+            TraceLog(LOG_INFO, "UNPAUSE");
+            state = State::App::RUN;
+
+            game.transition(state, screen);
+            world.transition(state, screen);
+            interface.transition(state, screen);
+        }
+
+        if(inputEvent.id == Event::Input::KEY_ESCAPE){
+            if(state == State::App::HOLD) {
+                TraceLog(LOG_INFO, "UNPAUSE");
+                state = State::App::RUN;
+
+                game.transition(state, screen);
+                world.transition(state, screen);
+                interface.transition(state, screen);
+            } else if (state == State::App::RUN) {
+                TraceLog(LOG_INFO, "PAUSE");
+                state = State::App::HOLD;
+
+                game.transition(state, screen);
+                world.transition(state, screen);
+                interface.transition(state, screen);
+            }
+        }
 
     } else if(screen == State::Screen::MAIN) {
 
@@ -394,7 +420,7 @@ Clay_RenderCommandArray App::update() {
             game.transition(state, screen);
             // transition world to start showing in background
             world.transition(state, screen);
-            interface.transition(screen);
+            interface.transition(state, screen);
         } else if(action == Action::Interface::MENU_GAME_QUIT) {
             state = State::App::QUIT;
             return Clay_RenderCommandArray({ 0, 0, nullptr });            
