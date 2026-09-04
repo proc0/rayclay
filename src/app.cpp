@@ -381,7 +381,13 @@ Clay_RenderCommandArray App::update() {
     //     Brick_EndFloatingPanel();
     // return Brick_EndLayout(GetFrameTime());
 
-    return interface.update(inputEvent);
+    Action::Interface action = interface.update(inputEvent);
+
+    if (action == Action::Interface::MENU_GAME_NEW) {
+        TraceLog(LOG_INFO, "New Game");
+    }
+    
+    return interface.layout(inputEvent);
 }
 
 void App::resize(int width, int height) {    

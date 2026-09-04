@@ -28,7 +28,8 @@ public:
 	void loadOverlay();
 	void load();
 
-	Clay_RenderCommandArray update(const InputEvent& inputEvent);
+	Action::Interface update(const InputEvent& inputEvent);
+	Clay_RenderCommandArray layout(const InputEvent& inputEvent);
 	void render(Clay_RenderCommandArray& renderCommands) const;
 
 	void transition();

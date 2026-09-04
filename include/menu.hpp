@@ -1,6 +1,7 @@
 #pragma once
 
 #include "brick.h"
+#include "type.hpp"
 
 class Menu {
     Brick_ElementId buttonId;
@@ -15,7 +16,7 @@ public:
 	void load();
 
 	void layout();
-	void update();
+	Action::Interface update();
 	void render() const;
 
 	void unload();

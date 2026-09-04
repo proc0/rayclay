@@ -10,8 +10,14 @@ void Menu::load() {
     buttonGroupId1 = Brick_CreateButtonGroup(buttonGroup1, 3);
 }
 
-void Menu::update() {
+Action::Interface Menu::update() {
+    Action::Interface action = Action::Interface::NOTHING;
 
+    if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, buttonId)) {
+        action = Action::Interface::MENU_GAME_NEW;
+    }
+
+    return action;
 }
 
 void Menu::layout() {

@@ -5,29 +5,44 @@
 #include "raylib.h"
 
 namespace Action {
-    enum Surface {
-        DO_NOTHING,
-        NEW_GAME,
-        CONFIRM_TUTORIAL,
-        MOVE_UP,
-        MOVE_RIGHT,
-        MOVE_DOWN,
-        MOVE_LEFT,
-        LOAD_GAME,
-        RESTART,
-        SAVE_GAME,
-        OPTIONS,
-        RESUME_GAME,
-        MAIN_MENU,
-        CONFIRM_RETURN,
-        CANCEL_RETURN,
-        CONFIRM_OPTIONS,
-        CANCEL_OPTIONS,
-        CHANGE_OPTIONS_GAME,
-        CHANGE_OPTIONS_AUDIO,
-        CHANGE_OPTIONS_INPUTS,
-        QUIT_APP,
+    enum Interface {
+        NOTHING,
+        MENU_GAME_NEW,
+        MENU_CONFIRM_TUTORIAL,
+        MENU_OPTIONS,
+        MENU_OPTIONS_GAME,
+        MENU_OPTIONS_INPUT,
+        MENU_OPTIONS_AUDIO,
+        MENU_OPTIONS_CONFIRM,
+        MENU_OPTIONS_CANCEL,
+        MENU_GAME_RESTART,
+        MENU_GAME_RETURN_MAIN,
+        MENU_GAME_RETURN_CONFIRM,
+        MENU_GAME_QUIT
     };
+    // enum Surface {
+    //     DO_NOTHING,
+    //     NEW_GAME,
+    //     CONFIRM_TUTORIAL,
+    //     MOVE_UP,
+    //     MOVE_RIGHT,
+    //     MOVE_DOWN,
+    //     MOVE_LEFT,
+    //     LOAD_GAME,
+    //     RESTART,
+    //     SAVE_GAME,
+    //     OPTIONS,
+    //     RESUME_GAME,
+    //     MAIN_MENU,
+    //     CONFIRM_RETURN,
+    //     CANCEL_RETURN,
+    //     CONFIRM_OPTIONS,
+    //     CANCEL_OPTIONS,
+    //     CHANGE_OPTIONS_GAME,
+    //     CHANGE_OPTIONS_AUDIO,
+    //     CHANGE_OPTIONS_INPUTS,
+    //     QUIT_APP,
+    // };
 }
 
 namespace Event {

@@ -1,4 +1,5 @@
 #include "interface.hpp"
+#include "type.hpp"
 
 #define BRICK_IMPLEMENTATION
 #include "brick.h"
@@ -116,13 +117,14 @@ void Interface::load() {
     menu.load();
 }
 
-Clay_RenderCommandArray Interface::update(const InputEvent& inputEvent) {
+Action::Interface Interface::update(const InputEvent& inputEvent) {
     Brick_EventArray eventArray = Brick_UpdateEvents({ 
         .x = inputEvent.position.x, 
         .y = inputEvent.position.y, 
         .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
     });
-    // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
+
+    Action::Interface action = Action::Interface::NOTHING;
     
     for (int i=0; i<eventArray.length; i++) {
         Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
@@ -152,6 +154,8 @@ Clay_RenderCommandArray Interface::update(const InputEvent& inputEvent) {
         }
     }
 
+    action = menu.update();
+
     if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
         // TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
@@ -160,6 +164,10 @@ Clay_RenderCommandArray Interface::update(const InputEvent& inputEvent) {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 
+    return action;
+}
+
+Clay_RenderCommandArray Interface::layout(const InputEvent& inputEvent) {
     Brick_BeginLayout();
         menu.layout();
     return Brick_EndLayout(GetFrameTime());
