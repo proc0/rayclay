@@ -77,13 +77,13 @@ namespace Event {
         FINISHED
     };
 
-    enum Surface {
-        NO_EVENT,
-        SHOW_TUTORIAL,
-        CONFIRM_TUTORIAL,
-        SHOW_RETURN_MAIN_MENU_CONFIRMATION,
-        SHOW_OPTIONS,
-    };
+    // enum Surface {
+    //     NO_EVENT,
+    //     SHOW_TUTORIAL,
+    //     CONFIRM_TUTORIAL,
+    //     SHOW_RETURN_MAIN_MENU_CONFIRMATION,
+    //     SHOW_OPTIONS,
+    // };
 }
 
 namespace State {
@@ -91,7 +91,7 @@ namespace State {
         LOAD,
         RUN,
         HOLD,
-        HALT
+        QUIT
     };
 
     enum Screen {

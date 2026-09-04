@@ -4,20 +4,28 @@
 #include "type.hpp"
 
 class Menu {
-    Brick_ElementId buttonId;
-    Brick_ElementId buttonId2;
-    Brick_ElementId buttonId3;
-    Brick_ElementId buttonGroupId1;
+    Brick_ElementId bid_new;
+    Brick_ElementId bid_quit;
+    Brick_ElementId bid_optionGame;
+    Brick_ElementId bid_optionInput;
+    Brick_ElementId bid_optionAudio;
+    Brick_ElementId bid_optionTabs;
 
 public:
 	Menu(){}
 	~Menu() = default;
 
+	void (Menu::*layout)() = &Menu::layoutUnit;
+
 	void load();
 
-	void layout();
+	void layoutUnit() {};
+	void layoutMain();
+	void layoutOptions();
+	void layoutGame();
 	Action::Interface update();
 	void render() const;
 
+	void transition(State::Screen);
 	void unload();
 };

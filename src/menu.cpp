@@ -3,38 +3,54 @@
 #include "brick.h"
 
 void Menu::load() {
-	buttonId = Brick_CreateToggleButton("HELLO");
-    buttonId2 = Brick_CreateToggleButton("HELLO 2");
-    buttonId3 = Brick_CreateToggleButton("HELLO 3");
-    Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
-    buttonGroupId1 = Brick_CreateButtonGroup(buttonGroup1, 3);
+    bid_new = Brick_CreateButton("New Game");
+    bid_quit = Brick_CreateButton("Quit");
+
+	bid_optionGame = Brick_CreateToggleButton("Game");
+    bid_optionInput = Brick_CreateToggleButton("Input");
+    bid_optionAudio = Brick_CreateToggleButton("Audio");
+    Brick_ElementId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
+    bid_optionTabs = Brick_CreateButtonGroup(tabs, 3);
 }
 
 Action::Interface Menu::update() {
     Action::Interface action = Action::Interface::NOTHING;
 
-    if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, buttonId)) {
+    if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_new)) {
         action = Action::Interface::MENU_GAME_NEW;
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_quit)) {
+        action = Action::Interface::MENU_GAME_QUIT;
     }
 
     return action;
 }
 
-void Menu::layout() {
+void Menu::layoutMain() {
+    Brick_BeginFloatingPanel();
+        Brick_LayoutButton(bid_new);
+        Brick_LayoutButton(bid_quit);
+    Brick_EndFloatingPanel();
+}
+
+void Menu::layoutGame() {
+
+}
+
+void Menu::layoutOptions() {
     Brick_BeginFloatingPanel();
         Brick_BeginHorizontalStack();
-            Brick_LayoutButtonGroup(buttonGroupId1);
+            Brick_LayoutButtonGroup(bid_optionTabs);
         Brick_EndHorizontalStack();
 
-        if(Brick_IsButtonToggled(buttonId)) {
+        if(Brick_IsButtonToggled(bid_optionGame)) {
             Brick_BeginPanel();
                 Brick_InlineText("TAB 1");
             Brick_EndPanel();
-        } else if(Brick_IsButtonToggled(buttonId2)) {
+        } else if(Brick_IsButtonToggled(bid_optionInput)) {
             Brick_BeginPanel();
                 Brick_InlineText("This is the second tab.");
             Brick_EndPanel();
-        } else if(Brick_IsButtonToggled(buttonId3)) {
+        } else if(Brick_IsButtonToggled(bid_optionAudio)) {
             Brick_BeginPanel();
                 Brick_InlineText("3rd TAB!!");
             Brick_EndPanel();
@@ -44,6 +60,19 @@ void Menu::layout() {
 
 void Menu::render() const {
 	
+}
+
+void Menu::transition(State::Screen screen) {
+    switch(screen) {
+    case State::Screen::MAIN:
+        layout = &Menu::layoutMain;
+    break;
+    case State::Screen::GAME:
+        layout = &Menu::layoutGame;
+    break;
+    default: 
+        layout = &Menu::layoutUnit;
+    }
 }
 
 void Menu::unload() {

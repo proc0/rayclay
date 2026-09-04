@@ -32,7 +32,7 @@ public:
 	Clay_RenderCommandArray layout(const InputEvent& inputEvent);
 	void render(Clay_RenderCommandArray& renderCommands) const;
 
-	void transition();
+	void transition(State::Screen);
 	void unload();
 
 };

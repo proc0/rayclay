@@ -88,11 +88,11 @@ void App::start() {
 #else
     SetTargetFPS(TARGET_FPS);
 
-    while (state != State::App::RUN && state != State::App::HALT) {
+    while (state != State::App::RUN && state != State::App::QUIT) {
         intro(this);
     }
 
-    while (state != State::App::HALT) {
+    while (state != State::App::QUIT) {
         run(this);
     }
 #endif
@@ -107,7 +107,7 @@ void App::runIntro() {
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
-        state = State::App::HALT;
+        state = State::App::QUIT;
     }
 #endif
 
@@ -128,6 +128,7 @@ void App::runIntro() {
             state = State::App::RUN;
             screen = State::Screen::MAIN;
             // surface.transition(state, screen);
+            interface.transition(screen);
             world.transition(state, screen);
             game.transition(state, screen);
 
@@ -171,7 +172,7 @@ Clay_RenderCommandArray App::update() {
 
 #ifndef __EMSCRIPTEN__
     if (WindowShouldClose()) {
-        state = State::App::HALT;
+        state = State::App::QUIT;
         return Clay_RenderCommandArray({ 0, 0, nullptr });
     }
 #endif
@@ -266,7 +267,7 @@ Clay_RenderCommandArray App::update() {
     //             surface.transition(state, screen);
             
     //         } else if (surfaceAction == Action::Surface::QUIT_APP) {
-    //             state = State::App::HALT;
+    //             state = State::App::QUIT;
     //             return Clay_RenderCommandArray({ 0, 0, nullptr });
     //         }
     //     }
@@ -299,7 +300,7 @@ Clay_RenderCommandArray App::update() {
     //         surface.transition(state, screen);
         
     //     } else if (surfaceAction == Action::Surface::QUIT_APP) {
-    //         state = State::App::HALT;
+    //         state = State::App::QUIT;
     //         return Clay_RenderCommandArray({ 0, 0, nullptr });
     //     }            
     // }
@@ -383,10 +384,28 @@ Clay_RenderCommandArray App::update() {
 
     Action::Interface action = interface.update(inputEvent);
 
-    if (action == Action::Interface::MENU_GAME_NEW) {
-        TraceLog(LOG_INFO, "New Game");
+    if(screen == State::Screen::GAME) {
+
+    } else if(screen == State::Screen::MAIN) {
+
+        if (action == Action::Interface::MENU_GAME_NEW) {
+            screen = State::Screen::GAME;
+
+            game.transition(state, screen);
+            // transition world to start showing in background
+            world.transition(state, screen);
+            interface.transition(screen);
+        } else if(action == Action::Interface::MENU_GAME_QUIT) {
+            state = State::App::QUIT;
+            return Clay_RenderCommandArray({ 0, 0, nullptr });            
+        }
     }
-    
+
+    WorldState worldState = (world.*world.update)(inputEvent);
+    // GameState gameState = (game.*game.update)(inputEvent, worldState);
+    (game.*game.update)(inputEvent, worldState);
+
+
     return interface.layout(inputEvent);
 }
 

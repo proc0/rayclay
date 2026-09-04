@@ -169,9 +169,8 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
 
 Clay_RenderCommandArray Interface::layout(const InputEvent& inputEvent) {
     Brick_BeginLayout();
-        menu.layout();
+        (menu.*menu.layout)();
     return Brick_EndLayout(GetFrameTime());
-
 }
 
 void Interface::render(Clay_RenderCommandArray& renderCommands) const {
@@ -353,8 +352,8 @@ void Interface::render(Clay_RenderCommandArray& renderCommands) const {
     }
 }
 
-void Interface::transition() {
-
+void Interface::transition(State::Screen screen) {
+	menu.transition(screen);
 }
 
 void Interface::unload() {
