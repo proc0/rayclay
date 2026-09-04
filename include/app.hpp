@@ -8,10 +8,11 @@
 #include "game.hpp"
 #include "logo.hpp"
 
+#include "interface.hpp"
 // #include "surface.hpp"
 // #include "clay.h"
-#include "brick.h"
-#include <cstdint>
+// #include "brick.h"
+// #include <cstdint>
 
 class App : Layer {
     Font fonts[2];
@@ -33,15 +34,16 @@ class App : Layer {
 
 	Window window = Window(camera, timer);
     // Surface surface = Surface(window);
+    Interface interface = Interface(window);
 
 	World world = World(window);
     Game game = Game(window);
     Logo logo = Logo(window);
     
-    Brick_ElementId buttonId;
-    Brick_ElementId buttonId2;
-    Brick_ElementId buttonId3;
-    Brick_ElementId buttonGroupId1;
+    // Brick_ElementId buttonId;
+    // Brick_ElementId buttonId2;
+    // Brick_ElementId buttonId3;
+    // Brick_ElementId buttonGroupId1;
 
 	State::App state = State::App::LOAD;
     State::Screen screen = State::Screen::INTRO;

@@ -256,8 +256,35 @@ typedef struct Brick_EventArray {
 
 // TODO: add the rest of the API prototypes
 Brick_ElementId Brick_CreateButton(const char* label);
-Brick_ElementId Brick_GroupButtons(const Brick_ElementId* buttonIds, int32_t groupSize);
+Brick_ElementId Brick_CreateToggleButton(const char* label);
+Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize);
+
+Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData);
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
+
+bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId);
+bool Brick_IsEventTriggered(Brick_EventType eventType);
+bool Brick_IsButtonToggled(const Brick_ElementId buttonId);
+void Brick_ToggleButton(Brick_ElementId buttonId);
+void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled);
+
+void Brick_BeginLayout(void);
+Clay_RenderCommandArray Brick_EndLayout(float deltaTime);
+
+void Brick_InlineText(const char* text);
+
+void Brick_LayoutText(const char* text);
+void Brick_LayoutButton(Brick_ElementId buttonId);
+void Brick_LayoutButtonGroup(Brick_ElementId groupId);
+
+void Brick_BeginPanel(void);
+void Brick_EndPanel(void);
+void Brick_BeginFloatingPanel(void);
+void Brick_EndFloatingPanel(void);
+void Brick_BeginHorizontalStack(void);
+void Brick_EndHorizontalStack(void);
+void Brick_BeginVerticalStack(void);
+void Brick_EndVerticalStack(void);
 
 #endif /* BRICK_HEADER */
 

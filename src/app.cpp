@@ -11,10 +11,10 @@
 #include <emscripten/html5.h>
 #endif
 
-#include "clay_renderer.h"
+// #include "clay_renderer.h"
 
-#define BRICK_IMPLEMENTATION
-#include "brick.h"
+// #define BRICK_IMPLEMENTATION
+// #include "brick.h"
 
 // #define CLAY_IMPLEMENTATION
 // #include "clay.h"
@@ -45,12 +45,7 @@ void App::load() {
 
     loadTarget();
 
-    fonts[0] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_MEDIUM), 48, 0, 400);
-    SetTextureFilter(fonts[0].texture, TEXTURE_FILTER_BILINEAR);
-    fonts[1] = LoadFontEx(PATH_ASSET(URI_FONT_ROBOTO_REGULAR), 32, 0, 400);
-    SetTextureFilter(fonts[1].texture, TEXTURE_FILTER_BILINEAR);
-
-    Brick_Initialize(window.widthf, window.heightf, Raylib_MeasureText, fonts);
+    interface.load();
     // // 1. Query minimum memory required for default element limits
     // uint64_t memorySize = Clay_MinMemorySize();
     // // 2. Allocate memory (malloc, stack, or custom allocator)
@@ -60,13 +55,13 @@ void App::load() {
     // // 4. Initialize Clay [clay.h:2186-2188]
     // Clay_Initialize(clayArena, Clay_Dimensions({ window.widthf, window.heightf }), Clay_ErrorHandler({ .errorHandlerFunction = nullptr, .userData = nullptr }));
 
-    LoadOverlay();
+    // LoadOverlay();
 
-    buttonId = Brick_CreateToggleButton("HELLO");
-    buttonId2 = Brick_CreateToggleButton("HELLO 2");
-    buttonId3 = Brick_CreateToggleButton("HELLO 3");
-    Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
-    buttonGroupId1 = Brick_CreateButtonGroup(buttonGroup1, 3);
+    // buttonId = Brick_CreateToggleButton("HELLO");
+    // buttonId2 = Brick_CreateToggleButton("HELLO 2");
+    // buttonId3 = Brick_CreateToggleButton("HELLO 3");
+    // Brick_ElementId buttonGroup1[3] = { buttonId, buttonId2, buttonId3 };
+    // buttonGroupId1 = Brick_CreateButtonGroup(buttonGroup1, 3);
 }
 
 void App::loadTarget() {
@@ -160,7 +155,8 @@ void App::render(Clay_RenderCommandArray& renderCommands) const {
         ClearBackground(BLANK);
         DrawTexturePro(target.texture, targetSource, targetDestination, Vector2({}), 0.0f, WHITE);
         // (surface.*surface.render)(renderCommands);
-        RenderRaylib(fonts, renderCommands);
+        // RenderRaylib(fonts, renderCommands);
+        interface.render(renderCommands);
 	EndDrawing();
 }
 
@@ -320,70 +316,72 @@ Clay_RenderCommandArray App::update() {
     // Clay_Vector2 mousePosition = RAYLIB_VECTOR2_TO_CLAY_VECTOR2(inputEvent.position);
     // Clay_SetPointerState(mousePosition, inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN);
     
-    Brick_EventArray eventArray = Brick_UpdateEvents({ 
-        .x = inputEvent.position.x, 
-        .y = inputEvent.position.y, 
-        .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
-    });
-    // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
+    // Brick_EventArray eventArray = Brick_UpdateEvents({ 
+    //     .x = inputEvent.position.x, 
+    //     .y = inputEvent.position.y, 
+    //     .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
+    // });
+    // // TraceLog(LOG_INFO, "EVENT NUM: %d", eventArray.length);
     
-    for (int i=0; i<eventArray.length; i++) {
-        Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
+    // for (int i=0; i<eventArray.length; i++) {
+    //     Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
 
-        switch(event->eventType) {
-        case BRICK_EVENT_PRESS:
-            TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
-        break;
-        case BRICK_EVENT_PRESSING:
-            // TraceLog(LOG_INFO, "CLICKING...");
-        break;
-        case BRICK_EVENT_RELEASE:
-            // TraceLog(LOG_INFO, "RELEASE");
-        break;
-        case BRICK_EVENT_HOVER:
-            // TraceLog(LOG_INFO, "JUST HOVERED");
-            // SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-        break;
-        case BRICK_EVENT_HOVERING:
-            // TraceLog(LOG_INFO, "HOVERING...");
-        break;
-        case BRICK_EVENT_CLEAR:
-            // TraceLog(LOG_INFO, "JUST CLEARED");
-            // SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-        break;
-        default: break;
-        }
-    }
+    //     switch(event->eventType) {
+    //     case BRICK_EVENT_PRESS:
+    //         TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
+    //     break;
+    //     case BRICK_EVENT_PRESSING:
+    //         // TraceLog(LOG_INFO, "CLICKING...");
+    //     break;
+    //     case BRICK_EVENT_RELEASE:
+    //         // TraceLog(LOG_INFO, "RELEASE");
+    //     break;
+    //     case BRICK_EVENT_HOVER:
+    //         // TraceLog(LOG_INFO, "JUST HOVERED");
+    //         // SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    //     break;
+    //     case BRICK_EVENT_HOVERING:
+    //         // TraceLog(LOG_INFO, "HOVERING...");
+    //     break;
+    //     case BRICK_EVENT_CLEAR:
+    //         // TraceLog(LOG_INFO, "JUST CLEARED");
+    //         // SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    //     break;
+    //     default: break;
+    //     }
+    // }
 
-    if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
-        // TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
-        SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    } else if (Brick_IsEventTriggered(BRICK_EVENT_CLEAR)) {
-        // TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
-        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-    }
+    // if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
+    //     // TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
+    //     SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    // } else if (Brick_IsEventTriggered(BRICK_EVENT_CLEAR)) {
+    //     // TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
+    //     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    // }
 
-    Brick_BeginLayout();
-        Brick_BeginFloatingPanel();
-            Brick_BeginHorizontalStack();
-                Brick_LayoutButtonGroup(buttonGroupId1);
-            Brick_EndHorizontalStack();
+    // Brick_BeginLayout();
+    //     Brick_BeginFloatingPanel();
+    //         Brick_BeginHorizontalStack();
+    //             Brick_LayoutButtonGroup(buttonGroupId1);
+    //         Brick_EndHorizontalStack();
 
-            if(Brick_IsButtonToggled(buttonId)) {
-                Brick_BeginPanel();
-                    Brick_InlineText("TAB 1");
-                Brick_EndPanel();
-            } else if(Brick_IsButtonToggled(buttonId2)) {
-                Brick_BeginPanel();
-                    Brick_InlineText("This is the second tab.");
-                Brick_EndPanel();
-            } else if(Brick_IsButtonToggled(buttonId3)) {
-                Brick_BeginPanel();
-                    Brick_InlineText("3rd TAB!!");
-                Brick_EndPanel();
-            }
-        Brick_EndFloatingPanel();
-    return Brick_EndLayout(GetFrameTime());
+    //         if(Brick_IsButtonToggled(buttonId)) {
+    //             Brick_BeginPanel();
+    //                 Brick_InlineText("TAB 1");
+    //             Brick_EndPanel();
+    //         } else if(Brick_IsButtonToggled(buttonId2)) {
+    //             Brick_BeginPanel();
+    //                 Brick_InlineText("This is the second tab.");
+    //             Brick_EndPanel();
+    //         } else if(Brick_IsButtonToggled(buttonId3)) {
+    //             Brick_BeginPanel();
+    //                 Brick_InlineText("3rd TAB!!");
+    //             Brick_EndPanel();
+    //         }
+    //     Brick_EndFloatingPanel();
+    // return Brick_EndLayout(GetFrameTime());
+
+    return interface.update(inputEvent);
 }
 
 void App::resize(int width, int height) {    
@@ -397,14 +395,15 @@ const char* App::unload(int eventType, const void *reserved, void *self) {
 	app->game.unload();
 	app->world.unload();
     // app->surface.unload();
+    app->interface.unload();
 
     UnloadRenderTexture(app->target);
 
-    Clay_Raylib_Close();
-    for (auto& font : app->fonts) {
-        UnloadFont(font);
-    }
-    Brick_Destroy();
+    // Clay_Raylib_Close();
+    // for (auto& font : app->fonts) {
+    //     UnloadFont(font);
+    // }
+    // Brick_Destroy();
     // if (app->clayArena.memory) free(app->clayArena.memory);
 
     CloseAudioDevice();
