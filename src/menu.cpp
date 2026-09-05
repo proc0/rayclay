@@ -1,6 +1,9 @@
 #include "menu.hpp"
 
 #include "brick.h"
+#include "index.h"
+
+#include "raylib.h"
 
 void Menu::load() {
     bid_new = Brick_CreateButton("New Game");
@@ -16,6 +19,14 @@ void Menu::load() {
     bid_optionAudio = Brick_CreateToggleButton("Audio");
     Brick_ElementId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
     bid_optionTabs = Brick_CreateButtonGroup(tabs, 3);
+
+    // TODO: move this into Display class
+    textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
+    textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
+    textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
+    textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
+
+    bid_hudArrowUp = Brick_CreateTextureButton("UP", &textureArrowUp);
 }
 
 Action::Interface Menu::update() {
@@ -31,6 +42,8 @@ Action::Interface Menu::update() {
         layout = &Menu::layoutOptions;
     } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_save) || Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_cancel)) {
         layout = &Menu::layoutMain;
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_hudArrowUp)) {
+        TraceLog(LOG_INFO, "UP UP UP");
     }
 
     return action;
@@ -41,6 +54,8 @@ void Menu::layoutMain() {
         Brick_LayoutButton(bid_new);
         Brick_LayoutButton(bid_options);
         Brick_LayoutButton(bid_quit);
+
+        Brick_LayoutButton(bid_hudArrowUp);
     Brick_EndFloatingPanel();
 }
 
@@ -95,5 +110,8 @@ void Menu::transition(State::App state, State::Screen screen) {
 }
 
 void Menu::unload() {
-	
+    UnloadTexture(textureArrowUp);
+    UnloadTexture(textureArrowRight);
+    UnloadTexture(textureArrowDown);
+    UnloadTexture(textureArrowLeft);
 }

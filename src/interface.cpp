@@ -356,6 +356,10 @@ void Interface::transition(State::App state, State::Screen screen) {
 	menu.transition(state, screen);
 }
 
+void Interface::resize(int width, int height) {
+    Brick_Resize(static_cast<float>(width), static_cast<float>(height));
+}
+
 void Interface::unload() {
     menu.unload();
 

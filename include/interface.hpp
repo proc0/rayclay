@@ -14,7 +14,7 @@
 #define CLAY_COLOR_TO_RAYLIB_COLOR(color) Color({ .r = static_cast<unsigned char>(roundf(color.r)), .g = static_cast<unsigned char>(roundf(color.g)), .b = static_cast<unsigned char>(roundf(color.b)), .a = static_cast<unsigned char>(roundf(color.a)) })
 #define RAYLIB_COLOR_TO_CLAY_COLOR(color) Clay_Color({ static_cast<float>(color.r), static_cast<float>(color.g), static_cast<float>(color.b), static_cast<float>(color.a) })
 
-class Interface {
+class Interface : Layer {
 	Font fonts[3];
 
 	Menu menu; 
@@ -33,6 +33,7 @@ public:
 	void render(Clay_RenderCommandArray& renderCommands) const;
 
 	void transition(State::App, State::Screen);
+    void resize(int width, int height) override;
 	void unload();
 
 };

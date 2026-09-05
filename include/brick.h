@@ -194,6 +194,7 @@ typedef struct {
     Clay_ElementId clayId;
     Clay_String label;
     Brick_ElementId id;
+    void* imageData;
     int32_t groupIndex;
     bool hovered;
     bool cleared;
@@ -254,7 +255,9 @@ typedef struct Brick_EventArray {
 // Public API
 // --------------------------
 
-// TODO: add the rest of the API prototypes
+void Brick_Resize(float width, float height);
+
+Brick_ElementId Brick_CreateTextureButton(const char* label, void* imageData);
 Brick_ElementId Brick_CreateButton(const char* label);
 Brick_ElementId Brick_CreateToggleButton(const char* label);
 Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize);
@@ -407,6 +410,10 @@ void Brick_Destroy(void) {
     if(g_clay_arena.memory) free(g_clay_arena.memory);
 }
 
+void Brick_Resize(float width, float height) {
+    Clay_SetLayoutDimensions(Clay_Dimensions({ width, height }));
+}
+
 // CreateElement<Element>
 // initializes the element state and returns the element ID for layout
 // ---------------------------------------------------------------------------
@@ -416,7 +423,7 @@ Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     return id;
 }
 
-Brick_ElementId Brick_CreateButton(const char* label) {
+Brick_ElementId Brick_CreateTextureButton(const char* label, void* imageData) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(label), 
@@ -433,6 +440,7 @@ Brick_ElementId Brick_CreateButton(const char* label) {
         .clayId = CLAY_SID(clayString),
         .label = clayString,
         .id = buttonId,
+        .imageData = imageData,
         .groupIndex = 0,
         .hovered = false,
         .cleared = false,
@@ -447,6 +455,11 @@ Brick_ElementId Brick_CreateButton(const char* label) {
     g_elements.total_count++;
 
     return buttonId;
+}
+
+Brick_ElementId Brick_CreateButton(const char* label) {
+
+    return Brick_CreateTextureButton(label, nullptr);
 }
 
 Brick_ElementId Brick_CreateToggleButton(const char* label) {
@@ -781,33 +794,43 @@ void Brick__LayoutButtonIndex(int32_t index) {
     Clay_Color bgColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : BRICK_COLOR_BUTTON_BG;
     Clay_Color borderColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : BRICK_COLOR_BUTTON_BORDER;
 
-    CLAY(button->clayId, {
-        .layout = {
-            .sizing = {
-                .width = CLAY_SIZING_GROW(0)
-            },
-            .padding = {
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_MEDIUM,
-                BRICK_STYLE_PADDING_MEDIUM
-            },
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
-        }, 
-        // Clay_Hovered only works inside the paramaters or declaration body
-        .backgroundColor = Clay_Hovered() ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
-        .border = { 
-            .color = borderColor, 
-            .width = CLAY_BORDER_OUTSIDE(1) 
-        }
-        // .transition = {
-        //     .handler = Clay_EaseOut,
-        //     .duration = 0.3f,
-        //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-        //     .enter = { .setInitialState = FadeSlide },
-        //     // .exit = { .setFinalState = FadeSlide },
-        // }
-    }) {
+    Clay_ElementDeclaration declaration = {};
+
+    if (button->imageData) {
+        declaration = {
+            .image = { .imageData = button->imageData }
+        };
+    } else {
+        declaration = {
+            .layout = {
+                .sizing = {
+                    .width = CLAY_SIZING_GROW(0)
+                },
+                .padding = {
+                    BRICK_STYLE_PADDING_SMALL,
+                    BRICK_STYLE_PADDING_SMALL,
+                    BRICK_STYLE_PADDING_MEDIUM,
+                    BRICK_STYLE_PADDING_MEDIUM
+                },
+                .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
+            }, 
+            // Clay_Hovered only works inside the paramaters or declaration body
+            .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
+            .border = { 
+                .color = borderColor, 
+                .width = CLAY_BORDER_OUTSIDE(1) 
+            }
+            // .transition = {
+            //     .handler = Clay_EaseOut,
+            //     .duration = 0.3f,
+            //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            //     .enter = { .setInitialState = FadeSlide },
+            //     // .exit = { .setFinalState = FadeSlide },
+            // }
+        };
+    }
+
+    CLAY(button->clayId, declaration) {
         Brick_OnButtonHover(button->id.index, Clay_Hovered());
         // Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHover, nullptr);
