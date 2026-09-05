@@ -7,8 +7,9 @@ void Menu::load() {
     bid_options = Brick_CreateButton("Options");
     bid_quit = Brick_CreateButton("Quit");
 
-    // bid_pause = Brick_CreateButton("Pause");
     bid_resume = Brick_CreateButton("Resume");
+    bid_options_save = Brick_CreateButton("Save");
+    bid_options_cancel = Brick_CreateButton("Cancel");
 
 	bid_optionGame = Brick_CreateToggleButton("Game");
     bid_optionInput = Brick_CreateToggleButton("Input");
@@ -26,6 +27,10 @@ Action::Interface Menu::update() {
         action = Action::Interface::MENU_GAME_RESUME;
     } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_quit)) {
         action = Action::Interface::MENU_GAME_QUIT;
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options)) {
+        layout = &Menu::layoutOptions;
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_save) || Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_cancel)) {
+        layout = &Menu::layoutMain;
     }
 
     return action;
@@ -64,6 +69,11 @@ void Menu::layoutOptions() {
                 Brick_InlineText("3rd TAB!!");
             Brick_EndPanel();
         }
+
+        Brick_BeginHorizontalStack();
+            Brick_LayoutButton(bid_options_save);
+            Brick_LayoutButton(bid_options_cancel);
+        Brick_EndHorizontalStack();
     Brick_EndFloatingPanel();
 }
 

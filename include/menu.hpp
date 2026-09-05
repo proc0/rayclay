@@ -8,7 +8,8 @@ class Menu {
     Brick_ElementId bid_options;
     Brick_ElementId bid_quit;
     
-    // Brick_ElementId bid_pause;
+    Brick_ElementId bid_options_save;
+    Brick_ElementId bid_options_cancel;
     Brick_ElementId bid_resume;
 
     Brick_ElementId bid_optionGame;
