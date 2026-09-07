@@ -26,7 +26,7 @@ void Menu::load() {
     textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
     textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
 
-    bid_hudArrowUp = Brick_CreateTextureButton("UP", &textureArrowUp);
+    bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
 }
 
 Action::Interface Menu::update() {
@@ -55,7 +55,7 @@ void Menu::layoutMain() {
         Brick_LayoutButton(bid_options);
         Brick_LayoutButton(bid_quit);
 
-        Brick_LayoutButton(bid_hudArrowUp);
+        Brick_LayoutImageButton(bid_hudArrowUp);
     Brick_EndFloatingPanel();
 }
 
