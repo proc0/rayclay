@@ -32,20 +32,19 @@ void App::load() {
     SetExitKey(KEY_NULL);
 
 	window.load();
-    // surface.load();
+    interface.load();
 	world.load();
 	game.load();
     logo.load();
 
     window.enlist(this);
-    // window.enlist(&surface);
+    window.enlist(&interface);
     window.enlist(&world);
     window.enlist(&game);
     window.enlist(&logo);
 
     loadTarget();
 
-    interface.load();
     // // 1. Query minimum memory required for default element limits
     // uint64_t memorySize = Clay_MinMemorySize();
     // // 2. Allocate memory (malloc, stack, or custom allocator)
