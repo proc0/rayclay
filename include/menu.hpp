@@ -29,6 +29,8 @@ class Menu {
     Brick_ElementId bid_optionAudio;
     Brick_ElementId bid_optionTabs;
 
+    Brick_ContainerId cid_scrollBox;
+
 public:
 	Menu(){}
 	~Menu() = default;

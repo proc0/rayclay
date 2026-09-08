@@ -2,6 +2,7 @@
 
 #include "brick.h"
 #include "index.h"
+#include "text.hpp"
 
 #include "raylib.h"
 
@@ -27,6 +28,8 @@ void Menu::load() {
     textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
 
     bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
+
+    cid_scrollBox = Brick_CreateScrollBox();
 }
 
 Action::Interface Menu::update() {
@@ -76,9 +79,9 @@ void Menu::layoutOptions() {
                 Brick_InlineText("TAB 1");
             Brick_EndPanel();
         } else if(Brick_IsButtonToggled(bid_optionInput)) {
-            Brick_BeginPanel();
-                Brick_InlineText("This is the second tab.");
-            Brick_EndPanel();
+            Brick_BeginScrollBox(cid_scrollBox);
+                Brick_InlineText(TEXT_TUTORIAL_3);
+            Brick_EndScrollBox();
         } else if(Brick_IsButtonToggled(bid_optionAudio)) {
             Brick_BeginPanel();
                 Brick_InlineText("3rd TAB!!");

@@ -120,9 +120,12 @@ void Interface::load() {
 Action::Interface Interface::update(const InputEvent& inputEvent) {
     Brick_EventArray eventArray = Brick_UpdateEvents({ 
         .x = inputEvent.position.x, 
-        .y = inputEvent.position.y, 
-        .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN
-    });
+        .y = inputEvent.position.y,
+        .scrollX = inputEvent.mouseWheel.x,
+        .scrollY = inputEvent.mouseWheel.y,
+        .pressed = inputEvent.id == Event::Input::PRIMARY || inputEvent.id == Event::Input::PRIMARY_DOWN,
+        .released = inputEvent.id == Event::Input::PRIMARY_UP
+    }, GetFrameTime());
 
     Action::Interface action = Action::Interface::NOTHING;
     
