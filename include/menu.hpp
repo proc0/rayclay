@@ -3,18 +3,18 @@
 #include "brick.h"
 #include "type.hpp"
 
-#include "raylib.h"
+// #include "raylib.h"
 
 class Menu {
     // TODO: move this into a Display class
     // along with building the components
     // for the HUD
-    Texture2D textureArrowUp;
-    Texture2D textureArrowRight;
-    Texture2D textureArrowDown;
-    Texture2D textureArrowLeft;
+    // Texture2D textureArrowUp;
+    // Texture2D textureArrowRight;
+    // Texture2D textureArrowDown;
+    // Texture2D textureArrowLeft;
 
-    Brick_ElementId bid_hudArrowUp;
+    // Brick_ElementId bid_hudArrowUp;
     
     Brick_ElementId bid_new;
     Brick_ElementId bid_options;

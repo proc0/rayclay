@@ -6,7 +6,7 @@
 #include "text.hpp"
 
 class Game : public Layer {
-    const char* title = PROJECT_NAME;
+    const char* title = "BRICK";
     int titleFontSize = 128;
     float titleX;
     float titleY;

@@ -878,9 +878,9 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     for (int32_t i = 0; i < g_containers.scrollBoxes.length; i++) {
         Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(i);
 
+        if (scrollBoxProcessed) break;
         // WARN: this conditional prevents crashing for multiple scrollboxes on the same screen
         // NOTE: the pointer data is updating for multiple scrollboxes and conflicting
-        if (scrollBoxProcessed) break;
         if (!Clay_PointerOver(scrollBox->clayParentId)) continue;
         scrollBoxProcessed = true;
 
@@ -1283,8 +1283,8 @@ void Brick_BeginVerticalStack(void) {
                 .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
-            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+            .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
     });
 }

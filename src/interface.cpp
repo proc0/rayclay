@@ -115,6 +115,7 @@ void Interface::load() {
     loadOverlay();
 
     menu.load();
+    display.load();
 }
 
 Action::Interface Interface::update(const InputEvent& inputEvent) {
@@ -157,6 +158,7 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
         }
     }
 
+    display.update();
     action = menu.update();
 
     if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
@@ -173,6 +175,7 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
 Clay_RenderCommandArray Interface::layout(const InputEvent& inputEvent) {
     Brick_BeginLayout();
         (menu.*menu.layout)();
+        (display.*display.layout)();
     return Brick_EndLayout(GetFrameTime());
 }
 
@@ -356,7 +359,8 @@ void Interface::render(Clay_RenderCommandArray& renderCommands) const {
 }
 
 void Interface::transition(State::App state, State::Screen screen) {
-	menu.transition(state, screen);
+    menu.transition(state, screen);
+	display.transition(state, screen);
 }
 
 void Interface::resize(int width, int height) {
@@ -365,6 +369,7 @@ void Interface::resize(int width, int height) {
 
 void Interface::unload() {
     menu.unload();
+    display.unload();
 
     if(temp_render_buffer) free(temp_render_buffer);
     temp_render_buffer_len = 0;

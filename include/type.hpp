@@ -22,6 +22,14 @@ namespace Action {
         MENU_GAME_RETURN_CONFIRM,
         MENU_GAME_QUIT
     };
+
+    enum Display {
+        NONE,
+        ARROW_UP,
+        ARROW_RIGHT,
+        ARROW_DOWN,
+        ARROW_LEFT,
+    };
     // enum Surface {
     //     DO_NOTHING,
     //     NEW_GAME,

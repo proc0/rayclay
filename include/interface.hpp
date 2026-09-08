@@ -3,6 +3,7 @@
 #include "type.hpp"
 #include "window.hpp"
 #include "menu.hpp"
+#include "display.hpp"
 
 #include "brick.h"
 #include "raylib.h"
@@ -18,7 +19,8 @@ class Interface : public Layer {
 	Font fonts[3];
 
 	Menu menu; 
-
+	Display display;
+	
 	const Window& window;
 
 public:

@@ -1,10 +1,10 @@
 #include "menu.hpp"
 
 #include "brick.h"
-#include "index.h"
+// #include "index.h"
 #include "text.hpp"
 
-#include "raylib.h"
+// #include "raylib.h"
 
 void Menu::load() {
     bid_new = Brick_CreateButton("New Game");
@@ -22,12 +22,12 @@ void Menu::load() {
     bid_optionTabs = Brick_CreateButtonGroup(tabs, 3);
 
     // TODO: move this into Display class
-    textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
-    textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
-    textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
-    textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
+    // textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
+    // textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
+    // textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
+    // textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
 
-    bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
+    // bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
 
     cid_scrollBox = Brick_CreateScrollBox();
     cid_scrollBox2 = Brick_CreateScrollBox();
@@ -46,8 +46,6 @@ Action::Interface Menu::update() {
         layout = &Menu::layoutOptions;
     } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_save) || Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_cancel)) {
         layout = &Menu::layoutMain;
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_hudArrowUp)) {
-        TraceLog(LOG_INFO, "UP UP UP");
     }
 
     return action;
@@ -59,7 +57,6 @@ void Menu::layoutMain() {
         Brick_LayoutButton(bid_options);
         Brick_LayoutButton(bid_quit);
 
-        Brick_LayoutImageButton(bid_hudArrowUp);
     Brick_EndFloatingPanel();
 }
 
@@ -121,8 +118,8 @@ void Menu::transition(State::App state, State::Screen screen) {
 }
 
 void Menu::unload() {
-    UnloadTexture(textureArrowUp);
-    UnloadTexture(textureArrowRight);
-    UnloadTexture(textureArrowDown);
-    UnloadTexture(textureArrowLeft);
+    // UnloadTexture(textureArrowUp);
+    // UnloadTexture(textureArrowRight);
+    // UnloadTexture(textureArrowDown);
+    // UnloadTexture(textureArrowLeft);
 }
