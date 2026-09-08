@@ -200,7 +200,6 @@ typedef struct Brick_ScrollBox {
     Clay_Vector2 positionOrigin;
     float scrollY;
     bool isPrimaryDown;
-    bool isContainerOpen;
 } Brick_ScrollBox;
 
 typedef CLAY_PACKED_ENUM {
@@ -296,6 +295,12 @@ typedef struct Brick_EventArray {
 
 // Public API
 // --------------------------
+//TODO: reorder:
+// Lifecycle functions
+// Update Event functions
+// Container create + layout functions
+// Element create + layout functions
+// other
 
 void Brick_Resize(float width, float height);
 
@@ -353,8 +358,13 @@ void Brick_EndScrollBox();
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
 
-// Element Array and Event Types
+// Internal Array Types
 // -----------------------------
+typedef struct Brick_ContainerStackArray {
+    int32_t length;
+    int32_t* data;
+} Brick_ContainerStackArray;
+
 typedef struct Brick_ScrollBoxArray {
     int32_t length;
     Brick_ScrollBox* data;
@@ -362,6 +372,7 @@ typedef struct Brick_ScrollBoxArray {
 
 typedef struct Brick_Containers {
     int32_t total_count;
+    Brick_ContainerStackArray stack;
     Brick_ScrollBoxArray scrollBoxes;
 } Brick_Containers;
 
@@ -396,10 +407,15 @@ static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 // window state also holds pointer state
 static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
+// TODO: add MAX_CONTAINERS and calculate the total possible container stack
+static int32_t g_container_stack[BRICK_MAX_SCROLLBOXES];
 static Brick_ScrollBox g_scroll_boxes[BRICK_MAX_SCROLLBOXES];
-
 static Brick_Containers g_containers = {
     .total_count = 0,
+    .stack = {
+        .length = 0,
+        .data = g_container_stack
+    },
     .scrollBoxes = {
         .length = 0,
         .data = g_scroll_boxes
@@ -410,7 +426,6 @@ static Brick_Containers g_containers = {
 static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
 static Brick_ImageButton g_image_buttons[BRICK_MAX_IMAGE_BUTTONS];
 static Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
-
 static Brick_Elements g_elements = {
     .total_count = 0,
     .buttons = {
@@ -485,6 +500,20 @@ Brick_ButtonState* Brick_ButtonState_Get(Brick_ElementId buttonId) {
     }
 
     return buttonState;
+}
+
+// Setters
+// ----------------------------------
+int32_t Brick_ContainerStack_Pop(void) {
+    if (g_containers.stack.length <= 0) return -1;
+
+    g_containers.stack.length--;
+    return g_containers.stack.data[g_containers.stack.length];
+}
+
+void Brick_ContainerStack_Push(int32_t index) {
+    g_containers.stack.data[g_containers.stack.length] = index;
+    g_containers.stack.length++;
 }
 
 // Internal forward declarations
@@ -644,24 +673,26 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
 }
 
 Brick_ContainerId Brick_CreateScrollBox(void) {
-    const char* scrollBarIdLabel = "scrollBar";
+    int32_t index = g_containers.scrollBoxes.length;
+    Brick_ContainerId containerId = {
+        .index = index,
+        .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
+    };
+
+    char scrollBarIdLabel[12];
+    snprintf(scrollBarIdLabel, sizeof(scrollBarIdLabel), "scrollBox%d", index);
     Clay_String scrollBarIdString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(scrollBarIdLabel), 
         .chars = scrollBarIdLabel 
     };
 
-    const char* scrollBoxParentIdLabel = "scrollBarParent";
+    char scrollBoxParentIdLabel[18];
+    snprintf(scrollBoxParentIdLabel, sizeof(scrollBoxParentIdLabel), "scrollBoxParent%d", index);
     Clay_String scrollBoxParentIdString = CLAY__INIT(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(scrollBoxParentIdLabel), 
         .chars = scrollBoxParentIdLabel 
-    };
-
-    int32_t index = g_containers.scrollBoxes.length;
-    Brick_ContainerId containerId = {
-        .index = index,
-        .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
     };
 
     Brick_ScrollBox new_scroll_box = {
@@ -671,8 +702,7 @@ Brick_ContainerId Brick_CreateScrollBox(void) {
         .clickOrigin = PLEX(Clay_Vector2){ 0, 0 },
         .positionOrigin = PLEX(Clay_Vector2){ 0, 0 },
         .scrollY = 0,
-        .isPrimaryDown = false,
-        .isContainerOpen = false
+        .isPrimaryDown = false
     };
 
     g_scroll_boxes[index] = new_scroll_box;
@@ -1074,7 +1104,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
             },
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
-        // Clay_Hovered only works inside the paramaters or declaration body
+        // NOTE: Clay_Hovered only works inside the paramaters or declaration body
         .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
             .color = borderColor, 
@@ -1089,7 +1119,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
         // }
     }) {
         Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
-        // Clay_OnHover also handles click events
+        // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
         CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
     }
@@ -1255,6 +1285,7 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
     if (scrollBoxId.type != BRICK_CONTAINER_TYPE_SCROLLBOX) return;
 
     Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxId.index);
+    Brick_ContainerStack_Push(scrollBox->id.index);
 
     Clay__OpenElementWithId(scrollBox->clayParentId);
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
@@ -1271,8 +1302,11 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
 }
 
 void Brick_EndScrollBox(void) {
-    // TODO: add container scrollbox stack of open scrollboxes
-    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(0);
+    int32_t scrollBoxIndex = Brick_ContainerStack_Pop();
+    // TODO: error handling
+    if (scrollBoxIndex < 0) return;
+
+    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxIndex);
 
     Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(scrollBox->clayParentId);
     if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
