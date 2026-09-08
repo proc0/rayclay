@@ -80,17 +80,20 @@ void Menu::layoutOptions() {
                 Brick_InlineText("TAB 1");
             Brick_EndPanel();
         } else if(Brick_IsButtonToggled(bid_optionInput)) {
-            Brick_BeginScrollBox(cid_scrollBox);
-                Brick_InlineText(TEXT_TUTORIAL_3);
-            Brick_EndScrollBox();
+            Brick_BeginHorizontalStack();
+                Brick_BeginScrollBox(cid_scrollBox);
+                    Brick_InlineText(TEXT_TUTORIAL_3);
+                Brick_EndScrollBox();
+                Brick_BeginScrollBox(cid_scrollBox2);
+                    Brick_InlineText(TEXT_TUTORIAL_2);
+                    Brick_InlineText(TEXT_TUTORIAL_1);
+                Brick_EndScrollBox();
+            Brick_EndHorizontalStack();
+        } else if(Brick_IsButtonToggled(bid_optionAudio)) {
             Brick_BeginScrollBox(cid_scrollBox2);
                 Brick_InlineText(TEXT_TUTORIAL_2);
                 Brick_InlineText(TEXT_TUTORIAL_1);
             Brick_EndScrollBox();
-        } else if(Brick_IsButtonToggled(bid_optionAudio)) {
-            Brick_BeginPanel();
-            Brick_InlineText("TAB3");
-            Brick_EndPanel();
         }
 
         Brick_BeginHorizontalStack();

@@ -872,12 +872,17 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
     }
 
+    // prevents updating multiple scrollboxes - only one scrollbox should update at a time
+    // TODO: fix bugs with nested scrollboxes and changing scrollbox height (same scrollbox id in two tabs)
+    bool scrollBoxProcessed = false;
     for (int32_t i = 0; i < g_containers.scrollBoxes.length; i++) {
         Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(i);
 
         // WARN: this conditional prevents crashing for multiple scrollboxes on the same screen
         // NOTE: the pointer data is updating for multiple scrollboxes and conflicting
+        if (scrollBoxProcessed) break;
         if (!Clay_PointerOver(scrollBox->clayParentId)) continue;
+        scrollBoxProcessed = true;
 
         Clay_UpdateScrollContainers(true, Clay_Vector2({ pointerData.scrollX*2.0f, pointerData.scrollY*2.0f }), deltaTime);
 
