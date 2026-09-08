@@ -158,6 +158,8 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
         }
     }
 
+    // TODO: split update into gameUpdate and menuUpdate, and switch in transition()
+    // update display and return action from gameUpdate
     display.update();
     action = menu.update();
 

@@ -182,6 +182,7 @@ typedef struct {
     bool released;
 } Brick_PointerData;
 
+// TODO: remove TYPE from the name
 typedef CLAY_PACKED_ENUM {
     BRICK_CONTAINER_TYPE_NONE,
     BRICK_CONTAINER_TYPE_SCROLLBOX,
@@ -202,6 +203,7 @@ typedef struct Brick_ScrollBox {
     bool isPrimaryDown;
 } Brick_ScrollBox;
 
+// TODO: remove TYPE from the name
 typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_BUTTON,
@@ -245,6 +247,7 @@ typedef struct {
     float height;
 } Brick_ImageButton;
 
+// TODO: rename ids to indices?
 typedef struct {
     int32_t length;
     int32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
@@ -761,6 +764,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             events.length++;
 
             g_events_snapshot[BRICK_EVENT_PRESS] = true;
+            // simulate the hover clear on click in case the
+            // click stops rendering the current button 
+            // (prevents HOVERING event sticking, i.e. always showing hand cursor)
+            g_events_snapshot[BRICK_EVENT_CLEAR] = true;
         } 
         else if (state->pressed) { 
             g_events[events.length] = {
@@ -784,6 +791,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             events.length++;
 
             g_events_snapshot[BRICK_EVENT_RELEASE] = true;
+            // reverses the HOVER clear simulation on click (PRESS)
+            // by setting HOVER back to true and allowing HOVER to trigger
+            // again if the button is still being rendered in the layout
+            g_events_snapshot[BRICK_EVENT_HOVER] = true;
         }
         else if(state->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_HOVER : BRICK_EVENT_HOVERING;
