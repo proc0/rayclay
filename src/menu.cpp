@@ -30,6 +30,7 @@ void Menu::load() {
     bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
 
     cid_scrollBox = Brick_CreateScrollBox();
+    cid_scrollBox2 = Brick_CreateScrollBox();
 }
 
 Action::Interface Menu::update() {
@@ -82,9 +83,13 @@ void Menu::layoutOptions() {
             Brick_BeginScrollBox(cid_scrollBox);
                 Brick_InlineText(TEXT_TUTORIAL_3);
             Brick_EndScrollBox();
+            Brick_BeginScrollBox(cid_scrollBox2);
+                Brick_InlineText(TEXT_TUTORIAL_2);
+                Brick_InlineText(TEXT_TUTORIAL_1);
+            Brick_EndScrollBox();
         } else if(Brick_IsButtonToggled(bid_optionAudio)) {
             Brick_BeginPanel();
-                Brick_InlineText("3rd TAB!!");
+            Brick_InlineText("TAB3");
             Brick_EndPanel();
         }
 

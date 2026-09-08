@@ -875,6 +875,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     for (int32_t i = 0; i < g_containers.scrollBoxes.length; i++) {
         Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(i);
 
+        // WARN: this conditional prevents crashing for multiple scrollboxes on the same screen
+        // NOTE: the pointer data is updating for multiple scrollboxes and conflicting
+        if (!Clay_PointerOver(scrollBox->clayParentId)) continue;
+
         Clay_UpdateScrollContainers(true, Clay_Vector2({ pointerData.scrollX*2.0f, pointerData.scrollY*2.0f }), deltaTime);
 
         Clay_ScrollContainerData container = Clay_GetScrollContainerData(scrollBox->clayParentId);
@@ -898,6 +902,9 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         } else if (scrollBox->isPrimaryDown) {
             // TODO: fix pulling the content too far up or too far down causing the scrollbar to go beyond the content
             // and if there is an image background, it offsets it too much and causes glitching
+            
+            // TODO: fix calculations when there are multiple scrollbox in one container
+            // the scrolling is relative to the parent not to the scrollbox or something like that
             if (container.contentDimensions.height > 0) {
                 Clay_Vector2 ratio = Clay_Vector2({
                     container.contentDimensions.width / container.scrollContainerDimensions.width,

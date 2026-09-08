@@ -30,6 +30,7 @@ class Menu {
     Brick_ElementId bid_optionTabs;
 
     Brick_ContainerId cid_scrollBox;
+    Brick_ContainerId cid_scrollBox2;
 
 public:
 	Menu(){}
