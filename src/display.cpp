@@ -22,13 +22,13 @@ void Display::load() {
 Action::Display Display::update() {
     Action::Display action = Action::Display::NONE;
 
-    if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_arrowUp)) {
+    if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_arrowUp)) {
         TraceLog(LOG_INFO, "UP UP UP");
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_arrowRight)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_arrowRight)) {
         TraceLog(LOG_INFO, "RIGHT");
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_arrowDown)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_arrowDown)) {
         TraceLog(LOG_INFO, "DOWN");
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_arrowLeft)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_arrowLeft)) {
         TraceLog(LOG_INFO, "LEFT");
     }
 

@@ -36,15 +36,15 @@ void Menu::load() {
 Action::Interface Menu::update() {
     Action::Interface action = Action::Interface::NOTHING;
 
-    if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_new)) {
+    if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_new)) {
         action = Action::Interface::MENU_GAME_NEW;
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_resume)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_resume)) {
         action = Action::Interface::MENU_GAME_RESUME;
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_quit)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_quit)) {
         action = Action::Interface::MENU_GAME_QUIT;
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_options)) {
         layout = &Menu::layoutOptions;
-    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_save) || Brick_IsEventTriggeredById(BRICK_EVENT_PRESS, bid_options_cancel)) {
+    } else if (Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_options_save) || Brick_IsEventTriggeredById(BRICK_EVENT_TYPE_PRESS, bid_options_cancel)) {
         layout = &Menu::layoutMain;
     }
 

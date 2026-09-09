@@ -134,23 +134,23 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
         Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
 
         switch(event->eventType) {
-        case BRICK_EVENT_PRESS:
+        case BRICK_EVENT_TYPE_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
         break;
-        case BRICK_EVENT_PRESSING:
+        case BRICK_EVENT_TYPE_PRESSING:
             // TraceLog(LOG_INFO, "CLICKING...");
         break;
-        case BRICK_EVENT_RELEASE:
+        case BRICK_EVENT_TYPE_RELEASE:
             // TraceLog(LOG_INFO, "RELEASE");
         break;
-        case BRICK_EVENT_HOVER:
+        case BRICK_EVENT_TYPE_HOVER:
             // TraceLog(LOG_INFO, "JUST HOVERED");
             // SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         break;
-        case BRICK_EVENT_HOVERING:
+        case BRICK_EVENT_TYPE_HOVERING:
             // TraceLog(LOG_INFO, "HOVERING...");
         break;
-        case BRICK_EVENT_CLEAR:
+        case BRICK_EVENT_TYPE_CLEAR:
             // TraceLog(LOG_INFO, "JUST CLEARED");
             // SetMouseCursor(MOUSE_CURSOR_DEFAULT);
         break;
@@ -163,10 +163,10 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
     display.update();
     action = menu.update();
 
-    if (Brick_IsEventTriggered(BRICK_EVENT_HOVER)) {
+    if (Brick_IsEventTriggered(BRICK_EVENT_TYPE_HOVER)) {
         // TraceLog(LOG_INFO, "RAYLIB: JUST HOVERED");
         SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    } else if (Brick_IsEventTriggered(BRICK_EVENT_CLEAR)) {
+    } else if (Brick_IsEventTriggered(BRICK_EVENT_TYPE_CLEAR)) {
         // TraceLog(LOG_INFO, "RAYLIB: JUST CLEARED");
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
