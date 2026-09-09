@@ -61,11 +61,28 @@ OBJ:
 7. provide an easy way to localize, i.e. through Brick_TextEx or TextPro or a Brick_LocalizedText, that would stand in for normal strings and can be globally configured
 
 */
+// ####################################^########################################
+//                                  CONTENT
+// #############################################################################
+
+// ------------------------------------.----------------------------------------
+//                                  SECTION
+// =============================================================================
+
+//                                  Section
+// ------------------------------------.----------------------------------------
+
+// Sub-Section 
+// _____________________________________________________________________________
 
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
 #endif
 #include "clay.h"
+
+// ####################################^########################################
+//                               PUBLIC HEADER
+// #############################################################################
 
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
@@ -76,12 +93,12 @@ OBJ:
     #define PLEX(type) (type)
 #endif
 
-// ========================================================================================
-//                                      DEFAULTS
-// ========================================================================================
+// ------------------------------------.----------------------------------------
+//                                 SETTINGS
+// =============================================================================
 
-// Settings 
-// ---------------------------------------------------------------
+// Max Elements and Containers 
+// _____________________________________________________________________________
 #define BRICK_MAX_BUTTONS 128
 #define BRICK_MAX_IMAGE_BUTTONS 128
 #define BRICK_MAX_BUTTON_GROUP_SIZE 16
@@ -89,15 +106,15 @@ OBJ:
 #define BRICK_MAX_SCROLLBOXES 32
 #define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_IMAGE_BUTTONS)
 
-// General Style Settings
-// ---------------------------------------------------------------
+// General Global Styles 
+// _____________________________________________________________________________
 #define BRICK_STYLE_FONT_SIZE_DEFAULT 24
 #define BRICK_STYLE_PADDING_SMALL 8
 #define BRICK_STYLE_PADDING_MEDIUM 12
 #define BRICK_STYLE_PADDING_LARGE 16
 
-// Colors
-// ---------------------------------------------------------------
+// Colors 
+// _____________________________________________________________________________
 #define BRICK_COLOR_BLANK       PLEX(Clay_Color){ 0, 0, 0, 0 }
 #define BRICK_COLOR_WHITE       PLEX(Clay_Color){ 255, 255, 255, 255 }
 #define BRICK_COLOR_BLACK       PLEX(Clay_Color){ 0, 0, 0, 255 }
@@ -133,7 +150,7 @@ OBJ:
 #define BRICK_COLOR_SIENNA      PLEX(Clay_Color){ 160, 82, 45, 255 }
 
 // Theme 
-// ---------------------------------------------------------------
+// _____________________________________________________________________________
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
 #define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_LIGHT
 #define BRICK_THEME_PRIMARY     BRICK_COLOR_MAGENTA
@@ -141,14 +158,13 @@ OBJ:
 #define BRICK_THEME_TERTIARY    BRICK_COLOR_OLIVE
 #define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
 
-// Styles 
-// ---------------------------------------------------------------
-
+// Styles
+// _____________________________________________________________________________
 #define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
 #define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
-// Theme Map 
-// ---------------------------------------------------------------
+// Theme-Style Mapping 
+// _____________________________________________________________________________
 #define BRICK_STYLE_BUTTON_LABEL            BRICK_STYLE_TEXT_DEFAULT
 #define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_PRIMARY
 #define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_PRIMARY
@@ -156,16 +172,15 @@ OBJ:
 #define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_PRIMARY
 #define BRICK_COLOR_BUTTON_BG_HOVER         BRICK_THEME_ACCENT
 
-// ========================================================================================
-//                                   PUBLIC HEADER
-// ========================================================================================
+
+// ------------------------------------.----------------------------------------
+//                               PUBLIC TYPES
+// =============================================================================
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Public Types
-// --------------------------
 typedef struct {
     float width;
     float height;
@@ -294,8 +309,9 @@ typedef struct Brick_EventArray {
 }
 #endif
 
-// Public API
-// --------------------------
+// ------------------------------------.----------------------------------------
+//                                PUBLIC API
+// =============================================================================
 // Sections:
 // Lifecycle
 // Events
@@ -320,6 +336,7 @@ Clay_RenderCommandArray Brick_EndLayout(float deltaTime);
 bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId);
 bool Brick_IsEventTriggered(Brick_EventType eventType);
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
+Brick_EventArray Brick_PollEvents(void);
 Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTime);
 
 // Elements
@@ -478,10 +495,6 @@ Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
 }    
 
-Brick_ScrollBox* Brick_ScrollBox_IndexGet(int32_t index) {
-    return index < g_containers.scrollBoxes.length && index >= 0 ? &g_containers.scrollBoxes.data[index] : &Brick_ScrollBox_DEFAULT;
-}
-
 Brick_Button* Brick_Button_IndexGet(int32_t index) {                                                    
     return index < g_elements.buttons.length && index >= 0 ? &g_elements.buttons.data[index] : &Brick_Button_DEFAULT;
 }    
@@ -515,6 +528,10 @@ Brick_ButtonState* Brick_ButtonState_Get(Brick_ElementId buttonId) {
     return buttonState;
 }
 
+Brick_ScrollBox* Brick_ScrollBox_IndexGet(int32_t index) {
+    return index < g_containers.scrollBoxes.length && index >= 0 ? &g_containers.scrollBoxes.data[index] : &Brick_ScrollBox_DEFAULT;
+}
+
 // Setters
 // ----------------------------------
 int32_t Brick_ContainerStack_Pop(void) {
@@ -533,7 +550,7 @@ void Brick_ContainerStack_Push(int32_t index) {
 // ----------------------------------
 void Brick_HandleError(Clay_ErrorData errorData);
 
-// Global lifecycle
+// Lifecycle
 // ----------------------------------
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     // initializes Clay first, then Brick
@@ -562,168 +579,26 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     g_elements.buttonGroups.length++;
 }
 
+void Brick_Resize(float width, float height) {
+    g_window.width = width;
+    g_window.height = height;
+    Clay_SetLayoutDimensions(Clay_Dimensions({ width, height }));
+}
+
 void Brick_Destroy(void) {
     if(g_clay_arena.memory) free(g_clay_arena.memory);
 }
 
-void Brick_Resize(float width, float height) {
-    Clay_SetLayoutDimensions(Clay_Dimensions({ width, height }));
+// simple wrapper around Clay_BeginLayout
+void Brick_BeginLayout(void) {
+    Clay_BeginLayout();
 }
 
-// CreateElement<Element>
-// initializes the element state and returns the element ID for layout
-// ---------------------------------------------------------------------------
-
-Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
-    Brick_ElementId id = { index, type };
-    return id;
+// simple wrapper around Clay_EndLayout which returns render commands
+Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
+    return Clay_EndLayout(deltaTime);
 }
 
-Brick_ElementId Brick_CreateButton(const char* label) {
-    Clay_String clayString = CLAY__INIT(Clay_String){ 
-        .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(label), 
-        .chars = label 
-    };
-
-    int32_t index = g_elements.buttons.length;
-    Brick_ElementId buttonId = {
-        .index = index,
-        .type = BRICK_ELEMENT_TYPE_BUTTON,
-    };
-
-    Brick_Button new_button = {
-        .clayId = CLAY_SID(clayString),
-        .label = clayString,
-        .id = buttonId,
-        .imageData = nullptr,
-        .state = Brick_ButtonState_DEFAULT,
-        .groupIndex = 0,
-        .width = 0,
-        .height = 0,
-        .fontSize = 0,
-    };
-
-    g_buttons[index] = new_button;
-    g_elements.buttons.length++;
-    g_elements.total_count++;
-
-    return buttonId;
-}
-
-Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
-    int32_t index = g_elements.imageButtons.length;
-    Brick_ElementId buttonId = {
-        .index = index,
-        .type = BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
-    };
-
-    Brick_ImageButton new_button = {
-        .id = buttonId,
-        .imageData = imageData,
-        .state = Brick_ButtonState_DEFAULT,
-        .groupIndex = 0,
-        .width = width,
-        .height = height,
-    };
-
-    g_image_buttons[index] = new_button;
-    g_elements.imageButtons.length++;
-    g_elements.total_count++;
-
-    return buttonId;
-}
-
-Brick_ElementId Brick_CreateToggleButton(const char* label) {
-    Brick_ElementId buttonId = Brick_CreateButton(label);
-
-    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
-
-    Brick_ElementId toggleButtonId = PLEX(Brick_ElementId){ buttonId.index, BRICK_ELEMENT_TYPE_TOGGLE_BUTTON };
-    button->id = toggleButtonId;
-    
-    return toggleButtonId;
-}
-
-Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize) {
-
-    // get the next index to store in button
-    int32_t index = g_elements.buttonGroups.length;
-    // default group init
-    Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
-
-    // iterate over the button ids
-    for (int32_t i = 0; i < groupSize; i++) {
-        if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON && buttonIds[i].type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
-            // TODO: exit or handle error 
-            printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
-            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
-        }
-
-        Brick_Button* button = Brick_Button_IndexGet(buttonIds[i].index);
-
-        if (button->id.index == 0) {
-            // TODO: exit or handle error 
-            printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
-            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
-        }
-
-        // cross reference the group
-        button->groupIndex = index;
-        if (i == 0 && button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
-            button->state.toggled = true;
-        }
-        // store the button id in the group
-        group.ids[i] = button->id.index;
-        group.length++;
-    }
-
-    // if all buttons are valid, store the group
-    g_elements.buttonGroups.data[index] = group;
-    g_elements.buttonGroups.length++;
-
-    return Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
-}
-
-Brick_ContainerId Brick_CreateScrollBox(void) {
-    int32_t index = g_containers.scrollBoxes.length;
-    Brick_ContainerId containerId = {
-        .index = index,
-        .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
-    };
-
-    char scrollBarIdLabel[12];
-    snprintf(scrollBarIdLabel, sizeof(scrollBarIdLabel), "scrollBox%d", index);
-    Clay_String scrollBarIdString = CLAY__INIT(Clay_String){ 
-        .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(scrollBarIdLabel), 
-        .chars = scrollBarIdLabel 
-    };
-
-    char scrollBoxParentIdLabel[18];
-    snprintf(scrollBoxParentIdLabel, sizeof(scrollBoxParentIdLabel), "scrollBoxParent%d", index);
-    Clay_String scrollBoxParentIdString = CLAY__INIT(Clay_String){ 
-        .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(scrollBoxParentIdLabel), 
-        .chars = scrollBoxParentIdLabel 
-    };
-
-    Brick_ScrollBox new_scroll_box = {
-        .clayId = CLAY_SID(scrollBarIdString),
-        .clayParentId = CLAY_SID(scrollBoxParentIdString),
-        .id = containerId,
-        .clickOrigin = PLEX(Clay_Vector2){ 0, 0 },
-        .positionOrigin = PLEX(Clay_Vector2){ 0, 0 },
-        .scrollY = 0,
-        .isPrimaryDown = false
-    };
-
-    g_scroll_boxes[index] = new_scroll_box;
-    g_containers.scrollBoxes.length++;
-    g_containers.total_count++;
-
-    return containerId;
-}
 // Update and queries
 // -------------------------------------------------------------------------
 
@@ -736,6 +611,35 @@ bool Brick_PointerJustHovered() {
 // WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustCleared() {
     return g_window.hoveredId == 0 && g_window.lastHoveredId != 0;
+}
+
+bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId) {
+    // TODO: add some error handling
+    if (eventType > BRICK_MAX_EVENT_TYPES) return false;
+    
+    for (int32_t i = 0; i < g_events_last_length; i++) {
+        if (g_events[i].eventType == eventType && g_events[i].elementType == elementId.type && g_events[i].index == elementId.index) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Brick_IsEventTriggered(Brick_EventType eventType) {
+    // TODO: add some error handling
+    if (eventType >= BRICK_MAX_EVENT_TYPES) return false;
+    
+    return g_events_snapshot[eventType];
+}
+
+Brick_EventArray Brick_PollEvents(void) {
+    Brick_EventArray events = {
+        .length = g_events_last_length,
+        .data = g_events
+    };
+
+    return events;
 }
 
 // Brick only function that will handle any potential updates of elements per frame
@@ -948,65 +852,13 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     return events;
 }
 
-Brick_EventArray Brick_PollEvents(void) {
-    Brick_EventArray events = {
-        .length = g_events_last_length,
-        .data = g_events
-    };
+// CreateElement<Element>
+// initializes the element state and returns the element ID for layout
+// ---------------------------------------------------------------------------
 
-    return events;
-}
-
-bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId) {
-    // TODO: add some error handling
-    if (eventType > BRICK_MAX_EVENT_TYPES) return false;
-    
-    for (int32_t i = 0; i < g_events_last_length; i++) {
-        if (g_events[i].eventType == eventType && g_events[i].elementType == elementId.type && g_events[i].index == elementId.index) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Brick_IsEventTriggered(Brick_EventType eventType) {
-    // TODO: add some error handling
-    if (eventType >= BRICK_MAX_EVENT_TYPES) return false;
-    
-    return g_events_snapshot[eventType];
-}
-
-bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
-
-    return state->toggled;
-}
-
-void Brick_ToggleButton(Brick_ElementId buttonId) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
-
-    state->toggled = !state->toggled;
-}
-
-void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
-
-    state->toggled = isToggled;
-}
-
-// ========================================================================================
-//                                      LAYOUT
-// ========================================================================================
-
-// simple wrapper around Clay_BeginLayout
-void Brick_BeginLayout(void) {
-    Clay_BeginLayout();
-}
-
-// simple wrapper around Clay_EndLayout which returns render commands
-Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
-    return Clay_EndLayout(deltaTime);
+Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
+    Brick_ElementId id = { index, type };
+    return id;
 }
 
 // Inline<Element>
@@ -1038,6 +890,68 @@ void Brick_InlineText(const char* text) {
 //     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 // }
 
+
+bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
+    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+
+    return state->toggled;
+}
+
+void Brick_ToggleButton(Brick_ElementId buttonId) {
+    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+
+    state->toggled = !state->toggled;
+}
+
+void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
+    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+
+    state->toggled = isToggled;
+}
+
+Brick_ElementId Brick_CreateButton(const char* label) {
+    Clay_String clayString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(label), 
+        .chars = label 
+    };
+
+    int32_t index = g_elements.buttons.length;
+    Brick_ElementId buttonId = {
+        .index = index,
+        .type = BRICK_ELEMENT_TYPE_BUTTON,
+    };
+
+    Brick_Button new_button = {
+        .clayId = CLAY_SID(clayString),
+        .label = clayString,
+        .id = buttonId,
+        .imageData = nullptr,
+        .state = Brick_ButtonState_DEFAULT,
+        .groupIndex = 0,
+        .width = 0,
+        .height = 0,
+        .fontSize = 0,
+    };
+
+    g_buttons[index] = new_button;
+    g_elements.buttons.length++;
+    g_elements.total_count++;
+
+    return buttonId;
+}
+
+
+Brick_ElementId Brick_CreateToggleButton(const char* label) {
+    Brick_ElementId buttonId = Brick_CreateButton(label);
+
+    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+
+    Brick_ElementId toggleButtonId = PLEX(Brick_ElementId){ buttonId.index, BRICK_ELEMENT_TYPE_TOGGLE_BUTTON };
+    button->id = toggleButtonId;
+    
+    return toggleButtonId;
+}
 // Button handlers
 // ----------------------------------
 void Brick_OnHoverButtonState(Brick_ButtonState* state, int32_t idx, bool isHovering) {
@@ -1150,6 +1064,40 @@ void Brick__LayoutButtonIndex(int32_t index) {
     }
 }
 
+void Brick_LayoutButton(Brick_ElementId buttonId) {
+    // TODO: add error handling
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
+
+    Brick__LayoutButtonIndex(buttonId.index);
+}
+
+
+// ImageButton
+
+Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
+    int32_t index = g_elements.imageButtons.length;
+    Brick_ElementId buttonId = {
+        .index = index,
+        .type = BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
+    };
+
+    Brick_ImageButton new_button = {
+        .id = buttonId,
+        .imageData = imageData,
+        .state = Brick_ButtonState_DEFAULT,
+        .groupIndex = 0,
+        .width = width,
+        .height = height,
+    };
+
+    g_image_buttons[index] = new_button;
+    g_elements.imageButtons.length++;
+    g_elements.total_count++;
+
+    return buttonId;
+}
+
+
 void Brick_HandleClayHoverState(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     Brick_ButtonState* state = (Brick_ButtonState*)userData;
 
@@ -1200,11 +1148,45 @@ void Brick_LayoutImageButton(Brick_ElementId buttonId) {
     Brick__LayoutImageButtonIndex(buttonId.index);
 }
 
-void Brick_LayoutButton(Brick_ElementId buttonId) {
-    // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
 
-    Brick__LayoutButtonIndex(buttonId.index);
+Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize) {
+
+    // get the next index to store in button
+    int32_t index = g_elements.buttonGroups.length;
+    // default group init
+    Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
+
+    // iterate over the button ids
+    for (int32_t i = 0; i < groupSize; i++) {
+        if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON && buttonIds[i].type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
+            // TODO: exit or handle error 
+            printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
+            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
+        }
+
+        Brick_Button* button = Brick_Button_IndexGet(buttonIds[i].index);
+
+        if (button->id.index == 0) {
+            // TODO: exit or handle error 
+            printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
+            return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
+        }
+
+        // cross reference the group
+        button->groupIndex = index;
+        if (i == 0 && button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
+            button->state.toggled = true;
+        }
+        // store the button id in the group
+        group.ids[i] = button->id.index;
+        group.length++;
+    }
+
+    // if all buttons are valid, store the group
+    g_elements.buttonGroups.data[index] = group;
+    g_elements.buttonGroups.length++;
+
+    return Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
 }
 
 // TODO: add Group_Get to consolidate error checking
@@ -1218,6 +1200,110 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
         Brick__LayoutButtonIndex(buttonGroup->ids[i]);
     }
 }
+
+Brick_ContainerId Brick_CreateScrollBox(void) {
+    int32_t index = g_containers.scrollBoxes.length;
+    Brick_ContainerId containerId = {
+        .index = index,
+        .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
+    };
+
+    char scrollBarIdLabel[12];
+    snprintf(scrollBarIdLabel, sizeof(scrollBarIdLabel), "scrollBox%d", index);
+    Clay_String scrollBarIdString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(scrollBarIdLabel), 
+        .chars = scrollBarIdLabel 
+    };
+
+    char scrollBoxParentIdLabel[18];
+    snprintf(scrollBoxParentIdLabel, sizeof(scrollBoxParentIdLabel), "scrollBoxParent%d", index);
+    Clay_String scrollBoxParentIdString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(scrollBoxParentIdLabel), 
+        .chars = scrollBoxParentIdLabel 
+    };
+
+    Brick_ScrollBox new_scroll_box = {
+        .clayId = CLAY_SID(scrollBarIdString),
+        .clayParentId = CLAY_SID(scrollBoxParentIdString),
+        .id = containerId,
+        .clickOrigin = PLEX(Clay_Vector2){ 0, 0 },
+        .positionOrigin = PLEX(Clay_Vector2){ 0, 0 },
+        .scrollY = 0,
+        .isPrimaryDown = false
+    };
+
+    g_scroll_boxes[index] = new_scroll_box;
+    g_containers.scrollBoxes.length++;
+    g_containers.total_count++;
+
+    return containerId;
+}
+
+
+void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
+    if (scrollBoxId.type != BRICK_CONTAINER_TYPE_SCROLLBOX) return;
+
+    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxId.index);
+    Brick_ContainerStack_Push(scrollBox->id.index);
+
+    Clay__OpenElementWithId(scrollBox->clayParentId);
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = { 
+            .padding = CLAY_PADDING_ALL(32), 
+            .childGap = 12, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .clip = { 
+            .vertical = true, 
+            .childOffset = Clay_GetScrollOffset()
+        },
+    });
+}
+
+void Brick_EndScrollBox(void) {
+    int32_t scrollBoxIndex = Brick_ContainerStack_Pop();
+    // TODO: error handling
+    if (scrollBoxIndex < 0) return;
+
+    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxIndex);
+
+    Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(scrollBox->clayParentId);
+    if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
+        CLAY(scrollBox->clayId, {
+            .floating = {
+                .offset = { 
+                    .y = -(scrollContainerData.scrollPosition->y / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height 
+                },
+                .parentId = scrollBox->clayParentId.id,
+                .zIndex = 2,
+                .attachPoints = { 
+                    .element = CLAY_ATTACH_POINT_RIGHT_TOP, 
+                    .parent = CLAY_ATTACH_POINT_RIGHT_TOP 
+                },
+                .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
+            }
+        }) {
+            CLAY_AUTO_ID({
+                .layout = { 
+                    .sizing = { 
+                        CLAY_SIZING_FIXED(12), 
+                        CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
+                    }
+                },
+                .backgroundColor = Clay_Hovered() || scrollBox->isPrimaryDown ? BRICK_THEME_SECONDARY : BRICK_THEME_TERTIARY,
+            });
+        }
+    }
+    Clay__CloseElement();
+}
+
+// ========================================================================================
+//                                      LAYOUT
+// ========================================================================================
+
+
 
 // Layout Containers
 // BeginLayout<Element> and EndLayout<Element>
@@ -1306,62 +1392,6 @@ void Brick_EndVerticalStack(void) {
     Clay__CloseElement();
 }
 
-void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
-    if (scrollBoxId.type != BRICK_CONTAINER_TYPE_SCROLLBOX) return;
-
-    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxId.index);
-    Brick_ContainerStack_Push(scrollBox->id.index);
-
-    Clay__OpenElementWithId(scrollBox->clayParentId);
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
-        .layout = { 
-            .padding = CLAY_PADDING_ALL(32), 
-            .childGap = 12, 
-            .layoutDirection = CLAY_TOP_TO_BOTTOM 
-        },
-        .clip = { 
-            .vertical = true, 
-            .childOffset = Clay_GetScrollOffset()
-        },
-    });
-}
-
-void Brick_EndScrollBox(void) {
-    int32_t scrollBoxIndex = Brick_ContainerStack_Pop();
-    // TODO: error handling
-    if (scrollBoxIndex < 0) return;
-
-    Brick_ScrollBox* scrollBox = Brick_ScrollBox_IndexGet(scrollBoxIndex);
-
-    Clay_ScrollContainerData scrollContainerData = Clay_GetScrollContainerData(scrollBox->clayParentId);
-    if (scrollContainerData.found && scrollContainerData.scrollContainerDimensions.height < scrollContainerData.contentDimensions.height) {
-        CLAY(scrollBox->clayId, {
-            .floating = {
-                .offset = { 
-                    .y = -(scrollContainerData.scrollPosition->y / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height 
-                },
-                .parentId = scrollBox->clayParentId.id,
-                .zIndex = 2,
-                .attachPoints = { 
-                    .element = CLAY_ATTACH_POINT_RIGHT_TOP, 
-                    .parent = CLAY_ATTACH_POINT_RIGHT_TOP 
-                },
-                .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID,
-            }
-        }) {
-            CLAY_AUTO_ID({
-                .layout = { 
-                    .sizing = { 
-                        CLAY_SIZING_FIXED(12), 
-                        CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
-                    }
-                },
-                .backgroundColor = Clay_Hovered() || scrollBox->isPrimaryDown ? BRICK_THEME_SECONDARY : BRICK_THEME_TERTIARY,
-            });
-        }
-    }
-    Clay__CloseElement();
-}
 // ========================================================================================
 //                                     ERROR HANDLING
 // ========================================================================================
