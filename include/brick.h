@@ -127,7 +127,7 @@ OBJ:
 #define BRICK_COLOR_BLANK       PLEX(Clay_Color){ 0, 0, 0, 0 }
 #define BRICK_COLOR_WHITE       PLEX(Clay_Color){ 255, 255, 255, 255 }
 #define BRICK_COLOR_BLACK       PLEX(Clay_Color){ 0, 0, 0, 255 }
-#define BRICK_COLOR_BRICKRED    PLEX(Clay_Color){ 245, 245, 245, 255 }
+#define BRICK_COLOR_BRICK       PLEX(Clay_Color){ 144, 30, 30, 255 }
 
 #define BRICK_COLOR_GRAY_LIGHT  PLEX(Clay_Color){ 189, 195, 199, 255 }
 #define BRICK_COLOR_GRAY        PLEX(Clay_Color){ 149, 165, 166, 255 }
@@ -161,24 +161,24 @@ OBJ:
 // Theme 
 // _____________________________________________________________________________
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
-#define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_LIGHT
-#define BRICK_THEME_PRIMARY     BRICK_COLOR_MAGENTA
-#define BRICK_THEME_SECONDARY   BRICK_COLOR_MAUVE
+#define BRICK_THEME_FOREGROUND  BRICK_COLOR_BRICK
+#define BRICK_THEME_PRIMARY     BRICK_COLOR_GRAY_LIGHT
+#define BRICK_THEME_SECONDARY   BRICK_COLOR_ORANGE
 #define BRICK_THEME_TERTIARY    BRICK_COLOR_OLIVE
-#define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
+#define BRICK_THEME_ACCENT      BRICK_COLOR_SIENNA
 
 // Styles
 // _____________________________________________________________________________
-#define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
-#define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_FOREGROUND, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+#define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
+#define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Theme-Style Mapping 
 // _____________________________________________________________________________
 #define BRICK_STYLE_BUTTON_LABEL            BRICK_STYLE_TEXT_DEFAULT
-#define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_PRIMARY
-#define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_PRIMARY
-#define BRICK_COLOR_BUTTON_BG               BRICK_THEME_BACKGROUND
-#define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_PRIMARY
+#define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_TERTIARY
+#define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_TERTIARY
+#define BRICK_COLOR_BUTTON_BG               BRICK_THEME_FOREGROUND
+#define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_SECONDARY
 #define BRICK_COLOR_BUTTON_BG_HOVER         BRICK_THEME_ACCENT
 
 
@@ -1373,7 +1373,7 @@ Brick_ContainerId Brick_CreateScrollBox(void) {
     if (index >= BRICK_MAX_SCROLLBOXES || g_containers.total_count >= BRICK_MAX_CONTAINERS) {
         return Brick_CreateContainerId(0, BRICK_CONTAINER_TYPE_NONE);
     }
-    
+
     Brick_ContainerId containerId = {
         .index = index,
         .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
