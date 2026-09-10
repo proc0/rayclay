@@ -425,9 +425,9 @@ void Brick_EndVerticalStack(void);
 // ####################################^########################################
 //                              IMPLEMENTATION
 // #############################################################################
-// TODO: add transitions
+// DONE: add transitions
 // TODO: add some kind of placement container or extend floatingpanel
-// TODO: add Extended and Pro versions of elements and scrollboxes
+// DISC: add Extended and Pro versions of elements and scrollboxes
 // DONE: reorder functions by element and container types
 // DONE: add more comments
 // TODO: begin brick repo
@@ -619,7 +619,6 @@ void Brick_ContainerStack_Push(int32_t index) {
 //                             Private Prototypes
 // ------------------------------------.----------------------------------------
 void Brick_HandleError(Clay_ErrorData errorData);
-
 
 // ------------------------------------.----------------------------------------
 //                               API FUNCTIONS
@@ -924,6 +923,24 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     if (events.length) g_is_events_snapshot_dirty = true;
 
     return events;
+}
+
+//                              Element Functions
+// ------------------------------------.----------------------------------------
+
+Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionProperty properties) {
+    Clay_TransitionData targetState = initialState;
+    // small slide-in effect 
+    if (properties & CLAY_TRANSITION_PROPERTY_POSITION) {
+        targetState.boundingBox.y = targetState.boundingBox.y - 10.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR) {
+        targetState.backgroundColor.a = 0.0f;
+    }
+    if (properties & CLAY_TRANSITION_PROPERTY_BORDER_COLOR) {
+        targetState.borderColor.b = 0.0f;
+    }
+    return targetState;
 }
 
 //                                 Elements
@@ -1305,6 +1322,7 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
 // ------------------------------------.----------------------------------------
 // Layout Containers
 // BeginLayout<Element> and EndLayout<Element>
+// TODO: abstract .transition as a style
 
 // Scroll Box
 // _____________________________________________________________________________
@@ -1362,10 +1380,19 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
             .childGap = 12, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
         .clip = { 
             .vertical = true, 
             .childOffset = Clay_GetScrollOffset()
         },
+        // TODO: abstract this as a style
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     });
 }
 
@@ -1421,6 +1448,14 @@ void Brick_BeginPanel(void) {
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
+        // TODO: abstract this as a style
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     });
 }
 
@@ -1453,6 +1488,14 @@ void Brick_BeginFloatingPanel(void) {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
+        // TODO: abstract this as a style
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     });
 }
 
@@ -1474,6 +1517,14 @@ void Brick_BeginHorizontalStack(void) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
+        // TODO: abstract this as a style
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     });
 }
 
@@ -1495,6 +1546,14 @@ void Brick_BeginVerticalStack(void) {
             .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
+        // TODO: abstract this as a style
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
+        }
     });
 }
 
