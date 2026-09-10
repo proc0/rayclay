@@ -330,39 +330,55 @@ typedef struct Brick_EventArray {
 //                                PUBLIC API
 // =============================================================================
 // Sections:
-// Lifecycle
-// Events
-// Elements
-// Containers
+// Lifecycle  - manages the lifetime and/or state of the library
+// Events     - querying and updating element and container events
+// Elements   - creating and rendering the layout of elements
+// Containers - creating and rendering the layout of containers
 // 
-// Sub-Sections:
-// - Getters
-// - Setters
-// - Creates
-// - Updates
-// - Layouts
+// Sorting per section:
+// - Getters  - retrieving without mutating global state
+// - Setters  - modifies global state
+// - Create   - adds new instances on the global state
+// - Update   - called every frame updating global state
+// - Layout   - calls Clay macros every frame to render layout
 
 //                                 Lifecycle
 // ------------------------------------.----------------------------------------
+// Initializes Clay and other global state. The MeasureText function is passed 
+// through directly to Clay_SetMeasureTextFunction along with the font data.
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData);
+// Calls Clay_SetLayoutDimensions to recalculate positioning of elements on the 
+// screen. TODO: Resize will also recalculate styles based on native resolution. 
 void Brick_Resize(float width, float height);
+// Cleans up Clay arena. Global state is cleaned up by OS on exit. 
 void Brick_Destroy(void);
+// Simple wrapper around Clay_BeginLayout and ClayEndLayout
 void Brick_BeginLayout(void);
 Clay_RenderCommandArray Brick_EndLayout(float deltaTime);
 
 //                                   Events
 // ------------------------------------.----------------------------------------
+// Checks whether the given event type was triggered by the given element
+// inside of the render-update loop, i.e. it will check during each frame.
 bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId);
+// Checks whether the given event was triggered at all across any element
+// globally. Events are aggregated each frame for all elements.
 bool Brick_IsEventTriggered(Brick_EventType eventType);
+// Clay-like interface for retrieving an array of events and iterating over them.
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
+// An alternative way of getting the events during each frame. This is meant
+// to give a way to access events across different files and translation units
+// without updating events twice during a single frame.
 Brick_EventArray Brick_PollEvents(void);
+// Updates the global state for all elements and containers, and aggregates
+// events for querying. This is meant to be called every frame before Layout
 Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTime);
 
 //                                  Elements
 // ------------------------------------.----------------------------------------
-// Inline<Element>
-// Create<Element>
-// Layout<Element>
+// Inline<Element> takes literal values and does not store any state or IDs
+// Create<Element> takes configuration arguments and returns an ID
+// Layout<Element> takes IDs and configures the element and updates state
 
 // Text
 void Brick_InlineText(const char* text);
@@ -389,10 +405,11 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId);
 
 //                                Containers
 // ------------------------------------.----------------------------------------
+// Begin<Container> requires closing with End<Container>
 
 // Stateful Containers
 // _____________________________________________________________________________
-// Create<Container> is required and the ContainerId used with Layout<Container>
+// adds a global state instance, Create<Container> is required 
 
 // Scroll Box
 Brick_ContainerId Brick_CreateScrollBox(void);
@@ -401,8 +418,7 @@ void Brick_EndScrollBox();
 
 // Stateless Containers
 // _____________________________________________________________________________
-// Do not require any creation or ContainerId management
-// Begin<Container> requires closing with End<Container>
+// Does not require creation or ID management
 
 // Panel
 void Brick_BeginPanel(void);
@@ -429,13 +445,6 @@ void Brick_EndOffset(void);
 // ####################################^########################################
 //                              IMPLEMENTATION
 // #############################################################################
-// DONE: add transitions
-// TODO: add some kind of placement container or extend floatingpanel
-// DISC: add Extended and Pro versions of elements and scrollboxes
-// DONE: reorder functions by element and container types
-// DONE: add more comments
-// TODO: begin brick repo
-// TODO: add basic README in brick repo
 
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
@@ -497,28 +506,22 @@ typedef struct Brick_Containers {
 
 //                               Global State
 // ------------------------------------.----------------------------------------
+// TODO: should arrays be initialized with CLAY__DEFAULT_STRUCT?
+
 // Clay context
 static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
-
-// window state also holds pointer state
+// NOTE: window state also holds some pointer state
 static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
-// TODO: add MAX_CONTAINERS and calculate the total possible container stack
-static int32_t g_container_stack[BRICK_MAX_CONTAINERS];
-static Brick_ScrollBox g_scroll_boxes[BRICK_MAX_SCROLLBOXES];
-static Brick_Containers g_containers = {
-    .total_count = 0,
-    .stack = {
-        .length = 0,
-        .data = g_container_stack
-    },
-    .scrollBoxes = {
-        .length = 0,
-        .data = g_scroll_boxes
-    },
-};
+// Events
+// event array passed back to user to handle events
+static Brick_Event g_events[BRICK_MAX_ELEMENTS];
+static int32_t g_events_last_length = 0;
+// events snapshot array stores which events were triggered per frame
+static bool g_is_events_snapshot_dirty = false;
+static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
-// element state arrays
+// Elements
 static Brick_Text g_texts[BRICK_MAX_TEXTS];
 static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
 static Brick_ImageButton g_image_buttons[BRICK_MAX_IMAGE_BUTTONS];
@@ -543,12 +546,20 @@ static Brick_Elements g_elements = {
     },
 };
 
-// event array passed back to user to handle events
-static Brick_Event g_events[BRICK_MAX_ELEMENTS];
-static int32_t g_events_last_length = 0;
-// events snapshot array stores which events were triggered per frame
-static bool g_is_events_snapshot_dirty = false;
-static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
+// Containers
+static int32_t g_container_stack[BRICK_MAX_CONTAINERS];
+static Brick_ScrollBox g_scroll_boxes[BRICK_MAX_SCROLLBOXES];
+static Brick_Containers g_containers = {
+    .total_count = 0,
+    .stack = {
+        .length = 0,
+        .data = g_container_stack
+    },
+    .scrollBoxes = {
+        .length = 0,
+        .data = g_scroll_boxes
+    },
+};
 
 // default global placeholders
 Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
@@ -979,6 +990,9 @@ Brick_ElementId Brick_CreateText(const char* text) {
     };
 
     int32_t index = g_elements.texts.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_TEXTS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+
     Brick_ElementId textId = {
         .index = index,
         .type = BRICK_ELEMENT_TYPE_TEXT,
@@ -1037,6 +1051,9 @@ Brick_ElementId Brick_CreateButton(const char* label) {
     };
 
     int32_t index = g_elements.buttons.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_BUTTONS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+
     Brick_ElementId buttonId = {
         .index = index,
         .type = BRICK_ELEMENT_TYPE_BUTTON,
@@ -1167,14 +1184,15 @@ void Brick__LayoutButtonIndex(int32_t index) {
         .border = { 
             .color = borderColor, 
             .width = CLAY_BORDER_OUTSIDE(1) 
+        },
+        // TODO: add to global styles
+        .transition = {
+            .handler = Clay_EaseOut,
+            .duration = 0.3f,
+            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .enter = { .setInitialState = FadeSlide },
+            // .exit = { .setFinalState = FadeSlide },
         }
-        // .transition = {
-        //     .handler = Clay_EaseOut,
-        //     .duration = 0.3f,
-        //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-        //     .enter = { .setInitialState = FadeSlide },
-        //     // .exit = { .setFinalState = FadeSlide },
-        // }
     }) {
         Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
@@ -1195,6 +1213,9 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
 
 Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
     int32_t index = g_elements.imageButtons.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_IMAGE_BUTTONS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+
     Brick_ElementId buttonId = {
         .index = index,
         .type = BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
@@ -1274,6 +1295,8 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
 
     // get the next index to store in button
     int32_t index = g_elements.buttonGroups.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_BUTTON_GROUPS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
     // default group init
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
 
@@ -1328,11 +1351,19 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
 // BeginLayout<Element> and EndLayout<Element>
 // TODO: abstract .transition as a style
 
+Brick_ContainerId Brick_CreateContainerId(int32_t index, Brick_ContainerType type) {
+    Brick_ContainerId id = { index, type };
+    return id;
+}
+
 // Scroll Box
 // _____________________________________________________________________________
 
 Brick_ContainerId Brick_CreateScrollBox(void) {
     int32_t index = g_containers.scrollBoxes.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_SCROLLBOXES) return Brick_CreateContainerId(0, BRICK_CONTAINER_TYPE_NONE);
+
     Brick_ContainerId containerId = {
         .index = index,
         .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
@@ -1469,6 +1500,9 @@ void Brick_EndPanel(void) {
 
 // Floating Panel
 // _____________________________________________________________________________
+// TODO: figure out z-index configuration when there are multiple panels
+// test different overlapping floating panels with no z-index and add
+// FloatingPanelEx that takes a z-index param
 
 void Brick_BeginFloatingPanel(void) {
     Clay__OpenElement();
@@ -1567,6 +1601,8 @@ void Brick_EndVerticalStack(void) {
 
 // Offset
 // _____________________________________________________________________________
+// TODO: check why transition was creating a black background
+// when it was being transitioned from a Panel with a black background
 
 void Brick_BeginOffset(float x, float y) {
     Clay__OpenElement();
