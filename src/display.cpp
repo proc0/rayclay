@@ -36,7 +36,7 @@ Action::Display Display::update() {
 }
 
 void Display::layoutGame() {
-    Brick_BeginFloatingPanel();
+    Brick_BeginOffset(window.halfWidthf-150.0f, window.halfHeightf-150.0f);
         Brick_BeginHorizontalStack();
     		Brick_BeginVerticalStack();
 	        	Brick_LayoutImageButton(bid_arrowLeft);
@@ -49,7 +49,7 @@ void Display::layoutGame() {
 	        	Brick_LayoutImageButton(bid_arrowRight);
     		Brick_EndVerticalStack();
         Brick_EndHorizontalStack();
-    Brick_EndFloatingPanel();
+    Brick_EndOffset();
 }
 
 void Display::render() const {

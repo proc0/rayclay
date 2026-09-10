@@ -420,6 +420,10 @@ void Brick_EndHorizontalStack(void);
 void Brick_BeginVerticalStack(void);
 void Brick_EndVerticalStack(void);
 
+// Offset
+void Brick_BeginOffset(float x, float y);
+void Brick_EndOffset(void);
+
 #endif /* BRICK_HEADER */
 
 // ####################################^########################################
@@ -1558,6 +1562,43 @@ void Brick_BeginVerticalStack(void) {
 }
 
 void Brick_EndVerticalStack(void) {
+    Clay__CloseElement();
+}
+
+// Offset
+// _____________________________________________________________________________
+
+void Brick_BeginOffset(float x, float y) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
+            },
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }, 
+        },
+        .floating = { 
+            .offset = {x, y}, 
+            // .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+        // TODO: abstract this as a style
+        // .transition = {
+        //     .handler = Clay_EaseOut,
+        //     .duration = 0.3f,
+        //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+        //     .enter = { .setInitialState = FadeSlide },
+        //     // .exit = { .setFinalState = FadeSlide },
+        // }
+    });
+}
+
+void Brick_EndOffset(void) {
     Clay__CloseElement();
 }
 

@@ -18,13 +18,13 @@
 class Interface : public Layer {
 	Font fonts[3];
 
+	const Window& window;
+
 	Menu menu; 
 	Display display;
 	
-	const Window& window;
-
 public:
-	Interface(const Window& window): window(window) {}
+	Interface(const Window& window): window(window), display(window) {}
 	~Interface() = default;
 
 	void loadOverlay();

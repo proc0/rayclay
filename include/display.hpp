@@ -2,6 +2,7 @@
 
 #include "brick.h"
 #include "type.hpp"
+#include "window.hpp"
 
 #include "raylib.h"
 
@@ -16,8 +17,10 @@ class Display {
     Brick_ElementId bid_arrowDown;
     Brick_ElementId bid_arrowLeft;
 
+	const Window& window;
+
 public:
-	Display(){}
+	Display(const Window& window): window(window) {}
 	~Display() = default;
 
 	void (Display::*layout)() = &Display::layoutUnit;
