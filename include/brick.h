@@ -514,11 +514,11 @@ static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
 // Events
+static int32_t g_events_last_length = 0;
 // event array passed back to user to handle events
 static Brick_Event g_events[BRICK_MAX_ELEMENTS];
-static int32_t g_events_last_length = 0;
 // events snapshot array stores which events were triggered per frame
-static bool g_is_events_snapshot_dirty = false;
+static bool g_is_events_snapshot_stale = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
 // Elements
@@ -741,7 +741,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     };
 
     // clear the events snapshot
-    if (g_is_events_snapshot_dirty) {
+    if (g_is_events_snapshot_stale) {
         for (int32_t i = 0; i < BRICK_MAX_EVENT_TYPES; i++) {
             g_events_snapshot[i] = false;
         }
@@ -935,7 +935,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     g_events_last_length = events.length;
 
     // flag the events snapshot for clear
-    if (events.length) g_is_events_snapshot_dirty = true;
+    if (events.length) g_is_events_snapshot_stale = true;
 
     return events;
 }
@@ -1052,7 +1052,9 @@ Brick_ElementId Brick_CreateButton(const char* label) {
 
     int32_t index = g_elements.buttons.length;
     // TODO: add error handling
-    if (index >= BRICK_MAX_BUTTONS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+    if (index >= BRICK_MAX_BUTTONS || g_elements.total_count >= BRICK_MAX_ELEMENTS) {
+        return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+    }
 
     Brick_ElementId buttonId = {
         .index = index,
@@ -1080,6 +1082,9 @@ Brick_ElementId Brick_CreateButton(const char* label) {
 
 Brick_ElementId Brick_CreateToggleButton(const char* label) {
     Brick_ElementId buttonId = Brick_CreateButton(label);
+
+    // TODO: error handling
+    if (buttonId.type == BRICK_ELEMENT_TYPE_NONE) return buttonId;
 
     Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
 
@@ -1214,7 +1219,9 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
 Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
     int32_t index = g_elements.imageButtons.length;
     // TODO: add error handling
-    if (index >= BRICK_MAX_IMAGE_BUTTONS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+    if (index >= BRICK_MAX_IMAGE_BUTTONS || g_elements.total_count >= BRICK_MAX_ELEMENTS) {
+        return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+    }
 
     Brick_ElementId buttonId = {
         .index = index,
@@ -1296,6 +1303,7 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
     // get the next index to store in button
     int32_t index = g_elements.buttonGroups.length;
     // TODO: add error handling
+    // groups do not add element count 
     if (index >= BRICK_MAX_BUTTON_GROUPS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
     // default group init
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
@@ -1362,8 +1370,10 @@ Brick_ContainerId Brick_CreateContainerId(int32_t index, Brick_ContainerType typ
 Brick_ContainerId Brick_CreateScrollBox(void) {
     int32_t index = g_containers.scrollBoxes.length;
     // TODO: add error handling
-    if (index >= BRICK_MAX_SCROLLBOXES) return Brick_CreateContainerId(0, BRICK_CONTAINER_TYPE_NONE);
-
+    if (index >= BRICK_MAX_SCROLLBOXES || g_containers.total_count >= BRICK_MAX_CONTAINERS) {
+        return Brick_CreateContainerId(0, BRICK_CONTAINER_TYPE_NONE);
+    }
+    
     Brick_ContainerId containerId = {
         .index = index,
         .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
