@@ -62,17 +62,17 @@ OBJ:
 
 */
 // ####################################^########################################
-//                                  CONTENT
+//                                  LIBRARY
 // #############################################################################
 
 // ------------------------------------.----------------------------------------
-//                                  SECTION
+//                                  CONTENT
 // =============================================================================
 
 //                                  Section
 // ------------------------------------.----------------------------------------
 
-// Sub-Section 
+// Sub-Section
 // _____________________________________________________________________________
 
 #ifdef BRICK_IMPLEMENTATION
@@ -375,9 +375,9 @@ void Brick_EndVerticalStack(void);
 
 #endif /* BRICK_HEADER */
 
-// ========================================================================================
-//                                  IMPLEMENTATION
-// ========================================================================================
+// ####################################^########################################
+//                              IMPLEMENTATION
+// #############################################################################
 // TODO: add transitions
 // TODO: add some kind of placement container or extend floatingpanel
 // TODO: add Extended and Pro versions of elements and scrollboxes
@@ -389,8 +389,12 @@ void Brick_EndVerticalStack(void);
 #ifdef BRICK_IMPLEMENTATION
 #undef BRICK_IMPLEMENTATION
 
-// Internal Array Types
-// -----------------------------
+// ------------------------------------.----------------------------------------
+//                               PRIVATE HEADER
+// =============================================================================
+
+//                                Array Types
+// ------------------------------------.----------------------------------------
 typedef struct Brick_ContainerStackArray {
     int32_t length;
     int32_t* data;
@@ -429,9 +433,8 @@ typedef struct Brick_Elements {
     Brick_ButtonGroupArray buttonGroups;
 } Brick_Elements;
 
-// Global State
-// --------------------------
-
+//                               Global State
+// ------------------------------------.----------------------------------------
 // Clay context
 static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 
@@ -481,7 +484,6 @@ static bool g_is_events_snapshot_dirty = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
 // Default global placeholders
-// ----------------------------------
 Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 Brick_ButtonState Brick_ButtonState_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_Button Brick_Button_DEFAULT               = CLAY__DEFAULT_STRUCT;
@@ -489,8 +491,8 @@ Brick_ImageButton Brick_ImageButton_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_ElementGroup Brick_ElementGroup_DEFAULT   = CLAY__DEFAULT_STRUCT;
 Brick_ScrollBox Brick_ScrollBox_DEFAULT         = CLAY__DEFAULT_STRUCT;
 
-// Getters
-// ----------------------------------
+//                               Array Getters
+// ------------------------------------.----------------------------------------
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
 }    
@@ -532,8 +534,8 @@ Brick_ScrollBox* Brick_ScrollBox_IndexGet(int32_t index) {
     return index < g_containers.scrollBoxes.length && index >= 0 ? &g_containers.scrollBoxes.data[index] : &Brick_ScrollBox_DEFAULT;
 }
 
-// Setters
-// ----------------------------------
+//                               Array Setters
+// ------------------------------------.----------------------------------------
 int32_t Brick_ContainerStack_Pop(void) {
     if (g_containers.stack.length <= 0) return -1;
 
@@ -546,12 +548,17 @@ void Brick_ContainerStack_Push(int32_t index) {
     g_containers.stack.length++;
 }
 
-// Internal forward declarations
-// ----------------------------------
+//                             Private Prototypes
+// ------------------------------------.----------------------------------------
 void Brick_HandleError(Clay_ErrorData errorData);
 
-// Lifecycle
-// ----------------------------------
+
+// ------------------------------------.----------------------------------------
+//                               API FUNCTIONS
+// =============================================================================
+
+//                                 Lifecycle
+// ------------------------------------.----------------------------------------
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData) {
     // initializes Clay first, then Brick
     printf("Initializing Brick\n");
@@ -599,9 +606,8 @@ Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
     return Clay_EndLayout(deltaTime);
 }
 
-// Update and queries
-// -------------------------------------------------------------------------
-
+//                                   Events
+// ------------------------------------.----------------------------------------
 // Global pointer hover check on any button. This is meant to be used in UpdateEvents.
 // WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustHovered() {
@@ -852,18 +858,19 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     return events;
 }
 
-// CreateElement<Element>
-// initializes the element state and returns the element ID for layout
-// ---------------------------------------------------------------------------
+//                                 Elements
+// ------------------------------------.----------------------------------------
+// CreateElement<Element> - initializes the element state and returns the element ID for layout
+// Inline<Element> - called inside containers with literal values
+// Layout<Element> - called inside containers with Begin and End
 
 Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     Brick_ElementId id = { index, type };
     return id;
 }
 
-// Inline<Element>
-// called inside containers with literal values
-// ---------------------------------------------------------------
+// Text
+// _____________________________________________________________________________
 
 void Brick_InlineText(const char* text) {
     Clay_String clayString = CLAY__INIT(Clay_String){ 
@@ -874,10 +881,6 @@ void Brick_InlineText(const char* text) {
 
     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 }
-
-// Layout<Element>
-// called inside containers with Begin and End
-// ---------------------------------------------------------------
 
 // TODO: add createText, store text state and use ID here
 // void Brick_LayoutText(Brick_ElementId textId) {
@@ -890,6 +893,8 @@ void Brick_InlineText(const char* text) {
 //     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 // }
 
+// Button
+// _____________________________________________________________________________
 
 bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
     Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
@@ -941,7 +946,6 @@ Brick_ElementId Brick_CreateButton(const char* label) {
     return buttonId;
 }
 
-
 Brick_ElementId Brick_CreateToggleButton(const char* label) {
     Brick_ElementId buttonId = Brick_CreateButton(label);
 
@@ -952,8 +956,8 @@ Brick_ElementId Brick_CreateToggleButton(const char* label) {
     
     return toggleButtonId;
 }
+
 // Button handlers
-// ----------------------------------
 void Brick_OnHoverButtonState(Brick_ButtonState* state, int32_t idx, bool isHovering) {
     // Sets the following flags on the button:
     // hovered: the pointer is over the button (multiple frames)
@@ -1071,8 +1075,8 @@ void Brick_LayoutButton(Brick_ElementId buttonId) {
     Brick__LayoutButtonIndex(buttonId.index);
 }
 
-
-// ImageButton
+// Image Button
+// _____________________________________________________________________________
 
 Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
     int32_t index = g_elements.imageButtons.length;
@@ -1097,7 +1101,7 @@ Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageDa
     return buttonId;
 }
 
-
+// ImageButton hover handler
 void Brick_HandleClayHoverState(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
     Brick_ButtonState* state = (Brick_ButtonState*)userData;
 
@@ -1148,6 +1152,8 @@ void Brick_LayoutImageButton(Brick_ElementId buttonId) {
     Brick__LayoutImageButtonIndex(buttonId.index);
 }
 
+// Button Group
+// _____________________________________________________________________________
 
 Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize) {
 
@@ -1201,6 +1207,14 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     }
 }
 
+//                                Containers
+// ------------------------------------.----------------------------------------
+// Layout Containers
+// BeginLayout<Element> and EndLayout<Element>
+
+// Scroll Box
+// _____________________________________________________________________________
+
 Brick_ContainerId Brick_CreateScrollBox(void) {
     int32_t index = g_containers.scrollBoxes.length;
     Brick_ContainerId containerId = {
@@ -1240,7 +1254,6 @@ Brick_ContainerId Brick_CreateScrollBox(void) {
 
     return containerId;
 }
-
 
 void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
     if (scrollBoxId.type != BRICK_CONTAINER_TYPE_SCROLLBOX) return;
@@ -1299,15 +1312,8 @@ void Brick_EndScrollBox(void) {
     Clay__CloseElement();
 }
 
-// ========================================================================================
-//                                      LAYOUT
-// ========================================================================================
-
-
-
-// Layout Containers
-// BeginLayout<Element> and EndLayout<Element>
-// ---------------------------------------------------------------------------------------------
+// Panel
+// _____________________________________________________________________________
 
 void Brick_BeginPanel(void) {
     Clay__OpenElement();
@@ -1326,6 +1332,9 @@ void Brick_BeginPanel(void) {
 void Brick_EndPanel(void) {
     Clay__CloseElement();
 }
+
+// Floating Panel
+// _____________________________________________________________________________
 
 void Brick_BeginFloatingPanel(void) {
     Clay__OpenElement();
@@ -1356,6 +1365,9 @@ void Brick_EndFloatingPanel(void) {
     Clay__CloseElement();
 }
 
+// Horizontal Stack
+// _____________________________________________________________________________
+
 void Brick_BeginHorizontalStack(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
@@ -1373,6 +1385,9 @@ void Brick_BeginHorizontalStack(void) {
 void Brick_EndHorizontalStack(void) {
     Clay__CloseElement();
 }
+
+// Vertical Stack
+// _____________________________________________________________________________
 
 void Brick_BeginVerticalStack(void) {
     Clay__OpenElement();
@@ -1392,9 +1407,9 @@ void Brick_EndVerticalStack(void) {
     Clay__CloseElement();
 }
 
-// ========================================================================================
-//                                     ERROR HANDLING
-// ========================================================================================
+// ------------------------------------.----------------------------------------
+//                               ERROR HANDLING
+// =============================================================================
 
 void Brick_HandleError(Clay_ErrorData errorData) {
 
