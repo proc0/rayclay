@@ -29,6 +29,8 @@ class Menu {
     Brick_ElementId bid_optionAudio;
     Brick_ElementId bid_optionTabs;
 
+    Brick_ElementId sid_string1;
+
     Brick_ContainerId cid_scrollBox;
     Brick_ContainerId cid_scrollBox2;
 

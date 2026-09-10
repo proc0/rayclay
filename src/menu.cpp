@@ -21,13 +21,7 @@ void Menu::load() {
     Brick_ElementId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
     bid_optionTabs = Brick_CreateButtonGroup(tabs, 3);
 
-    // TODO: move this into Display class
-    // textureArrowUp = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_UP));
-    // textureArrowRight = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_RIGHT));
-    // textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
-    // textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
-
-    // bid_hudArrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
+    sid_string1 = Brick_CreateText(TEXT_TUTORIAL_3);
 
     cid_scrollBox = Brick_CreateScrollBox();
     cid_scrollBox2 = Brick_CreateScrollBox();
@@ -79,7 +73,7 @@ void Menu::layoutOptions() {
         } else if(Brick_IsButtonToggled(bid_optionInput)) {
             Brick_BeginHorizontalStack();
                 Brick_BeginScrollBox(cid_scrollBox);
-                    Brick_InlineText(TEXT_TUTORIAL_3);
+                    Brick_LayoutText(sid_string1);
                 Brick_EndScrollBox();
                 Brick_BeginScrollBox(cid_scrollBox2);
                     Brick_InlineText(TEXT_TUTORIAL_2);

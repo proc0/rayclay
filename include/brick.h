@@ -99,12 +99,21 @@ OBJ:
 
 // Max Elements and Containers 
 // _____________________________________________________________________________
+// Determines the element and container type arrays max length
+// Arrays are initialized as static global arrays
+#define BRICK_MAX_TEXTS 128
+// MAX_BUTTONS should not exceed GROUP_SIZE * GROUPS
 #define BRICK_MAX_BUTTONS 128
-#define BRICK_MAX_IMAGE_BUTTONS 128
 #define BRICK_MAX_BUTTON_GROUP_SIZE 16
-#define BRICK_MAX_BUTTON_GROUPS 16
+#define BRICK_MAX_BUTTON_GROUPS 8
+// IMAGE_BUTTONS cannot be grouped
+#define BRICK_MAX_IMAGE_BUTTONS 64
+// total max number of elements
+#define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_BUTTONS + BRICK_MAX_IMAGE_BUTTONS)
+
 #define BRICK_MAX_SCROLLBOXES 32
-#define BRICK_MAX_ELEMENTS (BRICK_MAX_BUTTONS + BRICK_MAX_IMAGE_BUTTONS)
+// total max number of containers
+#define BRICK_MAX_CONTAINERS BRICK_MAX_SCROLLBOXES
 
 // General Global Styles 
 // _____________________________________________________________________________
@@ -219,6 +228,7 @@ typedef struct Brick_ScrollBox {
 
 typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
+    BRICK_ELEMENT_TYPE_TEXT,
     BRICK_ELEMENT_TYPE_BUTTON,
     BRICK_ELEMENT_TYPE_TOGGLE_BUTTON,
     BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
@@ -229,6 +239,13 @@ typedef struct Brick_ElementId {
     int32_t index;
     Brick_ElementType type;
 } Brick_ElementId;
+
+typedef struct Brick_Text {
+    // Clay_ElementId clayId;
+    Clay_String clayString;
+    Brick_ElementId id;
+    int32_t fontSize;
+} Brick_Text;
 
 typedef struct Brick_ButtonState {
     bool hovered;
@@ -341,7 +358,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
 // Elements
 void Brick_InlineText(const char* text);
-// TODO: implement
+Brick_ElementId Brick_CreateText(const char* text);
 void Brick_LayoutText(Brick_ElementId textId);
 
 bool Brick_IsButtonToggled(const Brick_ElementId buttonId);
@@ -381,8 +398,8 @@ void Brick_EndVerticalStack(void);
 // TODO: add transitions
 // TODO: add some kind of placement container or extend floatingpanel
 // TODO: add Extended and Pro versions of elements and scrollboxes
-// TODO: reorder functions by element and container types
-// TODO: add more comments
+// DONE: reorder functions by element and container types
+// DONE: add more comments
 // TODO: begin brick repo
 // TODO: add basic README in brick repo
 
@@ -395,21 +412,11 @@ void Brick_EndVerticalStack(void);
 
 //                                Array Types
 // ------------------------------------.----------------------------------------
-typedef struct Brick_ContainerStackArray {
-    int32_t length;
-    int32_t* data;
-} Brick_ContainerStackArray;
 
-typedef struct Brick_ScrollBoxArray {
+typedef struct Brick_TextArray {
     int32_t length;
-    Brick_ScrollBox* data;
-} Brick_ScrollBoxArray;
-
-typedef struct Brick_Containers {
-    int32_t total_count;
-    Brick_ContainerStackArray stack;
-    Brick_ScrollBoxArray scrollBoxes;
-} Brick_Containers;
+    Brick_Text* data;
+} Brick_TextArray;
 
 typedef struct Brick_ButtonArray {
     int32_t length;
@@ -428,10 +435,27 @@ typedef struct Brick_ButtonGroupArray {
 
 typedef struct Brick_Elements {
     int32_t total_count;
+    Brick_TextArray texts;
     Brick_ButtonArray buttons;
     Brick_ImageButtonArray imageButtons;
     Brick_ButtonGroupArray buttonGroups;
 } Brick_Elements;
+
+typedef struct Brick_ContainerStackArray {
+    int32_t length;
+    int32_t* data;
+} Brick_ContainerStackArray;
+
+typedef struct Brick_ScrollBoxArray {
+    int32_t length;
+    Brick_ScrollBox* data;
+} Brick_ScrollBoxArray;
+
+typedef struct Brick_Containers {
+    int32_t total_count;
+    Brick_ContainerStackArray stack;
+    Brick_ScrollBoxArray scrollBoxes;
+} Brick_Containers;
 
 //                               Global State
 // ------------------------------------.----------------------------------------
@@ -442,7 +466,7 @@ static Clay_Arena g_clay_arena = CLAY__DEFAULT_STRUCT;
 static Brick_Window g_window = CLAY__DEFAULT_STRUCT;
 
 // TODO: add MAX_CONTAINERS and calculate the total possible container stack
-static int32_t g_container_stack[BRICK_MAX_SCROLLBOXES];
+static int32_t g_container_stack[BRICK_MAX_CONTAINERS];
 static Brick_ScrollBox g_scroll_boxes[BRICK_MAX_SCROLLBOXES];
 static Brick_Containers g_containers = {
     .total_count = 0,
@@ -457,11 +481,16 @@ static Brick_Containers g_containers = {
 };
 
 // element state arrays
+static Brick_Text g_texts[BRICK_MAX_TEXTS];
 static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
 static Brick_ImageButton g_image_buttons[BRICK_MAX_IMAGE_BUTTONS];
 static Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
 static Brick_Elements g_elements = {
     .total_count = 0,
+    .texts = {
+        .length = 0,
+        .data = g_texts
+    },
     .buttons = {
         .length = 0,
         .data = g_buttons
@@ -483,8 +512,9 @@ static int32_t g_events_last_length = 0;
 static bool g_is_events_snapshot_dirty = false;
 static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 
-// Default global placeholders
+// default global placeholders
 Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
+Brick_Text Brick_Text_DEFAULT                   = CLAY__DEFAULT_STRUCT;
 Brick_ButtonState Brick_ButtonState_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_Button Brick_Button_DEFAULT               = CLAY__DEFAULT_STRUCT;
 Brick_ImageButton Brick_ImageButton_DEFAULT     = CLAY__DEFAULT_STRUCT;
@@ -495,7 +525,11 @@ Brick_ScrollBox Brick_ScrollBox_DEFAULT         = CLAY__DEFAULT_STRUCT;
 // ------------------------------------.----------------------------------------
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
-}    
+}
+
+Brick_Text* Brick_Text_IndexGet(int32_t index) {                                                    
+    return index < g_elements.texts.length && index >= 0 ? &g_elements.texts.data[index] : &Brick_Text_DEFAULT;
+}
 
 Brick_Button* Brick_Button_IndexGet(int32_t index) {                                                    
     return index < g_elements.buttons.length && index >= 0 ? &g_elements.buttons.data[index] : &Brick_Button_DEFAULT;
@@ -882,16 +916,42 @@ void Brick_InlineText(const char* text) {
     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 }
 
-// TODO: add createText, store text state and use ID here
-// void Brick_LayoutText(Brick_ElementId textId) {
-//     Clay_String clayString = CLAY__INIT(Clay_String){ 
-//         .isStaticallyAllocated = true, 
-//         .length = (int32_t)strlen(text), 
-//         .chars = text 
-//     };
+Brick_ElementId Brick_CreateText(const char* text) {
+    Clay_String clayString = CLAY__INIT(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
 
-//     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
-// }
+    int32_t index = g_elements.texts.length;
+    Brick_ElementId textId = {
+        .index = index,
+        .type = BRICK_ELEMENT_TYPE_TEXT,
+    };
+
+    Brick_Text new_text = {
+        // TODO: review if text needs container and an clay element Id
+        // .clayId = CLAY_SID(clayString),
+        .clayString = clayString,
+        .id = textId,
+        .fontSize = 0,
+    };
+
+    g_texts[index] = new_text;
+    g_elements.texts.length++;
+    g_elements.total_count++;
+
+    return textId;
+}
+
+void Brick_LayoutText(Brick_ElementId textId) {
+    // TODO: error handling
+    if (textId.type != BRICK_ELEMENT_TYPE_TEXT) return;
+
+    Brick_Text* text = Brick_Text_IndexGet(textId.index);
+
+    CLAY_TEXT(text->clayString, BRICK_STYLE_TEXT_DEFAULT);
+}
 
 // Button
 // _____________________________________________________________________________
