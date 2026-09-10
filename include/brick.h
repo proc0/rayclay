@@ -342,51 +342,81 @@ typedef struct Brick_EventArray {
 // - Updates
 // - Layouts
 
-// Lifecycle
+//                                 Lifecycle
+// ------------------------------------.----------------------------------------
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData);
 void Brick_Resize(float width, float height);
 void Brick_Destroy(void);
 void Brick_BeginLayout(void);
 Clay_RenderCommandArray Brick_EndLayout(float deltaTime);
 
-// Events
+//                                   Events
+// ------------------------------------.----------------------------------------
 bool Brick_IsEventTriggeredById(Brick_EventType eventType, Brick_ElementId elementId);
 bool Brick_IsEventTriggered(Brick_EventType eventType);
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index);
 Brick_EventArray Brick_PollEvents(void);
 Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTime);
 
-// Elements
+//                                  Elements
+// ------------------------------------.----------------------------------------
+// Inline<Element>
+// Create<Element>
+// Layout<Element>
+
+// Text
 void Brick_InlineText(const char* text);
 Brick_ElementId Brick_CreateText(const char* text);
 void Brick_LayoutText(Brick_ElementId textId);
 
+// Button
 bool Brick_IsButtonToggled(const Brick_ElementId buttonId);
 void Brick_ToggleButton(Brick_ElementId buttonId);
 void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled);
 Brick_ElementId Brick_CreateButton(const char* label);
 // TODO: implement
-Brick_ElementId Brick_CreateButtonEx(const char* label, int32_t width, int32_t height, int32_t fontSize, void* imageData);
+// Brick_ElementId Brick_CreateButtonEx(const char* label, int32_t width, int32_t height, int32_t fontSize, void* imageData);
 Brick_ElementId Brick_CreateToggleButton(const char* label);
 void Brick_LayoutButton(Brick_ElementId buttonId);
 
+// Image Button
 Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData);
 void Brick_LayoutImageButton(Brick_ElementId buttonId);
 
+// Button Group
 Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize);
 void Brick_LayoutButtonGroup(Brick_ElementId groupId);
 
-// Containers
+//                                Containers
+// ------------------------------------.----------------------------------------
+
+// Stateful Containers
+// _____________________________________________________________________________
+// Create<Container> is required and the ContainerId used with Layout<Container>
+
+// Scroll Box
 Brick_ContainerId Brick_CreateScrollBox(void);
 void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId);
 void Brick_EndScrollBox();
 
+// Stateless Containers
+// _____________________________________________________________________________
+// Do not require any creation or ContainerId management
+// Begin<Container> requires closing with End<Container>
+
+// Panel
 void Brick_BeginPanel(void);
 void Brick_EndPanel(void);
+
+// Floating Panel
 void Brick_BeginFloatingPanel(void);
 void Brick_EndFloatingPanel(void);
+
+// Horizontal Stack
 void Brick_BeginHorizontalStack(void);
 void Brick_EndHorizontalStack(void);
+
+// Vertical Stack
 void Brick_BeginVerticalStack(void);
 void Brick_EndVerticalStack(void);
 
@@ -413,6 +443,8 @@ void Brick_EndVerticalStack(void);
 //                                Array Types
 // ------------------------------------.----------------------------------------
 
+// Elements
+// _____________________________________________________________________________
 typedef struct Brick_TextArray {
     int32_t length;
     Brick_Text* data;
@@ -441,6 +473,8 @@ typedef struct Brick_Elements {
     Brick_ButtonGroupArray buttonGroups;
 } Brick_Elements;
 
+// Containers
+// _____________________________________________________________________________
 typedef struct Brick_ContainerStackArray {
     int32_t length;
     int32_t* data;
@@ -1365,6 +1399,7 @@ void Brick_EndScrollBox(void) {
                         CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                     }
                 },
+                // TODO: map the theme at the top of file instead of using it directly
                 .backgroundColor = Clay_Hovered() || scrollBox->isPrimaryDown ? BRICK_THEME_SECONDARY : BRICK_THEME_TERTIARY,
             });
         }
