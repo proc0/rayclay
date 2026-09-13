@@ -87,6 +87,9 @@ OBJ:
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
+#include <stdio.h>
+#include <string.h>
+
 #if defined(__cplusplus)
     #define PLEX(type) type
 #else
@@ -414,7 +417,7 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId);
 // Scroll Box
 Brick_ContainerId Brick_CreateScrollBox(void);
 void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId);
-void Brick_EndScrollBox();
+void Brick_EndScrollBox(void);
 
 // Stateless Containers
 // _____________________________________________________________________________
@@ -656,13 +659,13 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     // 3. Create arena [clay.h:2150-2158]
     g_clay_arena = Clay_CreateArenaWithCapacityAndMemory(memorySize, memory);
     // 4. Initialize Clay [clay.h:2186-2188]
-    Clay_Initialize(g_clay_arena, Clay_Dimensions({ width, height }), Clay_ErrorHandler({ .errorHandlerFunction = Brick_HandleError, .userData = nullptr }));
+    Clay_Initialize(g_clay_arena, PLEX(Clay_Dimensions){ width, height }, PLEX(Clay_ErrorHandler){ .errorHandlerFunction = Brick_HandleError, .userData = NULL });
     // 5. Set the MeasureText function along with pointer to fonts
     Clay_SetMeasureTextFunction(measureTextFunction, fontData);
 
     // seed button array and button group array at index 0 as unit values
     Brick_CreateButton("BRICK");
-    Brick_CreateImageButton(0, 0, nullptr);
+    Brick_CreateImageButton(0, 0, NULL);
     // bypassing Brick_GroupButtons that checks 0 as invalid
     g_elements.buttonGroups.data[0] = Brick_ElementGroup_DEFAULT;
     g_elements.buttonGroups.length++;
@@ -671,7 +674,7 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
 void Brick_Resize(float width, float height) {
     g_window.width = width;
     g_window.height = height;
-    Clay_SetLayoutDimensions(Clay_Dimensions({ width, height }));
+    Clay_SetLayoutDimensions(PLEX(Clay_Dimensions){ width, height });
 }
 
 void Brick_Destroy(void) {
@@ -733,7 +736,7 @@ Brick_EventArray Brick_PollEvents(void) {
 // Brick only function that will handle any potential updates of elements per frame
 Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTime) {
 
-    Clay_SetPointerState(Clay_Vector2({ .x = pointerData.x, .y = pointerData.y }), pointerData.pressed);
+    Clay_SetPointerState(PLEX(Clay_Vector2){ .x = pointerData.x, .y = pointerData.y }, pointerData.pressed);
     
     Brick_EventArray events = {
         .length = 0,
@@ -758,7 +761,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // prevents event from firing after button is
             // not rendered, i.e. clicking to change panels
             state->clicked = false;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_PRESS
@@ -772,7 +775,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             g_events_snapshot[BRICK_EVENT_TYPE_CLEAR] = true;
         } 
         else if (state->pressed) { 
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_PRESSING
@@ -785,7 +788,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // prevents from firing after button is
             // blocked or not rendered, i.e. showing a popup window
             state->released = false;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_RELEASE
@@ -800,7 +803,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
         else if(state->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_TYPE_HOVER : BRICK_EVENT_TYPE_HOVERING;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = eventType
@@ -810,7 +813,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             g_events_snapshot[eventType] = true;
         }
         else if(state->cleared) {
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_CLEAR
@@ -830,7 +833,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // prevents event from firing after button is
             // not rendered, i.e. clicking to change panels
             state->clicked = false;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_PRESS
@@ -840,7 +843,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             g_events_snapshot[BRICK_EVENT_TYPE_PRESS] = true;
         } 
         else if (state->pressed) { 
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_PRESSING
@@ -853,7 +856,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // prevents from firing after button is
             // blocked or not rendered, i.e. showing a popup window
             state->released = false;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_RELEASE
@@ -864,7 +867,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
         else if(state->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_TYPE_HOVER : BRICK_EVENT_TYPE_HOVERING;
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = eventType
@@ -874,7 +877,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             g_events_snapshot[eventType] = true;
         }
         else if(state->cleared) {
-            g_events[events.length] = {
+            g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
                 .eventType = BRICK_EVENT_TYPE_CLEAR
@@ -887,7 +890,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
     // update Clay scroll containers once for all scrollboxes
     if (g_containers.scrollBoxes.length > 0) {
-        Clay_UpdateScrollContainers(true, Clay_Vector2({ pointerData.scrollX*2.0f, pointerData.scrollY*2.0f }), deltaTime);
+        Clay_UpdateScrollContainers(true, PLEX(Clay_Vector2){ pointerData.scrollX*2.0f, pointerData.scrollY*2.0f }, deltaTime);
     }
 
     for (int32_t i = 0; i < g_containers.scrollBoxes.length; i++) {
@@ -915,10 +918,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // TODO: fix pulling the content too far up or too far down causing the scrollbar to go beyond the content
             // and if there is an image background, it offsets it too much and causes glitching
             if (container.contentDimensions.height > 0) {
-                Clay_Vector2 ratio = Clay_Vector2({
+                Clay_Vector2 ratio = PLEX(Clay_Vector2){
                     container.contentDimensions.width / container.scrollContainerDimensions.width,
                     container.contentDimensions.height / container.scrollContainerDimensions.height,
-                });
+                };
 
                 if (container.config.vertical) {
                     container.scrollPosition->y = scrollBox->positionOrigin.y + (scrollBox->clickOrigin.y - pointerData.y) * ratio.y;
@@ -973,7 +976,7 @@ Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
 // _____________________________________________________________________________
 
 void Brick_InlineText(const char* text) {
-    Clay_String clayString = CLAY__INIT(Clay_String){ 
+    Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(text), 
         .chars = text 
@@ -983,7 +986,7 @@ void Brick_InlineText(const char* text) {
 }
 
 Brick_ElementId Brick_CreateText(const char* text) {
-    Clay_String clayString = CLAY__INIT(Clay_String){ 
+    Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(text), 
         .chars = text 
@@ -1044,7 +1047,7 @@ void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
 }
 
 Brick_ElementId Brick_CreateButton(const char* label) {
-    Clay_String clayString = CLAY__INIT(Clay_String){ 
+    Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(label), 
         .chars = label 
@@ -1065,7 +1068,7 @@ Brick_ElementId Brick_CreateButton(const char* label) {
         .clayId = CLAY_SID(clayString),
         .label = clayString,
         .id = buttonId,
-        .imageData = nullptr,
+        .imageData = NULL,
         .state = Brick_ButtonState_DEFAULT,
         .groupIndex = 0,
         .width = 0,
@@ -1194,7 +1197,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1379,17 +1382,17 @@ Brick_ContainerId Brick_CreateScrollBox(void) {
         .type = BRICK_CONTAINER_TYPE_SCROLLBOX,
     };
 
-    char scrollBarIdLabel[12];
+    char scrollBarIdLabel[21];
     snprintf(scrollBarIdLabel, sizeof(scrollBarIdLabel), "scrollBox%d", index);
-    Clay_String scrollBarIdString = CLAY__INIT(Clay_String){ 
+    Clay_String scrollBarIdString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(scrollBarIdLabel), 
         .chars = scrollBarIdLabel 
     };
 
-    char scrollBoxParentIdLabel[18];
+    char scrollBoxParentIdLabel[27];
     snprintf(scrollBoxParentIdLabel, sizeof(scrollBoxParentIdLabel), "scrollBoxParent%d", index);
-    Clay_String scrollBoxParentIdString = CLAY__INIT(Clay_String){ 
+    Clay_String scrollBoxParentIdString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(scrollBoxParentIdLabel), 
         .chars = scrollBoxParentIdLabel 
@@ -1419,7 +1422,7 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
     Brick_ContainerStack_Push(scrollBox->id.index);
 
     Clay__OpenElementWithId(scrollBox->clayParentId);
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = { 
             .padding = CLAY_PADDING_ALL(32), 
             .childGap = 12, 
@@ -1434,7 +1437,7 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1484,7 +1487,7 @@ void Brick_EndScrollBox(void) {
 
 void Brick_BeginPanel(void) {
     Clay__OpenElement();
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
@@ -1497,7 +1500,7 @@ void Brick_BeginPanel(void) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1516,7 +1519,7 @@ void Brick_EndPanel(void) {
 
 void Brick_BeginFloatingPanel(void) {
     Clay__OpenElement();
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_PERCENT(0.5f),
@@ -1540,7 +1543,7 @@ void Brick_BeginFloatingPanel(void) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1556,7 +1559,7 @@ void Brick_EndFloatingPanel(void) {
 
 void Brick_BeginHorizontalStack(void) {
     Clay__OpenElement();
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
@@ -1569,7 +1572,7 @@ void Brick_BeginHorizontalStack(void) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1585,7 +1588,7 @@ void Brick_EndHorizontalStack(void) {
 
 void Brick_BeginVerticalStack(void) {
     Clay__OpenElement();
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
                 .height = CLAY_SIZING_GROW(0),
@@ -1598,7 +1601,7 @@ void Brick_BeginVerticalStack(void) {
         .transition = {
             .handler = Clay_EaseOut,
             .duration = 0.3f,
-            .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
             .enter = { .setInitialState = FadeSlide },
             // .exit = { .setFinalState = FadeSlide },
         }
@@ -1616,7 +1619,7 @@ void Brick_EndVerticalStack(void) {
 
 void Brick_BeginOffset(float x, float y) {
     Clay__OpenElement();
-    Clay__ConfigureOpenElement(CLAY__INIT(Clay_ElementDeclaration) {
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_FIT(0),
@@ -1637,7 +1640,7 @@ void Brick_BeginOffset(float x, float y) {
         // .transition = {
         //     .handler = Clay_EaseOut,
         //     .duration = 0.3f,
-        //     .properties = static_cast<Clay_TransitionProperty>(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
+        //     .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
         //     .enter = { .setInitialState = FadeSlide },
         //     // .exit = { .setFinalState = FadeSlide },
         // }

@@ -387,7 +387,7 @@ Clay_RenderCommandArray App::update() {
         if(action == Action::Interface::MENU_GAME_RESUME){
             TraceLog(LOG_INFO, "UNPAUSE");
             state = State::App::RUN;
-
+            
             game.transition(state, screen);
             world.transition(state, screen);
             interface.transition(state, screen);
