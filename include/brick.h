@@ -961,6 +961,8 @@ Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionP
     return targetState;
 }
 
+#define BRICK_TRANSITION_FADE_SLIDE { .handler = Clay_EaseOut, .duration = 0.3f, .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR), .enter = { .setInitialState = FadeSlide }, }
+
 //                                 Elements
 // ------------------------------------.----------------------------------------
 // CreateElement<Element> - initializes the element state and returns the element ID for layout
@@ -1187,20 +1189,12 @@ void Brick__LayoutButtonIndex(int32_t index) {
             },
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
         }, 
-        // NOTE: Clay_Hovered only works inside the paramaters or declaration body
         .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
             .color = borderColor, 
             .width = CLAY_BORDER_OUTSIDE(1) 
         },
-        // TODO: add to global styles
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
         Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
@@ -1433,14 +1427,7 @@ void Brick_BeginScrollBox(Brick_ContainerId scrollBoxId) {
             .vertical = true, 
             .childOffset = Clay_GetScrollOffset()
         },
-        // TODO: abstract this as a style
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     });
 }
 
@@ -1496,14 +1483,7 @@ void Brick_BeginPanel(void) {
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
-        // TODO: abstract this as a style
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     });
 }
 
@@ -1526,7 +1506,8 @@ void Brick_BeginFloatingPanel(void) {
                 .height = CLAY_SIZING_PERCENT(0.5f),
             },
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_TOP },
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
@@ -1539,14 +1520,7 @@ void Brick_BeginFloatingPanel(void) {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
-        // TODO: abstract this as a style
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     });
 }
 
@@ -1568,14 +1542,7 @@ void Brick_BeginHorizontalStack(void) {
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
-        // TODO: abstract this as a style
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     });
 }
 
@@ -1597,14 +1564,7 @@ void Brick_BeginVerticalStack(void) {
             .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
-        // TODO: abstract this as a style
-        .transition = {
-            .handler = Clay_EaseOut,
-            .duration = 0.3f,
-            .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-            .enter = { .setInitialState = FadeSlide },
-            // .exit = { .setFinalState = FadeSlide },
-        }
+        .transition = BRICK_TRANSITION_FADE_SLIDE
     });
 }
 
@@ -1636,14 +1596,6 @@ void Brick_BeginOffset(float x, float y) {
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
-        // TODO: abstract this as a style
-        // .transition = {
-        //     .handler = Clay_EaseOut,
-        //     .duration = 0.3f,
-        //     .properties = PLEX(Clay_TransitionProperty)(CLAY_TRANSITION_PROPERTY_BORDER_COLOR | CLAY_TRANSITION_PROPERTY_BACKGROUND_COLOR),
-        //     .enter = { .setInitialState = FadeSlide },
-        //     // .exit = { .setFinalState = FadeSlide },
-        // }
     });
 }
 
