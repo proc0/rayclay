@@ -233,6 +233,7 @@ typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_TEXT,
     BRICK_ELEMENT_TYPE_BUTTON,
+    BRICK_ELEMENT_TYPE_LABEL_BUTTON,
     BRICK_ELEMENT_TYPE_TOGGLE_BUTTON,
     BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
     BRICK_ELEMENT_TYPE_BUTTON_GROUP,
@@ -395,8 +396,11 @@ void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled);
 Brick_ElementId Brick_CreateButton(const char* label);
 // TODO: implement
 // Brick_ElementId Brick_CreateButtonEx(const char* label, int32_t width, int32_t height, int32_t fontSize, void* imageData);
+Brick_ElementId Brick_CreateLabelButton(const char* label);
 Brick_ElementId Brick_CreateToggleButton(const char* label);
 void Brick_LayoutButton(Brick_ElementId buttonId);
+void Brick_LayoutLabelButton(Brick_ElementId buttonId);
+void Brick_LayoutToggleButton(Brick_ElementId buttonId);
 
 // Image Button
 Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData);
@@ -597,7 +601,8 @@ Brick_ElementGroup* Brick_ButtonGroup_IndexGet(int32_t index) {
 
 // NOTE: not used:
 Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return &Brick_Button_DEFAULT;
+    // TODO: add element subType and check against that
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return &Brick_Button_DEFAULT;
 
     return Brick_Button_IndexGet(buttonId.index);
 }
@@ -605,7 +610,8 @@ Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
 Brick_ButtonState* Brick_ButtonState_Get(Brick_ElementId buttonId) {
     Brick_ButtonState* buttonState = &Brick_ButtonState_DEFAULT;
     
-    if (buttonId.type == BRICK_ELEMENT_TYPE_BUTTON || buttonId.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
+    // TODO: add element subType and check against that
+    if (buttonId.type == BRICK_ELEMENT_TYPE_BUTTON || buttonId.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON || buttonId.type == BRICK_ELEMENT_TYPE_LABEL_BUTTON) {
         Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
         return &button->state;
     } else if (buttonId.type == BRICK_ELEMENT_TYPE_IMAGE_BUTTON) {
@@ -1085,6 +1091,20 @@ Brick_ElementId Brick_CreateButton(const char* label) {
     return buttonId;
 }
 
+Brick_ElementId Brick_CreateLabelButton(const char* label) {
+    Brick_ElementId buttonId = Brick_CreateButton(label);
+
+    // TODO: error handling
+    if (buttonId.type == BRICK_ELEMENT_TYPE_NONE) return buttonId;
+
+    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+
+    Brick_ElementId labelButtonId = PLEX(Brick_ElementId){ buttonId.index, BRICK_ELEMENT_TYPE_LABEL_BUTTON };
+    button->id = labelButtonId;
+    
+    return labelButtonId;
+}
+
 Brick_ElementId Brick_CreateToggleButton(const char* label) {
     Brick_ElementId buttonId = Brick_CreateButton(label);
 
@@ -1199,15 +1219,55 @@ void Brick__LayoutButtonIndex(int32_t index) {
         Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
+        // TODO: add change text style on hover
         CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
     }
 }
 
 void Brick_LayoutButton(Brick_ElementId buttonId) {
     // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
+    // TODO: add element subtype and check that instead
+    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return;
 
     Brick__LayoutButtonIndex(buttonId.index);
+}
+
+void Brick_LayoutToggleButton(Brick_ElementId buttonId) {
+    // TODO: add error handling
+    // TODO: add element subtype and check that instead
+    if (buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) return;
+
+    Brick__LayoutButtonIndex(buttonId.index);
+}
+
+void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
+    // TODO: add error handling
+    // TODO: add element subtype and check that instead
+    if (buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return;
+
+    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+
+    CLAY(button->clayId, {
+        .layout = {
+            .sizing = {
+                .width = CLAY_SIZING_GROW(0)
+            },
+            // .padding = {
+            //     BRICK_STYLE_PADDING_SMALL,
+            //     BRICK_STYLE_PADDING_SMALL,
+            //     BRICK_STYLE_PADDING_MEDIUM,
+            //     BRICK_STYLE_PADDING_MEDIUM
+            // },
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
+        }, 
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    }) {
+        Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
+        // NOTE: Clay_OnHover also handles click events
+        Clay_OnHover(Brick_HandleClayHoverButton, button);
+        // TODO: add change text style on hover
+        CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
+    }
 }
 
 // Image Button
@@ -1307,7 +1367,8 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
 
     // iterate over the button ids
     for (int32_t i = 0; i < groupSize; i++) {
-        if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON && buttonIds[i].type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
+        // TODO: add subtype
+        if (buttonIds[i].type != BRICK_ELEMENT_TYPE_BUTTON && buttonIds[i].type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && buttonIds[i].type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) {
             // TODO: exit or handle error 
             printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", buttonIds[i].index);
             return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
