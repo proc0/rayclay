@@ -12,10 +12,10 @@ void Display::load() {
     textureArrowDown = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_DOWN));
     textureArrowLeft = LoadTexture(PATH_ASSET(URI_IMAGE_ARROW_LEFT));
 
-    bid_arrowUp = Brick_CreateImageButton(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
-    bid_arrowRight = Brick_CreateImageButton(static_cast<float>(textureArrowRight.width), static_cast<float>(textureArrowRight.height), &textureArrowRight);
-    bid_arrowDown = Brick_CreateImageButton(static_cast<float>(textureArrowDown.width), static_cast<float>(textureArrowDown.height), &textureArrowDown);
-    bid_arrowLeft = Brick_CreateImageButton(static_cast<float>(textureArrowLeft.width), static_cast<float>(textureArrowLeft.height), &textureArrowLeft);
+    bid_arrowUp = Brick_CreateImage(static_cast<float>(textureArrowUp.width), static_cast<float>(textureArrowUp.height), &textureArrowUp);
+    bid_arrowRight = Brick_CreateImage(static_cast<float>(textureArrowRight.width), static_cast<float>(textureArrowRight.height), &textureArrowRight);
+    bid_arrowDown = Brick_CreateImage(static_cast<float>(textureArrowDown.width), static_cast<float>(textureArrowDown.height), &textureArrowDown);
+    bid_arrowLeft = Brick_CreateImage(static_cast<float>(textureArrowLeft.width), static_cast<float>(textureArrowLeft.height), &textureArrowLeft);
 
 }
 
@@ -39,14 +39,14 @@ void Display::layoutGame() {
     Brick_BeginOffset(window.halfWidthf-150.0f, window.halfHeightf-150.0f);
         Brick_BeginHorizontalStack();
     		Brick_BeginVerticalStack();
-	        	Brick_LayoutImageButton(bid_arrowLeft);
+	        	Brick_LayoutImage(bid_arrowLeft);
         	Brick_EndHorizontalStack();
     		Brick_BeginVerticalStack();
-		        Brick_LayoutImageButton(bid_arrowUp);
-		        Brick_LayoutImageButton(bid_arrowDown);
+		        Brick_LayoutImage(bid_arrowUp);
+		        Brick_LayoutImage(bid_arrowDown);
     		Brick_EndVerticalStack();
     		Brick_BeginVerticalStack();
-	        	Brick_LayoutImageButton(bid_arrowRight);
+	        	Brick_LayoutImage(bid_arrowRight);
     		Brick_EndVerticalStack();
         Brick_EndHorizontalStack();
     Brick_EndOffset();

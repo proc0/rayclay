@@ -100,19 +100,19 @@ OBJ:
 //                                 SETTINGS
 // =============================================================================
 
-// Max Elements and Containers 
+// Max Elements and (Stateful) Containers 
 // _____________________________________________________________________________
 // Determines the element and container type arrays max length
 // Arrays are initialized as static global arrays
 #define BRICK_MAX_TEXTS 128
 // MAX_BUTTONS should not exceed GROUP_SIZE * GROUPS
 #define BRICK_MAX_BUTTONS 128
-#define BRICK_MAX_BUTTON_GROUP_SIZE 16
 #define BRICK_MAX_BUTTON_GROUPS 8
 // IMAGE_BUTTONS cannot be grouped
-#define BRICK_MAX_IMAGE_BUTTONS 64
+#define BRICK_MAX_IMAGES 64
 // total max number of elements
-#define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_BUTTONS + BRICK_MAX_IMAGE_BUTTONS)
+#define BRICK_MAX_ELEMENT_GROUP_SIZE 16
+#define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_BUTTONS + BRICK_MAX_IMAGES)
 
 #define BRICK_MAX_SCROLLBOXES 32
 // total max number of containers
@@ -235,8 +235,8 @@ typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_BUTTON,
     BRICK_ELEMENT_TYPE_LABEL_BUTTON,
     BRICK_ELEMENT_TYPE_TOGGLE_BUTTON,
-    BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
     BRICK_ELEMENT_TYPE_BUTTON_GROUP,
+    BRICK_ELEMENT_TYPE_IMAGE,
 } Brick_ElementType;
 
 typedef struct Brick_ElementId {
@@ -251,21 +251,21 @@ typedef struct Brick_Text {
     int32_t fontSize;
 } Brick_Text;
 
-typedef struct Brick_ButtonState {
+typedef struct Brick_Interaction {
     bool hovered;
     bool cleared;
     bool clicked;
     bool pressed;
     bool released;
     bool toggled;
-} Brick_ButtonState;
+} Brick_Interaction;
 
 typedef struct {
     Clay_ElementId clayId;
     Clay_String label;
     Brick_ElementId id;
     void* imageData;
-    Brick_ButtonState state;
+    Brick_Interaction action;
     int32_t groupIndex;
     float width;
     float height;
@@ -275,16 +275,15 @@ typedef struct {
 typedef struct {
     Brick_ElementId id;
     void* imageData;
-    Brick_ButtonState state;
-    int32_t groupIndex;
+    Brick_Interaction action;
     float width;
     float height;
-} Brick_ImageButton;
+} Brick_Image;
 
 // TODO: rename ids to indices?
 typedef struct {
     int32_t length;
-    int32_t ids[BRICK_MAX_BUTTON_GROUP_SIZE];
+    int32_t indexes[BRICK_MAX_ELEMENT_GROUP_SIZE];
 } Brick_ElementGroup;
 
 // WARN: CHECK MAX COUNT WHEN ADDING EVENTS
@@ -402,13 +401,13 @@ void Brick_LayoutButton(Brick_ElementId buttonId);
 void Brick_LayoutLabelButton(Brick_ElementId buttonId);
 void Brick_LayoutToggleButton(Brick_ElementId buttonId);
 
-// Image Button
-Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData);
-void Brick_LayoutImageButton(Brick_ElementId buttonId);
-
 // Button Group
 Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize);
 void Brick_LayoutButtonGroup(Brick_ElementId groupId);
+
+// Image Button
+Brick_ElementId Brick_CreateImage(float width, float height, void* imageData);
+void Brick_LayoutImage(Brick_ElementId buttonId);
 
 //                                Containers
 // ------------------------------------.----------------------------------------
@@ -475,10 +474,10 @@ typedef struct Brick_ButtonArray {
     Brick_Button* data;
 } Brick_ButtonArray;
 
-typedef struct Brick_ImageButtonArray {
+typedef struct Brick_ImageArray {
     int32_t length;
-    Brick_ImageButton* data;
-} Brick_ImageButtonArray;
+    Brick_Image* data;
+} Brick_ImageArray;
 
 typedef struct Brick_ButtonGroupArray {
     int32_t length;
@@ -489,8 +488,8 @@ typedef struct Brick_Elements {
     int32_t total_count;
     Brick_TextArray texts;
     Brick_ButtonArray buttons;
-    Brick_ImageButtonArray imageButtons;
     Brick_ButtonGroupArray buttonGroups;
+    Brick_ImageArray images;
 } Brick_Elements;
 
 // Containers
@@ -531,8 +530,8 @@ static bool g_events_snapshot[BRICK_MAX_EVENT_TYPES] = CLAY__DEFAULT_STRUCT;
 // Elements
 static Brick_Text g_texts[BRICK_MAX_TEXTS];
 static Brick_Button g_buttons[BRICK_MAX_BUTTONS];
-static Brick_ImageButton g_image_buttons[BRICK_MAX_IMAGE_BUTTONS];
 static Brick_ElementGroup g_button_groups[BRICK_MAX_BUTTON_GROUPS];
+static Brick_Image g_images[BRICK_MAX_IMAGES];
 static Brick_Elements g_elements = {
     .total_count = 0,
     .texts = {
@@ -543,13 +542,13 @@ static Brick_Elements g_elements = {
         .length = 0,
         .data = g_buttons
     },
-    .imageButtons = {
-        .length = 0,
-        .data = g_image_buttons
-    },
     .buttonGroups = {
         .length = 0,
         .data = g_button_groups
+    },
+    .images = {
+        .length = 0,
+        .data = g_images
     },
 };
 
@@ -571,10 +570,10 @@ static Brick_Containers g_containers = {
 // default global placeholders
 Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 Brick_Text Brick_Text_DEFAULT                   = CLAY__DEFAULT_STRUCT;
-Brick_ButtonState Brick_ButtonState_DEFAULT     = CLAY__DEFAULT_STRUCT;
+Brick_Interaction Brick_Interaction_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_Button Brick_Button_DEFAULT               = CLAY__DEFAULT_STRUCT;
-Brick_ImageButton Brick_ImageButton_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_ElementGroup Brick_ElementGroup_DEFAULT   = CLAY__DEFAULT_STRUCT;
+Brick_Image Brick_Image_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 Brick_ScrollBox Brick_ScrollBox_DEFAULT         = CLAY__DEFAULT_STRUCT;
 
 //                               Array Getters
@@ -591,8 +590,8 @@ Brick_Button* Brick_Button_IndexGet(int32_t index) {
     return index < g_elements.buttons.length && index >= 0 ? &g_elements.buttons.data[index] : &Brick_Button_DEFAULT;
 }    
 
-Brick_ImageButton* Brick_ImageButton_IndexGet(int32_t index) {                                                    
-    return index < g_elements.imageButtons.length && index >= 0 ? &g_elements.imageButtons.data[index] : &Brick_ImageButton_DEFAULT;
+Brick_Image* Brick_Image_IndexGet(int32_t index) {                                                    
+    return index < g_elements.images.length && index >= 0 ? &g_elements.images.data[index] : &Brick_Image_DEFAULT;
 }
 
 Brick_ElementGroup* Brick_ButtonGroup_IndexGet(int32_t index) {                                                    
@@ -607,16 +606,16 @@ Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
     return Brick_Button_IndexGet(buttonId.index);
 }
 
-Brick_ButtonState* Brick_ButtonState_Get(Brick_ElementId buttonId) {
-    Brick_ButtonState* buttonState = &Brick_ButtonState_DEFAULT;
+Brick_Interaction* Brick_Interaction_Get(Brick_ElementId buttonId) {
+    Brick_Interaction* buttonState = &Brick_Interaction_DEFAULT;
     
     // TODO: add element subType and check against that
     if (buttonId.type == BRICK_ELEMENT_TYPE_BUTTON || buttonId.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON || buttonId.type == BRICK_ELEMENT_TYPE_LABEL_BUTTON) {
         Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
-        return &button->state;
-    } else if (buttonId.type == BRICK_ELEMENT_TYPE_IMAGE_BUTTON) {
-        Brick_ImageButton* button = Brick_ImageButton_IndexGet(buttonId.index);
-        return &button->state;
+        return &button->action;
+    } else if (buttonId.type == BRICK_ELEMENT_TYPE_IMAGE) {
+        Brick_Image* button = Brick_Image_IndexGet(buttonId.index);
+        return &button->action;
     }
 
     return buttonState;
@@ -671,7 +670,7 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
 
     // seed button array and button group array at index 0 as unit values
     Brick_CreateButton("BRICK");
-    Brick_CreateImageButton(0, 0, NULL);
+    Brick_CreateImage(0, 0, NULL);
     // bypassing Brick_GroupButtons that checks 0 as invalid
     g_elements.buttonGroups.data[0] = Brick_ElementGroup_DEFAULT;
     g_elements.buttonGroups.length++;
@@ -760,13 +759,13 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
     // skip unit button at index 0
     for (int32_t i = 1; i < g_elements.buttons.length; i++) {
         Brick_Button* button = Brick_Button_IndexGet(i);
-        Brick_ButtonState* state = &button->state;
+        Brick_Interaction* action = &button->action;
         Brick_ElementType buttonType = button->id.type;
 
-        if(state->clicked && !state->pressed) {
+        if(action->clicked && !action->pressed) {
             // prevents event from firing after button is
             // not rendered, i.e. clicking to change panels
-            state->clicked = false;
+            action->clicked = false;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -780,7 +779,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // (prevents HOVERING event sticking, i.e. always showing hand cursor)
             g_events_snapshot[BRICK_EVENT_TYPE_CLEAR] = true;
         } 
-        else if (state->pressed) { 
+        else if (action->pressed) { 
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -790,10 +789,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[BRICK_EVENT_TYPE_PRESSING] = true;
         }
-        else if(state->released) {
+        else if(action->released) {
             // prevents from firing after button is
             // blocked or not rendered, i.e. showing a popup window
-            state->released = false;
+            action->released = false;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -807,7 +806,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
             // again if the button is still being rendered in the layout
             g_events_snapshot[BRICK_EVENT_TYPE_HOVER] = true;
         }
-        else if(state->hovered) {
+        else if(action->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_TYPE_HOVER : BRICK_EVENT_TYPE_HOVERING;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
@@ -818,7 +817,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[eventType] = true;
         }
-        else if(state->cleared) {
+        else if(action->cleared) {
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -830,15 +829,16 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
     }
 
-    for (int32_t i = 1; i < g_elements.imageButtons.length; i++) {
-        Brick_ImageButton* button = Brick_ImageButton_IndexGet(i);
-        Brick_ButtonState* state = &button->state;
+    // Image Events ------------------------------------
+    for (int32_t i = 1; i < g_elements.images.length; i++) {
+        Brick_Image* button = Brick_Image_IndexGet(i);
+        Brick_Interaction* action = &button->action;
         Brick_ElementType buttonType = button->id.type;
 
-        if(state->clicked && !state->pressed) {
+        if(action->clicked && !action->pressed) {
             // prevents event from firing after button is
             // not rendered, i.e. clicking to change panels
-            state->clicked = false;
+            action->clicked = false;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -848,7 +848,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[BRICK_EVENT_TYPE_PRESS] = true;
         } 
-        else if (state->pressed) { 
+        else if (action->pressed) { 
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -858,10 +858,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[BRICK_EVENT_TYPE_PRESSING] = true;
         }
-        else if(state->released) {
+        else if(action->released) {
             // prevents from firing after button is
             // blocked or not rendered, i.e. showing a popup window
-            state->released = false;
+            action->released = false;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -871,7 +871,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[BRICK_EVENT_TYPE_RELEASE] = true;
         }
-        else if(state->hovered) {
+        else if(action->hovered) {
             Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_TYPE_HOVER : BRICK_EVENT_TYPE_HOVERING;
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
@@ -882,7 +882,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 
             g_events_snapshot[eventType] = true;
         }
-        else if(state->cleared) {
+        else if(action->cleared) {
             g_events[events.length] = PLEX(Brick_Event){
                 .index = i,
                 .elementType = buttonType,
@@ -894,6 +894,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
     }
 
+    // ScrollBox Events ------------------------------------
     // update Clay scroll containers once for all scrollboxes
     if (g_containers.scrollBoxes.length > 0) {
         Clay_UpdateScrollContainers(true, PLEX(Clay_Vector2){ pointerData.scrollX*2.0f, pointerData.scrollY*2.0f }, deltaTime);
@@ -940,6 +941,7 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
     }
 
+    // Update metadata ------------------------------------
     // update the length cache for querying events
     g_events_last_length = events.length;
 
@@ -1037,21 +1039,21 @@ void Brick_LayoutText(Brick_ElementId textId) {
 // _____________________________________________________________________________
 
 bool Brick_IsButtonToggled(const Brick_ElementId buttonId) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+    Brick_Interaction* action = Brick_Interaction_Get(buttonId);
 
-    return state->toggled;
+    return action->toggled;
 }
 
 void Brick_ToggleButton(Brick_ElementId buttonId) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+    Brick_Interaction* action = Brick_Interaction_Get(buttonId);
 
-    state->toggled = !state->toggled;
+    action->toggled = !action->toggled;
 }
 
 void Brick_ToggleButton_Set(Brick_ElementId buttonId, bool isToggled) {
-    Brick_ButtonState* state = Brick_ButtonState_Get(buttonId);
+    Brick_Interaction* action = Brick_Interaction_Get(buttonId);
 
-    state->toggled = isToggled;
+    action->toggled = isToggled;
 }
 
 Brick_ElementId Brick_CreateButton(const char* label) {
@@ -1077,7 +1079,7 @@ Brick_ElementId Brick_CreateButton(const char* label) {
         .label = clayString,
         .id = buttonId,
         .imageData = NULL,
-        .state = Brick_ButtonState_DEFAULT,
+        .action = Brick_Interaction_DEFAULT,
         .groupIndex = 0,
         .width = 0,
         .height = 0,
@@ -1120,7 +1122,7 @@ Brick_ElementId Brick_CreateToggleButton(const char* label) {
 }
 
 // Button handlers
-void Brick_OnHoverButtonState(Brick_ButtonState* state, int32_t idx, bool isHovering) {
+void Brick_OnHoverInteraction(Brick_Interaction* action, int32_t idx, bool isHovering) {
     // Sets the following flags on the button:
     // hovered: the pointer is over the button (multiple frames)
     // cleared: the pointer has just stopped hovering (1 frame)
@@ -1133,23 +1135,23 @@ void Brick_OnHoverButtonState(Brick_ButtonState* state, int32_t idx, bool isHove
         // entering hover on button
         if (g_window.hoveredId != idx && g_window.lastHoveredId != idx) {
             g_window.hoveredId = idx;
-            state->hovered = true;
+            action->hovered = true;
         // one frame after entering hover
         } else if (g_window.hoveredId == idx && g_window.lastHoveredId != idx) {
-            // propagate the cache to the last hover state
+            // propagate the cache to the last hover action
             g_window.lastHoveredId = idx;
         } 
     } else {
         // exiting hover
         if (g_window.hoveredId == idx) {
             g_window.hoveredId = 0;
-            state->hovered = false;
-            state->cleared = true;
-        // one frame after exiting hover. Note: checking both last hover state, 
+            action->hovered = false;
+            action->cleared = true;
+        // one frame after exiting hover. Note: checking both last hover action, 
         // and the cleared flag for cases when pointer is moving really fast
-        } else if (g_window.lastHoveredId == idx || state->cleared) {
+        } else if (g_window.lastHoveredId == idx || action->cleared) {
             g_window.lastHoveredId = 0;
-            state->cleared = false;
+            action->cleared = false;
         }
     }
 }
@@ -1163,24 +1165,24 @@ void Brick_HandleClayHoverButton(Clay_ElementId elementId, Clay_PointerData poin
         if (button->groupIndex > 0) {
             Brick_ElementGroup* buttonGroup = Brick_ButtonGroup_IndexGet(button->groupIndex);
             for(int32_t j = 0; j < buttonGroup->length; j++) {
-                int32_t buttonIdx = buttonGroup->ids[j];
+                int32_t buttonIdx = buttonGroup->indexes[j];
                 Brick_Button* groupButton = Brick_Button_IndexGet(buttonIdx);
                 if (groupButton->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON){
-                    groupButton->state.toggled = false;
+                    groupButton->action.toggled = false;
                 }
             }
         }
-        button->state.clicked = true;
-        button->state.toggled = !button->state.toggled;
+        button->action.clicked = true;
+        button->action.toggled = !button->action.toggled;
     break;
     case CLAY_POINTER_DATA_PRESSED:
-        button->state.clicked = false;
-        button->state.pressed = true;
+        button->action.clicked = false;
+        button->action.pressed = true;
     break;
     case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
-        button->state.clicked = false;
-        button->state.pressed = false;
-        button->state.released = true;
+        button->action.clicked = false;
+        button->action.pressed = false;
+        button->action.released = true;
     break;
     case CLAY_POINTER_DATA_RELEASED:
         // NOTE: This is almost the same as hover, Clay triggers this if pointer 
@@ -1193,8 +1195,8 @@ void Brick_HandleClayHoverButton(Clay_ElementId elementId, Clay_PointerData poin
 // internal button layout function using internal index
 void Brick__LayoutButtonIndex(int32_t index) {
     Brick_Button* button = Brick_Button_IndexGet(index);
-    Clay_Color bgColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->state.toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : BRICK_COLOR_BUTTON_BG;
-    Clay_Color borderColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->state.toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : BRICK_COLOR_BUTTON_BORDER;
+    Clay_Color bgColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->action.toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : BRICK_COLOR_BUTTON_BG;
+    Clay_Color borderColor = button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && button->action.toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : BRICK_COLOR_BUTTON_BORDER;
 
     CLAY(button->clayId, {
         .layout = {
@@ -1216,7 +1218,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
         },
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
-        Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
+        Brick_OnHoverInteraction(&button->action, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
         // TODO: add change text style on hover
@@ -1262,7 +1264,7 @@ void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
         }, 
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
-        Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
+        Brick_OnHoverInteraction(&button->action, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
         // TODO: add change text style on hover
@@ -1273,51 +1275,50 @@ void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
 // Image Button
 // _____________________________________________________________________________
 
-Brick_ElementId Brick_CreateImageButton(float width, float height, void* imageData) {
-    int32_t index = g_elements.imageButtons.length;
+Brick_ElementId Brick_CreateImage(float width, float height, void* imageData) {
+    int32_t index = g_elements.images.length;
     // TODO: add error handling
-    if (index >= BRICK_MAX_IMAGE_BUTTONS || g_elements.total_count >= BRICK_MAX_ELEMENTS) {
+    if (index >= BRICK_MAX_IMAGES || g_elements.total_count >= BRICK_MAX_ELEMENTS) {
         return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
     }
 
     Brick_ElementId buttonId = {
         .index = index,
-        .type = BRICK_ELEMENT_TYPE_IMAGE_BUTTON,
+        .type = BRICK_ELEMENT_TYPE_IMAGE,
     };
 
-    Brick_ImageButton new_button = {
+    Brick_Image new_button = {
         .id = buttonId,
         .imageData = imageData,
-        .state = Brick_ButtonState_DEFAULT,
-        .groupIndex = 0,
+        .action = Brick_Interaction_DEFAULT,
         .width = width,
         .height = height,
     };
 
-    g_image_buttons[index] = new_button;
-    g_elements.imageButtons.length++;
+    g_images[index] = new_button;
+    g_elements.images.length++;
     g_elements.total_count++;
 
     return buttonId;
 }
 
 // ImageButton hover handler
-void Brick_HandleClayHoverState(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
-    Brick_ButtonState* state = (Brick_ButtonState*)userData;
+void Brick_HandleClayHoverAction(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
+    Brick_Interaction* action = (Brick_Interaction*)userData;
 
     switch(pointerData.state) {
     case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
-        state->clicked = true;
-        state->toggled = !state->toggled;
+        action->clicked = true;
+        action->toggled = !action->toggled;
     break;
     case CLAY_POINTER_DATA_PRESSED:
-        state->clicked = false;
-        state->pressed = true;
+        action->clicked = false;
+        action->pressed = true;
     break;
     case CLAY_POINTER_DATA_RELEASED_THIS_FRAME:
-        state->clicked = false;
-        state->pressed = false;
-        state->released = true;
+        action->clicked = false;
+        action->pressed = false;
+        action->released = true;
     break;
     case CLAY_POINTER_DATA_RELEASED:
         // NOTE: This is almost the same as hover, Clay triggers this if pointer 
@@ -1327,29 +1328,29 @@ void Brick_HandleClayHoverState(Clay_ElementId elementId, Clay_PointerData point
     }
 }
 
-void Brick__LayoutImageButtonIndex(int32_t index) {
-    Brick_ImageButton* button = Brick_ImageButton_IndexGet(index);
+void Brick__LayoutImageIndex(int32_t index) {
+    Brick_Image* image = Brick_Image_IndexGet(index);
 
     CLAY_AUTO_ID({
         .layout = {
             .sizing = {
-                .width = CLAY_SIZING_FIXED(button->width),
-                .height = CLAY_SIZING_FIXED(button->height),
+                .width = CLAY_SIZING_FIXED(image->width),
+                .height = CLAY_SIZING_FIXED(image->height),
             },
         },
-        .image = { .imageData = button->imageData }
+        .image = { .imageData = image->imageData }
     }) {
-        Brick_OnHoverButtonState(&button->state, button->id.index, Clay_Hovered());
+        Brick_OnHoverInteraction(&image->action, image->id.index, Clay_Hovered());
         // Clay_OnHover also handles click events
-        Clay_OnHover(Brick_HandleClayHoverState, &button->state);
+        Clay_OnHover(Brick_HandleClayHoverAction, &image->action);
     }
 }
 
-void Brick_LayoutImageButton(Brick_ElementId buttonId) {
+void Brick_LayoutImage(Brick_ElementId buttonId) {
     // TODO: add error handling
-    if (buttonId.type != BRICK_ELEMENT_TYPE_IMAGE_BUTTON) return;
+    if (buttonId.type != BRICK_ELEMENT_TYPE_IMAGE) return;
 
-    Brick__LayoutImageButtonIndex(buttonId.index);
+    Brick__LayoutImageIndex(buttonId.index);
 }
 
 // Button Group
@@ -1358,10 +1359,10 @@ void Brick_LayoutImageButton(Brick_ElementId buttonId) {
 Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_t groupSize) {
 
     // get the next index to store in button
-    int32_t index = g_elements.buttonGroups.length;
+    int32_t groupIndex = g_elements.buttonGroups.length;
     // TODO: add error handling
     // groups do not add element count 
-    if (index >= BRICK_MAX_BUTTON_GROUPS) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
+    if (groupIndex >= BRICK_MAX_BUTTON_GROUPS || groupSize > BRICK_MAX_ELEMENT_GROUP_SIZE) return Brick_CreateElementId(0, BRICK_ELEMENT_TYPE_NONE);
     // default group init
     Brick_ElementGroup group = CLAY__DEFAULT_STRUCT;
 
@@ -1383,20 +1384,20 @@ Brick_ElementId Brick_CreateButtonGroup(const Brick_ElementId* buttonIds, int32_
         }
 
         // cross reference the group
-        button->groupIndex = index;
+        button->groupIndex = groupIndex;
         if (i == 0 && button->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON) {
-            button->state.toggled = true;
+            button->action.toggled = true;
         }
         // store the button id in the group
-        group.ids[i] = button->id.index;
+        group.indexes[i] = button->id.index;
         group.length++;
     }
 
     // if all buttons are valid, store the group
-    g_elements.buttonGroups.data[index] = group;
+    g_elements.buttonGroups.data[groupIndex] = group;
     g_elements.buttonGroups.length++;
 
-    return Brick_CreateElementId(index, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
+    return Brick_CreateElementId(groupIndex, BRICK_ELEMENT_TYPE_BUTTON_GROUP);
 }
 
 // TODO: add Group_Get to consolidate error checking
@@ -1407,7 +1408,7 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     const Brick_ElementGroup* buttonGroup = Brick_ButtonGroup_IndexGet(groupId.index);
 
     for (int32_t i = 0; i < buttonGroup->length; i++) {
-        Brick__LayoutButtonIndex(buttonGroup->ids[i]);
+        Brick__LayoutButtonIndex(buttonGroup->indexes[i]);
     }
 }
 
