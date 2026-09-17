@@ -2,7 +2,7 @@
 +-------------+
 |    BRICK    |
 +-------------+ 
-Clay Extension
+Component library for Clay UI
 
 USAGE SUMMARY
 This is a very high level overview.
@@ -168,16 +168,18 @@ OBJ:
 #define BRICK_THEME_PRIMARY     BRICK_COLOR_GRAY_LIGHT
 #define BRICK_THEME_SECONDARY   BRICK_COLOR_ORANGE
 #define BRICK_THEME_TERTIARY    BRICK_COLOR_OLIVE
-#define BRICK_THEME_ACCENT      BRICK_COLOR_SIENNA
+#define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
 
 // Styles
 // _____________________________________________________________________________
 #define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
+#define BRICK_STYLE_TEXT_HIGHLIGHT  CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
 #define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Theme-Style Mapping 
 // _____________________________________________________________________________
 #define BRICK_STYLE_BUTTON_LABEL            BRICK_STYLE_TEXT_DEFAULT
+#define BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT  BRICK_STYLE_TEXT_HIGHLIGHT
 #define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_TERTIARY
 #define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_TERTIARY
 #define BRICK_COLOR_BUTTON_BG               BRICK_THEME_FOREGROUND
@@ -383,6 +385,9 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 // Create<Element> takes configuration arguments and returns an ID
 // Layout<Element> takes IDs and configures the element and updates state
 
+// NOTE: Unused internally
+Clay_Vector2 Brick_GetElementPosition(Brick_ElementId id);
+
 // Text
 void Brick_InlineText(const char* text);
 Brick_ElementId Brick_CreateText(const char* text);
@@ -456,6 +461,12 @@ void Brick_EndOffset(void);
 // A container that shrinks to its elements
 void Brick_BeginWrapper(void);
 void Brick_EndWrapper(void);
+
+// Dropdown
+// Render a floating wrapper container below the given element
+// TODO: maybe make this stateful to avoid calculating position every frame?
+void Brick_BeginDropdown(Brick_ElementId id);
+void Brick_EndDropdown(void);
 
 #endif /* BRICK_HEADER */
 
@@ -580,6 +591,7 @@ static Brick_Containers g_containers = {
 
 // default global placeholders
 Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
+Brick_ElementId Brick_ElementId_DEFAULT         = CLAY__DEFAULT_STRUCT;
 Brick_Text Brick_Text_DEFAULT                   = CLAY__DEFAULT_STRUCT;
 Brick_Interaction Brick_Interaction_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_Button Brick_Button_DEFAULT               = CLAY__DEFAULT_STRUCT;
@@ -635,6 +647,21 @@ Brick_ScrollBox* Brick_ScrollBox_IndexGet(int32_t index) {
     return index < g_containers.scrollBoxes.length && index >= 0 ? &g_containers.scrollBoxes.data[index] : &Brick_ScrollBox_DEFAULT;
 }
 
+
+Clay_ElementId Brick_ClayId_Get(Brick_ElementId id) {
+    Clay_ElementId clayId = CLAY__DEFAULT_STRUCT;
+    Brick_Button* element = NULL;
+
+    switch(id.type) {
+    case BRICK_ELEMENT_TYPE_LABEL_BUTTON:
+        element = Brick_Button_IndexGet(id.index);
+        clayId = element->clayId;
+    break;
+    default: break;
+    }
+
+    return clayId;
+}
 //                               Array Setters
 // ------------------------------------.----------------------------------------
 int32_t Brick_ContainerStack_Pop(void) {
@@ -992,6 +1019,14 @@ Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     return id;
 }
 
+// NOTE: Unused internally
+Clay_Vector2 Brick_GetElementPosition(Brick_ElementId id) {
+    Clay_ElementId clayId = Brick_ClayId_Get(id);
+    Clay_ElementData elementData = Clay_GetElementData(clayId);
+
+    return PLEX(Clay_Vector2){ elementData.boundingBox.x, elementData.boundingBox.y };
+}
+
 // Text
 // _____________________________________________________________________________
 
@@ -1109,10 +1144,10 @@ Brick_ElementId Brick_CreateLabelButton(const char* label) {
     // TODO: error handling
     if (buttonId.type == BRICK_ELEMENT_TYPE_NONE) return buttonId;
 
-    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+    Brick_Button* labelButton = Brick_Button_IndexGet(buttonId.index);
 
     Brick_ElementId labelButtonId = PLEX(Brick_ElementId){ buttonId.index, BRICK_ELEMENT_TYPE_LABEL_BUTTON };
-    button->id = labelButtonId;
+    labelButton->id = labelButtonId;
     
     return labelButtonId;
 }
@@ -1177,7 +1212,8 @@ void Brick_HandleClayHoverButton(Clay_ElementId elementId, Clay_PointerData poin
             for(int32_t j = 0; j < buttonGroup->length; j++) {
                 int32_t buttonIdx = buttonGroup->indexes[j];
                 Brick_Button* groupButton = Brick_Button_IndexGet(buttonIdx);
-                if (groupButton->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON){
+                // TODO: review if this is a good idea, or all button types should toggle
+                if (groupButton->id.type == BRICK_ELEMENT_TYPE_TOGGLE_BUTTON || groupButton->id.type == BRICK_ELEMENT_TYPE_LABEL_BUTTON){
                     groupButton->action.toggled = false;
                 }
             }
@@ -1231,8 +1267,12 @@ void Brick__LayoutButtonIndex(int32_t index) {
         Brick_OnHoverInteraction(&button->action, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
-        // TODO: add change text style on hover
-        CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
+        // update text style on hover
+        if (Clay_Hovered()) {
+            CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
+        } else {
+            CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
+        }
     }
 }
 
@@ -1254,28 +1294,34 @@ void Brick_LayoutToggleButton(Brick_ElementId buttonId) {
 
 void Brick__LayoutLabelButtonIndex(int32_t index) {
 
-    Brick_Button* button = Brick_Button_IndexGet(index);
+    Brick_Button* labelButton = Brick_Button_IndexGet(index);
 
-    CLAY(button->clayId, {
+    CLAY(labelButton->clayId, {
         .layout = {
             .sizing = {
-                .width = CLAY_SIZING_GROW(0)
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
             },
-            // .padding = {
-            //     BRICK_STYLE_PADDING_SMALL,
-            //     BRICK_STYLE_PADDING_SMALL,
-            //     BRICK_STYLE_PADDING_MEDIUM,
-            //     BRICK_STYLE_PADDING_MEDIUM
-            // },
+            .padding = {
+                BRICK_STYLE_PADDING_SMALL,
+                BRICK_STYLE_PADDING_SMALL,
+                BRICK_STYLE_PADDING_SMALL,
+                BRICK_STYLE_PADDING_SMALL
+            },
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT },
         }, 
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
-        Brick_OnHoverInteraction(&button->action, button->id.index, Clay_Hovered());
+        // hover state handling
+        Brick_OnHoverInteraction(&labelButton->action, labelButton->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
-        Clay_OnHover(Brick_HandleClayHoverButton, button);
-        // TODO: add change text style on hover
-        CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
+        Clay_OnHover(Brick_HandleClayHoverButton, labelButton);
+        // update text style on hover
+        if (Clay_Hovered()) {
+            CLAY_TEXT(labelButton->label, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
+        } else {
+            CLAY_TEXT(labelButton->label, BRICK_STYLE_BUTTON_LABEL);
+        }
     }
 }
 
@@ -1597,7 +1643,7 @@ void Brick_BeginFloatingPanel(void) {
             },
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
             .childGap = BRICK_STYLE_PADDING_SMALL,
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_TOP },
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_TOP },
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
@@ -1716,6 +1762,38 @@ void Brick_EndWrapper(void) {
     Clay__CloseElement();
 }
 
+void Brick_BeginDropdown(Brick_ElementId parentId) {
+    Clay_ElementId parentClayId = Brick_ClayId_Get(parentId);
+    Clay_ElementData parentData = Clay_GetElementData(parentClayId);
+
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
+            },
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .floating = { 
+            // TODO: save styles in elemenet state or abstract this to DropdownEx function as an option
+            .offset = { -BRICK_STYLE_PADDING_SMALL, parentData.boundingBox.height + BRICK_STYLE_PADDING_SMALL }, 
+            .parentId = parentClayId.id,
+            // TODO: figure out systematic way to get z-index, maybe on a global level
+            // or checking nested depth
+            .zIndex = 3,
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_LEFT_TOP, 
+                CLAY_ATTACH_POINT_LEFT_TOP 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_ELEMENT_WITH_ID
+        },
+    });
+}
+
+void Brick_EndDropdown(void) {
+    Clay__CloseElement();
+}
 // ------------------------------------.----------------------------------------
 //                               ERROR HANDLING
 // =============================================================================
