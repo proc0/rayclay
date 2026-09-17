@@ -427,24 +427,35 @@ void Brick_EndScrollBox(void);
 // Does not require creation or ID management
 
 // Panel
+// A container that.. TODO: what is the defining feature of panel?
 void Brick_BeginPanel(void);
 void Brick_EndPanel(void);
 
 // Floating Panel
+// A container that floats on top of a layer
 void Brick_BeginFloatingPanel(void);
 void Brick_EndFloatingPanel(void);
 
 // Horizontal Stack
+// A container that aligns its children horizontally
+// Left aligned by default
 void Brick_BeginHorizontalStack(void);
 void Brick_EndHorizontalStack(void);
 
 // Vertical Stack
+// A container that aligns its children vertically
 void Brick_BeginVerticalStack(void);
 void Brick_EndVerticalStack(void);
 
 // Offset
+// TODO: merge with FloatingPanelEx
 void Brick_BeginOffset(float x, float y);
 void Brick_EndOffset(void);
+
+// Wrap
+// A container that shrinks to its elements
+void Brick_BeginWrapper(void);
+void Brick_EndWrapper(void);
 
 #endif /* BRICK_HEADER */
 
@@ -598,7 +609,6 @@ Brick_ElementGroup* Brick_ButtonGroup_IndexGet(int32_t index) {
     return index < g_elements.buttonGroups.length && index >= 0 ? &g_elements.buttonGroups.data[index] : &Brick_ElementGroup_DEFAULT;
 }
 
-// NOTE: not used:
 Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
     // TODO: add element subType and check against that
     if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_TOGGLE_BUTTON && buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return &Brick_Button_DEFAULT;
@@ -1242,12 +1252,9 @@ void Brick_LayoutToggleButton(Brick_ElementId buttonId) {
     Brick__LayoutButtonIndex(buttonId.index);
 }
 
-void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
-    // TODO: add error handling
-    // TODO: add element subtype and check that instead
-    if (buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return;
+void Brick__LayoutLabelButtonIndex(int32_t index) {
 
-    Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+    Brick_Button* button = Brick_Button_IndexGet(index);
 
     CLAY(button->clayId, {
         .layout = {
@@ -1260,7 +1267,7 @@ void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
             //     BRICK_STYLE_PADDING_MEDIUM,
             //     BRICK_STYLE_PADDING_MEDIUM
             // },
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT },
         }, 
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
@@ -1270,6 +1277,14 @@ void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
         // TODO: add change text style on hover
         CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
     }
+}
+
+void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
+    // TODO: add error handling
+    // TODO: add element subtype and check that instead
+    if (buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return;
+
+    Brick__LayoutLabelButtonIndex(buttonId.index);
 }
 
 // Image Button
@@ -1408,7 +1423,20 @@ void Brick_LayoutButtonGroup(Brick_ElementId groupId) {
     const Brick_ElementGroup* buttonGroup = Brick_ButtonGroup_IndexGet(groupId.index);
 
     for (int32_t i = 0; i < buttonGroup->length; i++) {
-        Brick__LayoutButtonIndex(buttonGroup->indexes[i]);
+        Brick_Button* button = Brick_Button_IndexGet(buttonGroup->indexes[i]);
+
+        switch(button->id.type) {
+        case BRICK_ELEMENT_TYPE_BUTTON:
+            Brick__LayoutButtonIndex(button->id.index);
+        break;
+        case BRICK_ELEMENT_TYPE_LABEL_BUTTON:
+            Brick__LayoutLabelButtonIndex(button->id.index);
+        break;
+        case BRICK_ELEMENT_TYPE_TOGGLE_BUTTON:
+            Brick__LayoutButtonIndex(button->id.index);
+        break;
+        default: break;
+        }
     }
 }
 
@@ -1601,7 +1629,7 @@ void Brick_BeginHorizontalStack(void) {
                 .width = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER }, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
         },
         .transition = BRICK_TRANSITION_FADE_SLIDE
@@ -1623,7 +1651,7 @@ void Brick_BeginVerticalStack(void) {
                 .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .y = CLAY_ALIGN_Y_CENTER }, 
+            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
         },
         .transition = BRICK_TRANSITION_FADE_SLIDE
@@ -1662,6 +1690,29 @@ void Brick_BeginOffset(float x, float y) {
 }
 
 void Brick_EndOffset(void) {
+    Clay__CloseElement();
+}
+
+// Wrapper
+// _____________________________________________________________________________
+
+void Brick_BeginWrapper(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }, 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+    });
+}
+
+void Brick_EndWrapper(void) {
     Clay__CloseElement();
 }
 
