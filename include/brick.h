@@ -1,8 +1,11 @@
-/* v0.1
-+-------------+
-|    BRICK    |
-+-------------+ 
-Component library for Clay UI
+/* 
+
++---------+
+|  BRICK  |
++---------+ 
+v0.1
+
+UI Component library built with Clay
 
 USAGE SUMMARY
 This is a very high level overview.
@@ -46,19 +49,6 @@ Then include brick.h in the line after, and/or other files.
 #include "brick.h"
 ```
 DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h for types or other utilities.
-
-
-DESCRIPTION
-Clay is immediate mode. Every frame, the UI is declared from scratch, laid out, rendered, and discarded. Brick is the stateful layer on top. It remembers which buttons exist, what their IDs are, and what their interaction state was last frame. It turns Clay's stateless per-frame declarations into a system where the user can say "did button 47 get clicked?" in a natural way.
-
-OBJ:
-1. add basic UI state, i.e. button hover or not, button is toggled, panel is visible or hidden
-2. separate content from layout, i.e. declar button and labels in one place, use them in the layout later
-3. uses 'embeded scope constructs' like Raylib to match this C style of API
-4. provide sensible defaults where possible, windows grow, have some padding, etc
-5. provide a global config that overrides defaults, change colors, adjust padding
-6. add responsive reactive behavior to the window, i.e. resize on event window resizing and adjust layout dynamically
-7. provide an easy way to localize, i.e. through Brick_TextEx or TextPro or a Brick_LocalizedText, that would stand in for normal strings and can be globally configured
 
 */
 // ####################################^########################################
@@ -195,6 +185,7 @@ OBJ:
 extern "C" {
 #endif
 
+// Global shared state storing window and pointer information.
 typedef struct {
     float width;
     float height;
@@ -202,6 +193,7 @@ typedef struct {
     int32_t lastHoveredId;
 } Brick_Window;
 
+// Transient frame state storing pointer frame data.
 typedef struct {
     float x;
     float y;
@@ -211,26 +203,10 @@ typedef struct {
     bool released;
 } Brick_PointerData;
 
-typedef CLAY_PACKED_ENUM {
-    BRICK_CONTAINER_TYPE_NONE,
-    BRICK_CONTAINER_TYPE_SCROLLBOX,
-} Brick_ContainerType;
-
-typedef struct Brick_ContainerId {
-    int32_t index;
-    Brick_ContainerType type;
-} Brick_ContainerId;
-
-typedef struct Brick_ScrollBox {
-    Clay_ElementId clayId;
-    Clay_ElementId clayParentId;
-    Brick_ContainerId id;
-    Clay_Vector2 clickOrigin;
-    Clay_Vector2 positionOrigin;
-    float scrollY;
-    bool isPrimaryDown;
-} Brick_ScrollBox;
-
+// Elements are the basic building blocks. Groups are made up of elements, 
+// and are also elements. Types with prefix, i.e. LABEL_BUTTON, are subtypes.
+// Subtypes reuse some or all of the parent type's functions,
+// and the parent type functions can take a subtype, but not the other way.
 typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_TEXT,
@@ -246,10 +222,65 @@ typedef struct Brick_ElementId {
     Brick_ElementType type;
 } Brick_ElementId;
 
+// Events
+// _____________________________________________________________________________
+// Events are triggered by elements and have two kinds of duration. They can last
+// a single frame, or multiple frames. Single frame events usually signal
+// when something started or ended, while multi-frame events signal something is
+// currently happening.
+
+// WARN: CHECK MAX COUNT WHEN ADDING EVENTS
+#define BRICK_MAX_EVENT_TYPES 10
+typedef CLAY_PACKED_ENUM {
+    BRICK_EVENT_TYPE_NONE,
+    // Pointer enters hover
+    // Duration: single frame
+    BRICK_EVENT_TYPE_HOVER,
+    // Pointer is hovering
+    // Duration: multi-frame
+    BRICK_EVENT_TYPE_HOVERING,
+    // Pointer exits hover
+    // Duration: single frame
+    BRICK_EVENT_TYPE_CLEAR,
+    // Element is pressed and 
+    // released quickly (click event)
+    BRICK_EVENT_TYPE_PRESS,
+    // Element is being pressed
+    // Duration: multi-frame
+    BRICK_EVENT_TYPE_PRESSING,
+    // Element stopped being pressed
+    // Duration: single frame
+    BRICK_EVENT_TYPE_RELEASE,
+} Brick_EventType;
+
+typedef struct Brick_Event {
+    // the element triggering the event
+    Brick_ElementId elementId;
+    // event array index reference
+    int32_t index;
+    // the type of event triggered
+    Brick_EventType type;
+} Brick_Event;
+
+// Events array container to match Clay's way of exposing
+// render commands. This can be iterated on the user's side.
+typedef struct Brick_EventArray {
+    int32_t length;
+    Brick_Event* data;
+} Brick_EventArray;
+
+// Elements
+// _____________________________________________________________________________
+// There are two broad categories of elements, interactable and non-interactable.
+// Elements like Button or Image are interactable, triggering events.
+// Non-interactable elements like Text do not trigger any events.
+
 typedef struct Brick_Text {
     // Clay_ElementId clayId;
     Clay_String clayString;
     Brick_ElementId id;
+    // TODO: save font size and other styles here?
+    // or remove
     int32_t fontSize;
 } Brick_Text;
 
@@ -266,11 +297,14 @@ typedef struct {
     Clay_ElementId clayId;
     Clay_String label;
     Brick_ElementId id;
+    // TODO: remove if there is no imageBUtton type
     void* imageData;
     Brick_Interaction action;
     int32_t groupIndex;
     float width;
     float height;
+    // TODO: save font size and other styles here?
+    // or remove
     int32_t fontSize;
 } Brick_Button;
 
@@ -287,44 +321,37 @@ typedef struct {
     int32_t indexes[BRICK_MAX_ELEMENT_GROUP_SIZE];
 } Brick_ElementGroup;
 
-// WARN: CHECK MAX COUNT WHEN ADDING EVENTS
-#define BRICK_MAX_EVENT_TYPES 10
+// Containers
+// _____________________________________________________________________________
+// Containers have an embedded scrop struct style, with a Begin and End prefixes
+// on its layout functions. There are two categories of containers:
+// Stateful containers, and stateless containers.
+// Stateful containers: require calling its Brick_Create<Container> initializer,
+// and then passing the ID returned by it to the opening Brick_Begin<Container>.
+// Stateless containers: Do not need creation or saving IDs, and any parameters
+// taken by the Begin tag are for frame-time configuration of the layout.
+
+// Only stateful containers have a type because they have an ID
 typedef CLAY_PACKED_ENUM {
-    BRICK_EVENT_TYPE_NONE,
-    // Pointer enters hover
-    // Duration: single frame
-    BRICK_EVENT_TYPE_HOVER,
-    // Pointer is hovering
-    // Duration: continuous frames
-    BRICK_EVENT_TYPE_HOVERING,
-    // Pointer exits hover
-    // Duration: single frame
-    BRICK_EVENT_TYPE_CLEAR,
-    // Element is pressed and 
-    // released quickly (click event)
-    BRICK_EVENT_TYPE_PRESS,
-    // Element is being pressed
-    // Duration: continuous frames
-    BRICK_EVENT_TYPE_PRESSING,
-    // Element stopped being pressed
-    // Duration: single frame
-    BRICK_EVENT_TYPE_RELEASE,
-} Brick_EventType;
+    BRICK_CONTAINER_TYPE_NONE,
+    BRICK_CONTAINER_TYPE_SCROLLBOX,
+} Brick_ContainerType;
 
-typedef struct Brick_Event {
-    // type of element
-    Brick_ElementId elementId;
-    // event array index
+typedef struct Brick_ContainerId {
     int32_t index;
-    // event state for the element
-    Brick_EventType type;
-} Brick_Event;
+    Brick_ContainerType type;
+} Brick_ContainerId;
 
-// events array container
-typedef struct Brick_EventArray {
-    int32_t length;
-    Brick_Event* data;
-} Brick_EventArray;
+// Stateful container types
+typedef struct Brick_ScrollBox {
+    Clay_ElementId clayId;
+    Clay_ElementId clayParentId;
+    Brick_ContainerId id;
+    Clay_Vector2 clickOrigin;
+    Clay_Vector2 positionOrigin;
+    float scrollY;
+    bool isPrimaryDown;
+} Brick_ScrollBox;
 
 #ifdef __cplusplus
 }
@@ -679,7 +706,7 @@ void Brick_ContainerStack_Push(int32_t index) {
     g_containers.stack.length++;
 }
 
-//                             Private Prototypes
+//                         Private Forward Declarations
 // ------------------------------------.----------------------------------------
 void Brick_HandleError(Clay_ErrorData errorData);
 
@@ -1328,7 +1355,6 @@ void Brick__LayoutLabelButtonIndex(int32_t index) {
 
 void Brick_LayoutLabelButton(Brick_ElementId buttonId) {
     // TODO: add error handling
-    // TODO: add element subtype and check that instead
     if (buttonId.type != BRICK_ELEMENT_TYPE_LABEL_BUTTON) return;
 
     Brick__LayoutLabelButtonIndex(buttonId.index);
