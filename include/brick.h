@@ -222,6 +222,9 @@ typedef struct Brick_ElementId {
     Brick_ElementType type;
 } Brick_ElementId;
 
+#define BRICK_ELEMENT_ID_EQUALS(idA, idB) (idA.index == idB.index && idA.type == idB.type)
+#define BRICK_ELEMENT_ID_NOT_NULL(id) (id.index > 0 && id.index < BRICK_MAX_ELEMENTS && id.type > 0)
+
 // Events
 // _____________________________________________________________________________
 // Events are triggered by elements and have two kinds of duration. They can last
