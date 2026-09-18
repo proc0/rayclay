@@ -133,7 +133,7 @@ Action::Interface Interface::update(const InputEvent& inputEvent) {
     for (int i=0; i<eventArray.length; i++) {
         Brick_Event* event = Brick_EventArray_Get(&eventArray, i);
 
-        switch(event->eventType) {
+        switch(event->type) {
         case BRICK_EVENT_TYPE_PRESS:
             TraceLog(LOG_INFO, "CLICK FROM APP HOORAY");
         break;
