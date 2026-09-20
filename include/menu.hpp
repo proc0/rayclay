@@ -16,18 +16,18 @@ class Menu {
 
     // Brick_ElementId bid_hudArrowUp;
     
-    Brick_ElementId bid_new;
-    Brick_ElementId bid_options;
-    Brick_ElementId bid_quit;
+    Brick_ComponentId bid_new;
+    Brick_ComponentId bid_options;
+    Brick_ComponentId bid_quit;
     
-    Brick_ElementId bid_options_save;
-    Brick_ElementId bid_options_cancel;
-    Brick_ElementId bid_resume;
+    Brick_ComponentId bid_options_save;
+    Brick_ComponentId bid_options_cancel;
+    Brick_ComponentId bid_resume;
 
-    Brick_ElementId bid_optionGame;
-    Brick_ElementId bid_optionInput;
-    Brick_ElementId bid_optionAudio;
-    Brick_ElementId bid_optionTabs;
+    Brick_ComponentId bid_optionGame;
+    Brick_ComponentId bid_optionInput;
+    Brick_ComponentId bid_optionAudio;
+    Brick_ComponentId bid_optionTabs;
 
     Brick_ElementId sid_string1;
 

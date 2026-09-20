@@ -18,8 +18,8 @@ void Menu::load() {
 	bid_optionGame = Brick_CreateToggleButton("Game");
     bid_optionInput = Brick_CreateToggleButton("Input");
     bid_optionAudio = Brick_CreateToggleButton("Audio");
-    Brick_ElementId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
-    bid_optionTabs = Brick_CreateButtonGroup(tabs, 3);
+    Brick_ComponentId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
+    bid_optionTabs = Brick_CreateGroup(tabs, 3);
 
     sid_string1 = Brick_CreateText(TEXT_TUTORIAL_3);
 
@@ -63,7 +63,7 @@ void Menu::layoutGame() {
 void Menu::layoutOptions() {
     Brick_BeginFloatingPanel();
         Brick_BeginHorizontalStack();
-            Brick_LayoutButtonGroup(bid_optionTabs);
+            Brick_LayoutGroup(bid_optionTabs);
         Brick_EndHorizontalStack();
 
         if(Brick_IsButtonToggled(bid_optionGame)) {
