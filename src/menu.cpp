@@ -19,7 +19,7 @@ void Menu::load() {
     bid_optionInput = Brick_CreateToggleButton("Input");
     bid_optionAudio = Brick_CreateToggleButton("Audio");
     Brick_ComponentId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
-    bid_optionTabs = Brick_CreateGroup(tabs, 3);
+    bid_optionTabs = Brick_CreateToggleGroup(tabs, 3);
 
     sid_string1 = Brick_CreateText(TEXT_TUTORIAL_3);
 

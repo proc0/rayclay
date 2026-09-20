@@ -214,10 +214,6 @@ typedef struct {
 typedef CLAY_PACKED_ENUM {
     BRICK_ELEMENT_TYPE_NONE,
     BRICK_ELEMENT_TYPE_TEXT,
-    BRICK_ELEMENT_TYPE_BUTTON,
-    BRICK_ELEMENT_TYPE_LABEL_BUTTON,
-    BRICK_ELEMENT_TYPE_TOGGLE_BUTTON,
-    BRICK_ELEMENT_TYPE_GROUP,
     BRICK_ELEMENT_TYPE_IMAGE,
 } Brick_ElementType;
 
@@ -239,6 +235,7 @@ typedef CLAY_PACKED_ENUM {
     BRICK_COMPONENT_SUBTYPE_NONE,
     BRICK_COMPONENT_SUBTYPE_LABEL,
     BRICK_COMPONENT_SUBTYPE_TOGGLE,
+    BRICK_COMPONENT_SUBTYPE_IMAGE,
 } Brick_ComponentSubType;
 
 typedef struct Brick_ComponentId {
@@ -336,7 +333,7 @@ typedef struct Brick_Interaction {
     bool toggled;
 } Brick_Interaction;
 
-typedef struct {
+typedef struct Brick_Button {
     Clay_ElementId clayId;
     Clay_String label;
     Brick_Interaction action;
@@ -344,9 +341,10 @@ typedef struct {
     int32_t groupIndex;
 } Brick_Button;
 
-typedef struct {
-    int32_t length;
+typedef struct Brick_Group {
     int32_t indexes[BRICK_MAX_GROUP_SIZE];
+    Brick_ComponentId id;
+    int32_t length;
 } Brick_Group;
 
 // Containers
@@ -467,6 +465,7 @@ void Brick_LayoutToggleButton(Brick_ComponentId buttonId);
 
 // Button Group
 Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
+Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
 void Brick_LayoutGroup(Brick_ComponentId groupId);
 
 //                                Containers
@@ -546,33 +545,28 @@ typedef struct Brick_TextArray {
     Brick_Text* data;
 } Brick_TextArray;
 
-typedef struct Brick_ButtonArray {
-    int32_t length;
-    Brick_Button* data;
-} Brick_ButtonArray;
-
 typedef struct Brick_ImageArray {
     int32_t length;
     Brick_Image* data;
 } Brick_ImageArray;
 
-typedef struct Brick_ButtonGroupArray {
+typedef struct Brick_Elements {
+    int32_t total_count;
+    Brick_TextArray texts;
+    Brick_ImageArray images;
+} Brick_Elements;
+
+// Components
+// _____________________________________________________________________________
+typedef struct Brick_ButtonArray {
     int32_t length;
-    Brick_Group* data;
-} Brick_ButtonGroupArray;
+    Brick_Button* data;
+} Brick_ButtonArray;
 
 typedef struct Brick_GroupArray {
     int32_t length;
     Brick_Group* data;
 } Brick_GroupArray;
-
-typedef struct Brick_Elements {
-    int32_t total_count;
-    Brick_TextArray texts;
-    Brick_ButtonArray buttons;
-    Brick_ButtonGroupArray buttonGroups;
-    Brick_ImageArray images;
-} Brick_Elements;
 
 typedef struct Brick_Components {
     int32_t total_count;
@@ -703,7 +697,7 @@ Brick_Group* Brick_Group_IndexGet(int32_t index) {
 // TODO: abstract to a general Get_Element
 Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
     // TODO: add element subType and check against that
-    if (buttonId.type != BRICK_ELEMENT_TYPE_BUTTON) return &Brick_Button_DEFAULT;
+    if (buttonId.type != BRICK_COMPONENT_TYPE_BUTTON) return &Brick_Button_DEFAULT;
 
     return Brick_Button_IndexGet(buttonId.index);
 }
@@ -736,7 +730,7 @@ Clay_ElementId Brick_ClayId_Get(Brick_ComponentId id) {
 
     //TODO: add the other types
     switch(id.type) {
-    case BRICK_ELEMENT_TYPE_BUTTON:
+    case BRICK_COMPONENT_TYPE_BUTTON:
         element = Brick_Button_IndexGet(id.index);
         clayId = element->clayId;
     break;
@@ -1323,6 +1317,7 @@ Brick_ComponentId Brick_CreateLabelButton(const char* label) {
     return labelButtonId;
 }
 
+//TODO: review if TOggleButton is needed after ToggleGroup added
 Brick_ComponentId Brick_CreateToggleButton(const char* label) {
     Brick_ComponentId buttonId = Brick_CreateButton(label);
 
@@ -1380,13 +1375,16 @@ void Brick_HandleClayHoverButton(Clay_ElementId elementId, Clay_PointerData poin
         // if button is part of a group clear the toggled buttons
         if (button->groupIndex > 0) {
             Brick_Group* buttonGroup = Brick_Group_IndexGet(button->groupIndex);
-            for(int32_t j = 0; j < buttonGroup->length; j++) {
-                int32_t buttonIdx = buttonGroup->indexes[j];
-                // TODO: handle other component types that are grouped? (or maybe its only buttons here)
-                Brick_Button* groupButton = Brick_Button_IndexGet(buttonIdx);
-                // TODO: review if this is a good idea, or all button types should toggle
-                if (groupButton->id.type == BRICK_COMPONENT_TYPE_BUTTON && groupButton->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE){
+
+            if (buttonGroup->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE) {                
+                for(int32_t j = 0; j < buttonGroup->length; j++) {
+                    int32_t buttonIdx = buttonGroup->indexes[j];
+                    // TODO: handle other component types that are grouped? (or maybe its only buttons here)
+                    Brick_Button* groupButton = Brick_Button_IndexGet(buttonIdx);
+                    // TODO: review if this is a good idea, or all button types should toggle
+                    // if (groupButton->id.type == BRICK_COMPONENT_TYPE_BUTTON && (groupButton->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE || groupButton->id.subType == BRICK_COMPONENT_SUBTYPE_LABEL)){
                     groupButton->action.toggled = false;
+                    // }
                 }
             }
         }
@@ -1520,12 +1518,13 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
 
     // iterate over the button ids
     for (int32_t i = 0; i < groupSize; i++) {
-        if (componentIds[i].type != BRICK_COMPONENT_TYPE_BUTTON && componentIds[i].type != BRICK_COMPONENT_TYPE_LABEL) {
-            // TODO: exit or handle error 
-            printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", componentIds[i].index);
-            return Brick_ComponentId_DEFAULT;
-        }
+        // if (componentIds[i].type != BRICK_COMPONENT_TYPE_BUTTON && componentIds[i].type != BRICK_COMPONENT_TYPE_LABEL) {
+        //     // TODO: exit or handle error 
+        //     printf("Brick Error: Cannot create button group. Invalid button ID %d.\n", componentIds[i].index);
+        //     return Brick_ComponentId_DEFAULT;
+        // }
 
+        // TODO: switch case on type and use appropriate getter to abstract grouping to all component types
         Brick_Button* button = Brick_Button_IndexGet(componentIds[i].index);
 
         if (button->id.index == 0) {
@@ -1536,9 +1535,9 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
 
         // cross reference the group
         button->groupIndex = groupIndex;
-        if (i == 0 && button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE) {
-            button->action.toggled = true;
-        }
+        // if (i == 0 && button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE) {
+        //     button->action.toggled = true;
+        // }
         // store the button id in the group
         group.indexes[i] = button->id.index;
         group.length++;
@@ -1550,6 +1549,26 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
 
     return Brick_CreateComponentId(groupIndex, BRICK_COMPONENT_TYPE_GROUP, BRICK_COMPONENT_SUBTYPE_NONE);
 }
+
+Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize) {
+    Brick_ComponentId groupId = Brick_CreateGroup(componentIds, groupSize);
+
+    // TODO: error handling
+    if (groupId.type == BRICK_COMPONENT_TYPE_NONE) return groupId;
+
+    Brick_Group* group = Brick_Group_IndexGet(groupId.index);
+
+    Brick_ComponentId toggleGroupId = PLEX(Brick_ComponentId){ groupId.index, BRICK_COMPONENT_TYPE_GROUP, BRICK_COMPONENT_SUBTYPE_TOGGLE };
+    group->id = toggleGroupId;
+
+    if (componentIds[0].type == BRICK_COMPONENT_TYPE_BUTTON) {
+        Brick_Button* button = Brick_Button_IndexGet(componentIds[0].index);
+        button->action.toggled = true;
+    }
+
+    return toggleGroupId;
+}
+
 
 void Brick_LayoutGroup(Brick_ComponentId groupId) {
     // TODO: add error handling
