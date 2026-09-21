@@ -302,12 +302,12 @@ typedef struct Brick_EventArray {
 // Non-interactable elements like Text do not trigger any events.
 
 typedef struct Brick_Text {
-    // Clay_ElementId clayId;
-    Clay_String clayString;
+    Clay_Color color;
+    Clay_String string;
     Brick_ElementId id;
-    // TODO: save font size and other styles here?
-    // or remove
-    int32_t fontSize;
+    uint16_t fontId;
+    uint16_t fontSize;
+    Clay_TextAlignment align;
 } Brick_Text;
 
 typedef struct {
@@ -695,7 +695,7 @@ Brick_Group* Brick_Group_IndexGet(int32_t index) {
 
 // NOTE: unused internally
 // TODO: abstract to a general Get_Element
-Brick_Button* Brick_Button_Get(Brick_ElementId buttonId) {
+Brick_Button* Brick_Button_Get(Brick_ComponentId buttonId) {
     // TODO: add element subType and check against that
     if (buttonId.type != BRICK_COMPONENT_TYPE_BUTTON) return &Brick_Button_DEFAULT;
 
@@ -1125,11 +1125,12 @@ Brick_ElementId Brick_CreateText(const char* text) {
     };
 
     Brick_Text new_text = {
-        // TODO: review if text needs container and an clay element Id
-        // .clayId = CLAY_SID(clayString),
-        .clayString = clayString,
+        .color = BRICK_THEME_PRIMARY,
+        .string = clayString,
         .id = textId,
-        .fontSize = 0,
+        .fontId = 0,
+        .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT,
+        .align = CLAY_TEXT_ALIGN_LEFT
     };
 
     g_brick_elements.texts.data[index] = new_text;
@@ -1145,7 +1146,7 @@ void Brick_LayoutText(Brick_ElementId textId) {
 
     Brick_Text* text = Brick_Text_IndexGet(textId.index);
 
-    CLAY_TEXT(text->clayString, BRICK_STYLE_TEXT_DEFAULT);
+    CLAY_TEXT(text->string, { .textColor = text->color, .fontId = text->fontId, .fontSize = text->fontSize, .textAlignment = text->align });
 }
 
 // Image Button
@@ -1551,6 +1552,8 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
 }
 
 Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize) {
+    // TODO: ToggleGroup only works on Buttons, if other types are passed, promote to buttons
+
     Brick_ComponentId groupId = Brick_CreateGroup(componentIds, groupSize);
 
     // TODO: error handling
