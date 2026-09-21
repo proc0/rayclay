@@ -94,23 +94,25 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 // _____________________________________________________________________________
 // Determines the element and container type arrays max length
 // Arrays are initialized as static global arrays
-#define BRICK_MAX_TEXTS 128
-// MAX_BUTTONS should not exceed GROUP_SIZE * GROUPS
-#define BRICK_MAX_BUTTONS 128
-#define BRICK_MAX_BUTTON_GROUPS 8
-// IMAGE_BUTTONS cannot be grouped
+
+// Elements
+#define BRICK_MAX_TEXTS 64
 #define BRICK_MAX_IMAGES 64
 // total max number of elements
-#define BRICK_MAX_ELEMENT_GROUP_SIZE 16
-#define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_BUTTONS + BRICK_MAX_IMAGES)
+#define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_IMAGES)
 
+// Components
+#define BRICK_MAX_LABELS 64
+#define BRICK_MAX_BUTTONS 64
+// Both Labels and Buttons can be grouped
+// MAX_BUTTONS + MAX_LABELS should not exceed GROUP_SIZE * GROUPS
 // total max number of groups
 #define BRICK_MAX_GROUPS 8
 #define BRICK_MAX_GROUP_SIZE 16
 // total number of components
-#define BRICK_MAX_COMPONENTS (BRICK_MAX_BUTTONS + BRICK_MAX_GROUPS)
+#define BRICK_MAX_COMPONENTS (BRICK_MAX_LABELS + BRICK_MAX_BUTTONS + BRICK_MAX_GROUPS)
 
-
+// Containers
 #define BRICK_MAX_SCROLLBOXES 32
 // total max number of containers
 #define BRICK_MAX_CONTAINERS BRICK_MAX_SCROLLBOXES
@@ -310,10 +312,20 @@ typedef struct Brick_Text {
     Clay_TextAlignment align;
 } Brick_Text;
 
-typedef struct {
+// Box is for internal use that creates
+// an enclosure for elements and components,
+// i.e. padding, and other future fields
+typedef struct Brick_Box {
+    Clay_Color color;
+    Clay_Color borderColor;
+    Clay_BorderWidth borderWidth;
+    Clay_Padding padding;
+    Clay_ChildAlignment align;
+} Brick_Box;
+
+typedef struct Brick_Image {
     Brick_ElementId id;
     void* imageData;
-    // Brick_Interaction action;
     float width;
     float height;
 } Brick_Image;
@@ -323,6 +335,13 @@ typedef struct {
 // There are two broad categories of elements, interactable and non-interactable.
 // Elements like Button or Image are interactable, triggering events.
 // Non-interactable elements like Text do not trigger any events.
+typedef struct Brick_Label {
+    Brick_Box box;
+    Brick_Text text;
+    Clay_ElementId clayId;
+    Brick_ComponentId id;
+    int32_t groupIndex;
+} Brick_Label;
 
 typedef struct Brick_Interaction {
     bool hovered;
@@ -438,9 +457,6 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 // Create<Element> takes configuration arguments and returns an ID
 // Layout<Element> takes IDs and configures the element and updates state
 
-// NOTE: Unused internally
-Clay_Vector2 Brick_GetComponentPosition(Brick_ComponentId id);
-
 // Text
 void Brick_InlineText(const char* text);
 Brick_ElementId Brick_CreateText(const char* text);
@@ -449,6 +465,18 @@ void Brick_LayoutText(Brick_ElementId textId);
 // Image Button
 Brick_ElementId Brick_CreateImage(float width, float height, void* imageData);
 void Brick_LayoutImage(Brick_ElementId buttonId);
+
+//                                  Components
+// ------------------------------------.----------------------------------------
+// Create<Component> takes configuration arguments and returns an ID
+// Layout<Component> takes IDs and configures the element and updates state
+
+// NOTE: Unused internally
+Clay_Vector2 Brick_GetComponentPosition(Brick_ComponentId id);
+
+// Label
+Brick_ComponentId Brick_CreateLabel(const char* text);
+void Brick_LayoutLabel(Brick_ComponentId labelId);
 
 // Button
 bool Brick_IsButtonToggled(const Brick_ComponentId buttonId);
@@ -467,6 +495,7 @@ void Brick_LayoutToggleButton(Brick_ComponentId buttonId);
 Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
 Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
 void Brick_LayoutGroup(Brick_ComponentId groupId);
+// TODO: add Brick_LayoutToggleGroup
 
 //                                Containers
 // ------------------------------------.----------------------------------------
@@ -558,6 +587,11 @@ typedef struct Brick_Elements {
 
 // Components
 // _____________________________________________________________________________
+typedef struct Brick_LabelArray {
+    int32_t length;
+    Brick_Label* data;
+} Brick_LabelArray;
+
 typedef struct Brick_ButtonArray {
     int32_t length;
     Brick_Button* data;
@@ -570,6 +604,7 @@ typedef struct Brick_GroupArray {
 
 typedef struct Brick_Components {
     int32_t total_count;
+    Brick_LabelArray labels;
     Brick_ButtonArray buttons;
     Brick_GroupArray groups;
 } Brick_Components;
@@ -626,11 +661,16 @@ static Brick_Elements g_brick_elements = {
 };
 
 // Components
+static Brick_Label  g_brick_labels[BRICK_MAX_LABELS];
 static Brick_Button g_brick_buttons[BRICK_MAX_BUTTONS];
 static Brick_Group  g_brick_groups[BRICK_MAX_GROUPS];
 
 static Brick_Components g_brick_components = {
     .total_count = 0,
+    .labels = {
+        .length = 0,
+        .data = g_brick_labels
+    },
     .buttons = {
         .length = 0,
         .data = g_brick_buttons
@@ -664,6 +704,7 @@ Brick_Text Brick_Text_DEFAULT                   = CLAY__DEFAULT_STRUCT;
 Brick_Image Brick_Image_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 
 Brick_ComponentId Brick_ComponentId_DEFAULT     = CLAY__DEFAULT_STRUCT;
+Brick_Label Brick_Label_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 Brick_Interaction Brick_Interaction_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_Button Brick_Button_DEFAULT               = CLAY__DEFAULT_STRUCT;
 Brick_Group Brick_Group_DEFAULT                 = CLAY__DEFAULT_STRUCT;
@@ -677,12 +718,20 @@ Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
 }
 
+// Elements
+// _____________________________________________________________________________
 Brick_Text* Brick_Text_IndexGet(int32_t index) {                                                    
     return index < g_brick_elements.texts.length && index >= 0 ? &g_brick_elements.texts.data[index] : &Brick_Text_DEFAULT;
 }
 
 Brick_Image* Brick_Image_IndexGet(int32_t index) {                                                    
     return index < g_brick_elements.images.length && index >= 0 ? &g_brick_elements.images.data[index] : &Brick_Image_DEFAULT;
+}
+
+// Components
+// _____________________________________________________________________________
+Brick_Label* Brick_Label_IndexGet(int32_t index) {                                                    
+    return index < g_brick_components.labels.length && index >= 0 ? &g_brick_components.labels.data[index] : &Brick_Label_DEFAULT;
 }
 
 Brick_Button* Brick_Button_IndexGet(int32_t index) {                                                    
@@ -719,6 +768,8 @@ Brick_Interaction* Brick_Interaction_Get(Brick_ComponentId buttonId) {
     return buttonState;
 }
 
+// Containers
+// _____________________________________________________________________________
 Brick_ScrollBox* Brick_ScrollBox_IndexGet(int32_t index) {
     return index < g_brick_containers.scrollBoxes.length && index >= 0 ? &g_brick_containers.scrollBoxes.data[index] : &Brick_ScrollBox_DEFAULT;
 }
@@ -739,6 +790,7 @@ Clay_ElementId Brick_ClayId_Get(Brick_ComponentId id) {
 
     return clayId;
 }
+
 //                               Array Setters
 // ------------------------------------.----------------------------------------
 int32_t Brick_ContainerStack_Pop(void) {
@@ -812,6 +864,8 @@ Clay_RenderCommandArray Brick_EndLayout(float deltaTime) {
 
 //                                   Events
 // ------------------------------------.----------------------------------------
+// TODO: insert summary of event functions here
+
 // Global pointer hover check on any button. This is meant to be used in UpdateEvents.
 // WARN: using this function by itself can be a race condition with the button HoverHandler
 bool Brick_PointerJustHovered() {
@@ -1085,7 +1139,7 @@ Clay_TransitionData FadeSlide(Clay_TransitionData initialState, Clay_TransitionP
 
 //                                 Elements
 // ------------------------------------.----------------------------------------
-// CreateElement<Element> - initializes the element state and returns the element ID for layout
+// Create<Element> - initializes the element state and returns the ID for layout
 // Inline<Element> - called inside containers with literal values
 // Layout<Element> - called inside containers with Begin and End
 
@@ -1093,7 +1147,6 @@ Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
     Brick_ElementId id = { index, type };
     return id;
 }
-
 
 // Text
 // _____________________________________________________________________________
@@ -1149,7 +1202,7 @@ void Brick_LayoutText(Brick_ElementId textId) {
     CLAY_TEXT(text->string, { .textColor = text->color, .fontId = text->fontId, .fontSize = text->fontSize, .textAlignment = text->align });
 }
 
-// Image Button
+// Image
 // _____________________________________________________________________________
 
 Brick_ElementId Brick_CreateImage(float width, float height, void* imageData) {
@@ -1249,6 +1302,107 @@ Clay_Vector2 Brick_GetComponentPosition(Brick_ComponentId id) {
     return PLEX(Clay_Vector2){ elementData.boundingBox.x, elementData.boundingBox.y };
 }
 
+// Label
+// _____________________________________________________________________________
+Brick_ComponentId Brick_CreateLabel(const char* text) {
+
+    int32_t index = g_brick_components.labels.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_LABELS || g_brick_components.total_count >= BRICK_MAX_COMPONENTS) {
+        return Brick_ComponentId_DEFAULT;
+    }
+
+    Brick_ComponentId labelId = {
+        .index = index,
+        .type = BRICK_COMPONENT_TYPE_LABEL,
+        .subType = BRICK_COMPONENT_SUBTYPE_NONE,
+    };
+
+    Clay_String clayString = PLEX(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
+
+    Brick_ElementId textId = {
+        .index = 0,
+        .type = BRICK_ELEMENT_TYPE_TEXT,
+    };
+
+    Brick_Text labelText = {
+        .color = BRICK_THEME_PRIMARY,
+        .string = clayString,
+        .id = textId,
+        .fontId = 0,
+        .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT,
+        .align = CLAY_TEXT_ALIGN_LEFT
+    };
+
+    Brick_Box labelBox = {
+        .color = BRICK_THEME_BACKGROUND,
+        .borderColor = BRICK_THEME_SECONDARY,
+        // TODO: abstract to theme
+        .borderWidth = CLAY_BORDER_OUTSIDE(1),
+        .padding = {
+            BRICK_STYLE_PADDING_SMALL,
+            BRICK_STYLE_PADDING_SMALL,
+            BRICK_STYLE_PADDING_MEDIUM,
+            BRICK_STYLE_PADDING_MEDIUM
+        },
+        .align = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+    };
+
+    Brick_Label new_label = {
+        .box = labelBox,
+        .text = labelText,
+        .clayId = CLAY_SID(clayString),
+        .id = labelId,
+        .groupIndex = 0
+    };
+
+    g_brick_components.labels.data[index] = new_label;
+    g_brick_components.labels.length++;
+    g_brick_components.total_count++;
+
+    return labelId;
+}
+
+void Brick__LayoutLabelIndex(int32_t index) {
+    Brick_Label* label = Brick_Label_IndexGet(index);
+
+    CLAY(label->clayId, {
+        .layout = {
+            .sizing = {
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0)
+            },
+            .padding = label->box.padding,
+            .childAlignment = label->box.align,
+        }, 
+        .backgroundColor = label->box.color,
+        .border = { 
+            .color = label->box.borderColor, 
+            .width = label->box.borderWidth 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    }) {
+        // TODO: hook up the label->text styles
+        if (Clay_Hovered()) {
+            CLAY_TEXT(label->text.string, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
+        } else {
+            CLAY_TEXT(label->text.string, BRICK_STYLE_BUTTON_LABEL);
+        }
+    }
+}
+
+void Brick_LayoutLabel(Brick_ComponentId labelId) {
+    // TODO: add error handling
+    // TODO: add element subtype and check that instead
+    if (labelId.type != BRICK_COMPONENT_TYPE_LABEL) return;
+
+    Brick__LayoutLabelIndex(labelId.index);
+}
+
 // Button
 // _____________________________________________________________________________
 
@@ -1279,7 +1433,7 @@ Brick_ComponentId Brick_CreateButton(const char* label) {
 
     int32_t index = g_brick_components.buttons.length;
     // TODO: add error handling
-    if (index >= BRICK_MAX_BUTTONS || g_brick_components.total_count >= BRICK_MAX_ELEMENTS) {
+    if (index >= BRICK_MAX_BUTTONS || g_brick_components.total_count >= BRICK_MAX_COMPONENTS) {
         return Brick_ComponentId_DEFAULT;
     }
 
