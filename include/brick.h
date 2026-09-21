@@ -353,8 +353,10 @@ typedef struct Brick_Interaction {
 } Brick_Interaction;
 
 typedef struct Brick_Button {
+    Brick_Box box;
+    Brick_Text text;
     Clay_ElementId clayId;
-    Clay_String label;
+    Brick_Image image;
     Brick_Interaction action;
     Brick_ComponentId id;
     int32_t groupIndex;
@@ -1212,24 +1214,24 @@ Brick_ElementId Brick_CreateImage(float width, float height, void* imageData) {
         return Brick_ElementId_DEFAULT;
     }
 
-    Brick_ElementId buttonId = {
+    Brick_ElementId imageId = {
         .index = index,
         .type = BRICK_ELEMENT_TYPE_IMAGE,
     };
 
-    Brick_Image new_button = {
-        .id = buttonId,
+    Brick_Image new_image = {
+        .id = imageId,
         .imageData = imageData,
         // .action = Brick_Interaction_DEFAULT,
         .width = width,
         .height = height,
     };
 
-    g_brick_elements.images.data[index] = new_button;
+    g_brick_elements.images.data[index] = new_image;
     g_brick_elements.images.length++;
     g_brick_elements.total_count++;
 
-    return buttonId;
+    return imageId;
 }
 
 void Brick_HandleClayHoverAction(Clay_ElementId elementId, Clay_PointerData pointerData, void* userData) {
@@ -1318,6 +1320,8 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
         .subType = BRICK_COMPONENT_SUBTYPE_NONE,
     };
 
+    // TODO: refactor to a CreateText and CreateBox
+    // that doesn't add global state, and share with the API create functions
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(text), 
@@ -1424,18 +1428,49 @@ void Brick_ToggleButton_Set(Brick_ComponentId buttonId, bool isToggled) {
     action->toggled = isToggled;
 }
 
-Brick_ComponentId Brick_CreateButton(const char* label) {
-    Clay_String clayString = PLEX(Clay_String){ 
-        .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(label), 
-        .chars = label 
-    };
+Brick_ComponentId Brick_CreateButton(const char* text) {
 
     int32_t index = g_brick_components.buttons.length;
     // TODO: add error handling
     if (index >= BRICK_MAX_BUTTONS || g_brick_components.total_count >= BRICK_MAX_COMPONENTS) {
         return Brick_ComponentId_DEFAULT;
     }
+
+    // TODO: refactor to a CreateText and CreateBox
+    // that doesn't add global state, and share with the API create functions
+    Clay_String clayString = PLEX(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
+
+    Brick_ElementId textId = {
+        .index = 0,
+        .type = BRICK_ELEMENT_TYPE_TEXT,
+    };
+
+    Brick_Text buttonText = {
+        .color = BRICK_THEME_PRIMARY,
+        .string = clayString,
+        .id = textId,
+        .fontId = 0,
+        .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT,
+        .align = CLAY_TEXT_ALIGN_LEFT
+    };
+
+    Brick_Box buttonBox = {
+        .color = BRICK_THEME_BACKGROUND,
+        .borderColor = BRICK_THEME_SECONDARY,
+        // TODO: abstract to theme
+        .borderWidth = CLAY_BORDER_OUTSIDE(1),
+        .padding = {
+            BRICK_STYLE_PADDING_SMALL,
+            BRICK_STYLE_PADDING_SMALL,
+            BRICK_STYLE_PADDING_MEDIUM,
+            BRICK_STYLE_PADDING_MEDIUM
+        },
+        .align = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+    };
 
     Brick_ComponentId buttonId = {
         .index = index,
@@ -1444,8 +1479,10 @@ Brick_ComponentId Brick_CreateButton(const char* label) {
     };
 
     Brick_Button new_button = {
+        .box = buttonBox,
+        .text = buttonText,
         .clayId = CLAY_SID(clayString),
-        .label = clayString,
+        .image = Brick_Image_DEFAULT,
         .action = Brick_Interaction_DEFAULT,
         .id = buttonId,
         .groupIndex = 0,
@@ -1566,26 +1603,22 @@ void Brick_HandleClayHoverButton(Clay_ElementId elementId, Clay_PointerData poin
 // internal button layout function using internal index
 void Brick__LayoutButtonIndex(int32_t index) {
     Brick_Button* button = Brick_Button_IndexGet(index);
-    Clay_Color bgColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : BRICK_COLOR_BUTTON_BG;
-    Clay_Color borderColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : BRICK_COLOR_BUTTON_BORDER;
+    // TODO: add hoverColor and activeColor and hoverBorderColor to button
+    Clay_Color bgColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : button->box.color;
+    Clay_Color borderColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : button->box.borderColor;
 
     CLAY(button->clayId, {
         .layout = {
             .sizing = {
                 .width = CLAY_SIZING_GROW(0)
             },
-            .padding = {
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_MEDIUM,
-                BRICK_STYLE_PADDING_MEDIUM
-            },
-            .childAlignment = { .x = CLAY_ALIGN_X_CENTER },
+            .padding = button->box.padding,
+            .childAlignment = button->box.align,
         }, 
         .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
             .color = borderColor, 
-            .width = CLAY_BORDER_OUTSIDE(1) 
+            .width = button->box.borderWidth
         },
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
@@ -1593,10 +1626,11 @@ void Brick__LayoutButtonIndex(int32_t index) {
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
         // update text style on hover
+        // TODO: hook up text style
         if (Clay_Hovered()) {
-            CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
+            CLAY_TEXT(button->text.string, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
         } else {
-            CLAY_TEXT(button->label, BRICK_STYLE_BUTTON_LABEL);
+            CLAY_TEXT(button->text.string, BRICK_STYLE_BUTTON_LABEL);
         }
     }
 }
@@ -1627,13 +1661,8 @@ void Brick__LayoutLabelButtonIndex(int32_t index) {
                 .width = CLAY_SIZING_FIT(0),
                 .height = CLAY_SIZING_FIT(0),
             },
-            .padding = {
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_SMALL,
-                BRICK_STYLE_PADDING_SMALL
-            },
-            .childAlignment = { .x = CLAY_ALIGN_X_LEFT },
+            .padding = labelButton->box.padding,
+            .childAlignment = labelButton->box.align,
         }, 
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
@@ -1642,10 +1671,11 @@ void Brick__LayoutLabelButtonIndex(int32_t index) {
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, labelButton);
         // update text style on hover
+        // TODO: hook up text style
         if (Clay_Hovered()) {
-            CLAY_TEXT(labelButton->label, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
+            CLAY_TEXT(labelButton->text.string, BRICK_STYLE_BUTTON_LABEL_HIGHLIGHT);
         } else {
-            CLAY_TEXT(labelButton->label, BRICK_STYLE_BUTTON_LABEL);
+            CLAY_TEXT(labelButton->text.string, BRICK_STYLE_BUTTON_LABEL);
         }
     }
 }
