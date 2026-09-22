@@ -15,9 +15,9 @@ void Menu::load() {
     bid_options_save = Brick_CreateButton("Save");
     bid_options_cancel = Brick_CreateButton("Cancel");
 
-	bid_optionGame = Brick_CreateToggleButton("Game");
-    bid_optionInput = Brick_CreateToggleButton("Input");
-    bid_optionAudio = Brick_CreateToggleButton("Audio");
+	bid_optionGame = Brick_CreateButton("Game");
+    bid_optionInput = Brick_CreateButton("Input");
+    bid_optionAudio = Brick_CreateButton("Audio");
     Brick_ComponentId tabs[3] = { bid_optionGame, bid_optionInput, bid_optionAudio };
     bid_optionTabs = Brick_CreateToggleGroup(tabs, 3);
 
