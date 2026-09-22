@@ -494,11 +494,13 @@ void Brick_LayoutButton(Brick_ComponentId buttonId);
 void Brick_LayoutLabelButton(Brick_ComponentId buttonId);
 void Brick_LayoutImageButton(Brick_ComponentId buttonId);
 
-// Button Group
+// Group
 Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
+// Toggle Group
+// the componentIds is not const because Label component gets promoted to Button in place
 Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32_t groupSize);
 void Brick_LayoutGroup(Brick_ComponentId groupId);
-// TODO: add Brick_LayoutToggleGroup
+void Brick_LayoutToggleGroup(Brick_ComponentId groupId);
 
 //                                Containers
 // ------------------------------------.----------------------------------------
@@ -1768,19 +1770,14 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
 Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32_t groupSize) {
     assert(groupSize > 0);
 
-    int32_t idCount = 0;
     for (int32_t i = 0; i < groupSize; i++) {
         // Promote Labels to LabelButtons
         if(componentIds[i].type == BRICK_COMPONENT_TYPE_LABEL) {
             Brick_Label* label = Brick_Label_IndexGet(componentIds[i].index);
             componentIds[i] = Brick_CreateLabelButton(label->text.string.chars);
-            idCount++;
         } else if(componentIds[i].type == BRICK_COMPONENT_TYPE_BUTTON){
-            idCount++;
         }
     }
-
-    assert(groupSize == idCount);
 
     Brick_ComponentId groupId = Brick_CreateGroup(componentIds, groupSize);
     // TODO: error handling
