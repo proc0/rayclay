@@ -461,8 +461,10 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 // Layout<Element> takes IDs and configures the element and updates state
 
 // Text
-void Brick_InlineText(const char* text);
-Brick_ElementId Brick_CreateText(const char* text);
+void Brick_InlineText(const char* str);
+void Brick_InlineTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
+Brick_ElementId Brick_CreateText(const char* str);
+Brick_ElementId Brick_CreateTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
 void Brick_LayoutText(Brick_ElementId textId);
 
 // Image Button
@@ -479,6 +481,7 @@ Clay_Vector2 Brick_GetComponentPosition(Brick_ComponentId id);
 
 // Label
 Brick_ComponentId Brick_CreateLabel(const char* text);
+Brick_ComponentId Brick_CreateLabelEx(const char* text, uint16_t fontId, uint16_t fontSize);
 void Brick_LayoutLabel(Brick_ComponentId labelId);
 
 // Button
@@ -997,70 +1000,6 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
         }
     }
 
-    // Image Events ------------------------------------
-    // for (int32_t i = 1; i < g_brick_elements.images.length; i++) {
-    //     Brick_Image* button = Brick_Image_IndexGet(i);
-    //     Brick_Interaction* action = &button->action;
-
-    //     if(action->clicked && !action->pressed) {
-    //         // prevents event from firing after button is
-    //         // not rendered, i.e. clicking to change panels
-    //         action->clicked = false;
-    //         g_brick_events[events.length] = PLEX(Brick_Event){
-    //             .elementId = button->id,
-    //             .index = i,
-    //             .type = BRICK_EVENT_TYPE_PRESS
-    //         };
-    //         events.length++;
-
-    //         g_brick_events_snapshot[BRICK_EVENT_TYPE_PRESS] = true;
-    //     } 
-    //     else if (action->pressed) { 
-    //         g_brick_events[events.length] = PLEX(Brick_Event){
-    //             .elementId = button->id,
-    //             .index = i,
-    //             .type = BRICK_EVENT_TYPE_PRESSING
-    //         };
-    //         events.length++;
-
-    //         g_brick_events_snapshot[BRICK_EVENT_TYPE_PRESSING] = true;
-    //     }
-    //     else if(action->released) {
-    //         // prevents from firing after button is
-    //         // blocked or not rendered, i.e. showing a popup window
-    //         action->released = false;
-    //         g_brick_events[events.length] = PLEX(Brick_Event){
-    //             .elementId = button->id,
-    //             .index = i,
-    //             .type = BRICK_EVENT_TYPE_RELEASE
-    //         };
-    //         events.length++;
-
-    //         g_brick_events_snapshot[BRICK_EVENT_TYPE_RELEASE] = true;
-    //     }
-    //     else if(action->hovered) {
-    //         Brick_EventType eventType = Brick_PointerJustHovered() ? BRICK_EVENT_TYPE_HOVER : BRICK_EVENT_TYPE_HOVERING;
-    //         g_brick_events[events.length] = PLEX(Brick_Event){
-    //             .elementId = button->id,
-    //             .index = i,
-    //             .type = eventType
-    //         };
-    //         events.length++;
-
-    //         g_brick_events_snapshot[eventType] = true;
-    //     }
-    //     else if(action->cleared) {
-    //         g_brick_events[events.length] = PLEX(Brick_Event){
-    //             .elementId = button->id,
-    //             .index = i,
-    //             .type = BRICK_EVENT_TYPE_CLEAR
-    //         };
-    //         events.length++;
-
-    //         g_brick_events_snapshot[BRICK_EVENT_TYPE_CLEAR] = true;
-    //     }
-    // }
-
     // ScrollBox Events ------------------------------------
     // update Clay scroll containers once for all scrollboxes
     if (g_brick_containers.scrollBoxes.length > 0) {
@@ -1152,21 +1091,31 @@ Brick_ElementId Brick_CreateElementId(int32_t index, Brick_ElementType type) {
 // Text
 // _____________________________________________________________________________
 
-void Brick_InlineText(const char* text) {
+void Brick_InlineText(const char* str) {
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(text), 
-        .chars = text 
+        .length = (int32_t)strlen(str), 
+        .chars = str 
     };
 
     CLAY_TEXT(clayString, BRICK_STYLE_TEXT_DEFAULT);
 }
 
-Brick_ElementId Brick_CreateText(const char* text) {
+void Brick_InlineTextEx(const char* str, uint16_t fontId, uint16_t fontSize) {
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(text), 
-        .chars = text 
+        .length = (int32_t)strlen(str), 
+        .chars = str 
+    };
+
+    CLAY_TEXT(clayString, { .textColor = BRICK_THEME_PRIMARY, .fontId = fontId, .fontSize = fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT });
+}
+
+Brick_ElementId Brick_CreateText(const char* str) {
+    Clay_String clayString = PLEX(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(str), 
+        .chars = str 
     };
 
     int32_t index = g_brick_elements.texts.length;
@@ -1193,6 +1142,21 @@ Brick_ElementId Brick_CreateText(const char* text) {
 
     return textId;
 }
+
+Brick_ElementId Brick_CreateTextEx(const char* str, uint16_t fontId, uint16_t fontSize) {
+    Brick_ElementId textId = Brick_CreateText(str);
+
+    // TODO: error handling
+    if (textId.type == BRICK_ELEMENT_TYPE_NONE) return textId;
+
+    Brick_Text* text = Brick_Text_IndexGet(textId.index);
+
+    text->fontId = fontId;
+    text->fontSize = fontSize;
+
+    return textId;
+}
+
 
 void Brick_LayoutText(Brick_ElementId textId) {
     // TODO: error handling
@@ -1360,6 +1324,20 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
     g_brick_components.labels.data[index] = new_label;
     g_brick_components.labels.length++;
     g_brick_components.total_count++;
+
+    return labelId;
+}
+
+Brick_ComponentId Brick_CreateLabelEx(const char* text, uint16_t fontId, uint16_t fontSize) {
+    Brick_ComponentId labelId = Brick_CreateLabel(text);
+
+    // TODO: error handling
+    if (labelId.type == BRICK_COMPONENT_TYPE_NONE) return labelId;
+
+    Brick_Label* label = Brick_Label_IndexGet(labelId.index);
+
+    label->text.fontId = fontId;
+    label->text.fontSize = fontSize;
 
     return labelId;
 }
