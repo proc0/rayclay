@@ -12,10 +12,10 @@ class Display {
     Texture2D textureArrowDown;
     Texture2D textureArrowLeft;
 
-    Brick_ElementId bid_arrowUp;
-    Brick_ElementId bid_arrowRight;
-    Brick_ElementId bid_arrowDown;
-    Brick_ElementId bid_arrowLeft;
+    Brick_ComponentId bid_arrowUp;
+    Brick_ComponentId bid_arrowRight;
+    Brick_ComponentId bid_arrowDown;
+    Brick_ComponentId bid_arrowLeft;
 
 	const Window& window;
 

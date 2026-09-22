@@ -496,7 +496,7 @@ void Brick_LayoutImageButton(Brick_ComponentId buttonId);
 
 // Button Group
 Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
-Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
+Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32_t groupSize);
 void Brick_LayoutGroup(Brick_ComponentId groupId);
 // TODO: add Brick_LayoutToggleGroup
 
@@ -704,6 +704,7 @@ Brick_Event Brick_Event_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 
 Brick_ElementId Brick_ElementId_DEFAULT         = CLAY__DEFAULT_STRUCT;
 Brick_Text Brick_Text_DEFAULT                   = CLAY__DEFAULT_STRUCT;
+Brick_Box Brick_Box_DEFAULT                     = CLAY__DEFAULT_STRUCT;
 Brick_Image Brick_Image_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 
 Brick_ComponentId Brick_ComponentId_DEFAULT     = CLAY__DEFAULT_STRUCT;
@@ -1499,20 +1500,50 @@ Brick_ComponentId Brick_CreateLabelButton(const char* label) {
     return labelButtonId;
 }
 
-//TODO: review if TOggleButton is needed after ToggleGroup added
 Brick_ComponentId Brick_CreateImageButton(float width, float height, void* imageData) {
-    // Brick_ComponentId buttonId = Brick_CreateButton(label);
+    int32_t index = g_brick_components.buttons.length;
+    // TODO: add error handling
+    if (index >= BRICK_MAX_BUTTONS || g_brick_components.total_count >= BRICK_MAX_COMPONENTS) {
+        return Brick_ComponentId_DEFAULT;
+    }
 
-    // // TODO: error handling
-    // if (buttonId.type == BRICK_COMPONENT_TYPE_NONE) return buttonId;
+    // TODO: refactor to a CreateImage
+    // that doesn't add global state, and share with the API create functions
 
-    // Brick_Button* button = Brick_Button_IndexGet(buttonId.index);
+    Brick_ElementId imageId = {
+        .index = 0,
+        .type = BRICK_ELEMENT_TYPE_IMAGE,
+    };
 
-    // Brick_ComponentId toggleButtonId = PLEX(Brick_ComponentId){ buttonId.index, BRICK_COMPONENT_TYPE_BUTTON, BRICK_COMPONENT_SUBTYPE_TOGGLE };
-    // button->id = toggleButtonId;
-    
-    // return toggleButtonId;
-    return Brick_ComponentId_DEFAULT;
+    Brick_Image new_image = {
+        .id = imageId,
+        .imageData = imageData,
+        // .action = Brick_Interaction_DEFAULT,
+        .width = width,
+        .height = height,
+    };
+
+    Brick_ComponentId buttonId = {
+        .index = index,
+        .type = BRICK_COMPONENT_TYPE_BUTTON,
+        .subType = BRICK_COMPONENT_SUBTYPE_IMAGE,
+    };
+
+    Brick_Button new_button = {
+        .box = Brick_Box_DEFAULT,
+        .text = Brick_Text_DEFAULT,
+        .clayId = CLAY__DEFAULT_STRUCT,
+        .image = new_image,
+        .action = Brick_Interaction_DEFAULT,
+        .id = buttonId,
+        .groupIndex = 0,
+    };
+
+    g_brick_components.buttons.data[index] = new_button;
+    g_brick_components.buttons.length++;
+    g_brick_components.total_count++;
+
+    return buttonId;
 }
 
 // Button handlers
@@ -1634,14 +1665,6 @@ void Brick_LayoutButton(Brick_ComponentId buttonId) {
     Brick__LayoutButtonIndex(buttonId.index);
 }
 
-void Brick_LayoutImageButton(Brick_ComponentId buttonId) {
-    // TODO: add error handling
-    // TODO: add element subtype and check that instead
-    if (buttonId.subType != BRICK_COMPONENT_SUBTYPE_IMAGE) return;
-
-    Brick__LayoutButtonIndex(buttonId.index);
-}
-
 void Brick__LayoutLabelButtonIndex(int32_t index) {
 
     Brick_Button* labelButton = Brick_Button_IndexGet(index);
@@ -1673,11 +1696,37 @@ void Brick__LayoutLabelButtonIndex(int32_t index) {
 
 void Brick_LayoutLabelButton(Brick_ComponentId buttonId) {
     // TODO: add error handling
-    if (buttonId.subType != BRICK_COMPONENT_SUBTYPE_LABEL) return;
+    if (buttonId.type != BRICK_COMPONENT_TYPE_BUTTON && buttonId.subType != BRICK_COMPONENT_SUBTYPE_LABEL) return;
 
     Brick__LayoutLabelButtonIndex(buttonId.index);
 }
 
+void Brick__LayoutImageButtonIndex(int32_t index) {
+    Brick_Button* imageButton = Brick_Button_IndexGet(index);
+
+    CLAY_AUTO_ID({
+        .layout = {
+            .sizing = {
+                .width = CLAY_SIZING_FIXED(imageButton->image.width),
+                .height = CLAY_SIZING_FIXED(imageButton->image.height),
+            },
+        },
+        .image = { .imageData = imageButton->image.imageData }
+    }) {
+        // hover state handling
+        Brick_OnHoverInteraction(&imageButton->action, imageButton->id.index, Clay_Hovered());
+        // NOTE: Clay_OnHover also handles click events
+        Clay_OnHover(Brick_HandleClayHoverButton, imageButton);
+    }
+}
+
+void Brick_LayoutImageButton(Brick_ComponentId buttonId) {
+    // TODO: add error handling
+    // TODO: add element subtype and check that instead
+    if (buttonId.type != BRICK_COMPONENT_TYPE_BUTTON && buttonId.subType != BRICK_COMPONENT_SUBTYPE_IMAGE) return;
+
+    Brick__LayoutImageButtonIndex(buttonId.index);
+}
 
 // Component Group
 // _____________________________________________________________________________
@@ -1716,22 +1765,24 @@ Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32
     return Brick_CreateComponentId(groupIndex, BRICK_COMPONENT_TYPE_GROUP, BRICK_COMPONENT_SUBTYPE_NONE);
 }
 
-Brick_ComponentId Brick_CreateToggleGroup(const Brick_ComponentId* componentIds, int32_t groupSize) {
+Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32_t groupSize) {
     assert(groupSize > 0);
 
-    Brick_ComponentId groupIndices[groupSize];
-    memset(groupIndices, 0, groupSize * sizeof(Brick_ComponentId));
+    int32_t idCount = 0;
     for (int32_t i = 0; i < groupSize; i++) {
         // Promote Labels to LabelButtons
         if(componentIds[i].type == BRICK_COMPONENT_TYPE_LABEL) {
             Brick_Label* label = Brick_Label_IndexGet(componentIds[i].index);
-            groupIndices[i] = Brick_CreateLabelButton(label->text.string.chars);
+            componentIds[i] = Brick_CreateLabelButton(label->text.string.chars);
+            idCount++;
         } else if(componentIds[i].type == BRICK_COMPONENT_TYPE_BUTTON){
-            groupIndices[i] = componentIds[i];
+            idCount++;
         }
     }
 
-    Brick_ComponentId groupId = Brick_CreateGroup(groupIndices, groupSize);
+    assert(groupSize == idCount);
+
+    Brick_ComponentId groupId = Brick_CreateGroup(componentIds, groupSize);
     // TODO: error handling
     if (groupId.type == BRICK_COMPONENT_TYPE_NONE) return groupId;
 
@@ -1770,15 +1821,37 @@ void Brick_LayoutGroup(Brick_ComponentId groupId) {
         // TODO: handle the other component types to use the specific get
         Brick_Button* button = Brick_Button_IndexGet(group->indices[i]);
 
+        switch(button->id.type) {
+        case BRICK_COMPONENT_TYPE_LABEL:
+            Brick__LayoutLabelIndex(button->id.index);
+        break;
+        case BRICK_COMPONENT_TYPE_BUTTON:
+            Brick__LayoutButtonIndex(button->id.index);
+        break;
+        default: break;
+        }
+    }
+}
+
+void Brick_LayoutToggleGroup(Brick_ComponentId groupId) {
+    // TODO: add error handling
+    if (groupId.type != BRICK_COMPONENT_TYPE_GROUP && groupId.subType != BRICK_COMPONENT_SUBTYPE_TOGGLE) return;
+
+    const Brick_Group* group = Brick_Group_IndexGet(groupId.index);
+
+    for (int32_t i = 0; i < group->length; i++) {
+        // TODO: handle the other component types to use the specific get
+        Brick_Button* button = Brick_Button_IndexGet(group->indices[i]);
+
         switch(button->id.subType) {
-        case BRICK_COMPONENT_SUBTYPE_NONE:
+        case BRICK_COMPONENT_SUBTYPE_TOGGLE:
             Brick__LayoutButtonIndex(button->id.index);
         break;
         case BRICK_COMPONENT_SUBTYPE_LABEL:
             Brick__LayoutLabelButtonIndex(button->id.index);
         break;
-        case BRICK_COMPONENT_SUBTYPE_TOGGLE:
-            Brick__LayoutButtonIndex(button->id.index);
+        case BRICK_COMPONENT_SUBTYPE_IMAGE:
+            Brick__LayoutImageButtonIndex(button->id.index);
         break;
         default: break;
         }
