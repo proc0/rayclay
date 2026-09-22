@@ -7,9 +7,9 @@
 // #include "raylib.h"
 
 void Menu::load() {
-    bid_new = Brick_CreateButton("New Game");
-    bid_options = Brick_CreateButton("Options");
-    bid_quit = Brick_CreateButton("Quit");
+    bid_new = Brick_CreateButtonEx("New Game", 0, 48);
+    bid_options = Brick_CreateButtonEx("Options", 0, 48);
+    bid_quit = Brick_CreateButtonEx("Quit", 0, 48);
 
     bid_resume = Brick_CreateButton("Resume");
     bid_options_save = Brick_CreateButton("Save");
