@@ -530,26 +530,38 @@ void Brick_EndPanel(void);
 void Brick_BeginFloatingPanel(void);
 void Brick_EndFloatingPanel(void);
 
-// Horizontal Stack
+// Box shrinks to its content and has a background
+void Brick_BeginBox(void);
+void Brick_EndBox(void);
+
+// Horizontal Box shrinks to its content, aligns
+// its children horizontally, and has a background
+void Brick_BeginHorizontalBox(void);
+void Brick_EndHorizontalBox(void);
+
+// Vertical Box shrinks to its content, aligns
+// its children vertically, and has a background
+void Brick_BeginVerticalBox(void);
+void Brick_EndVerticalBox(void);
+
+// Horizontal Direction
 // A container that aligns its children horizontally
 // Left aligned by default
-void Brick_BeginHorizontalStack(void);
-void Brick_EndHorizontalStack(void);
+void Brick_BeginHorizontalDirection(void);
+void Brick_EndHorizontalDirection(void);
 
-// Vertical Stack
+// Vertical Direction
 // A container that aligns its children vertically
-void Brick_BeginVerticalStack(void);
-void Brick_EndVerticalStack(void);
+void Brick_BeginVerticalDirection(void);
+void Brick_EndVerticalDirection(void);
 
-// Offset
-// TODO: merge with FloatingPanelEx
-void Brick_BeginOffset(float x, float y);
-void Brick_EndOffset(void);
+// Position Relative
+void Brick_BeginPositionRelative(float x, float y);
+void Brick_EndPositionRelative(void);
 
-// Wrap
-// A container that shrinks to its elements
-void Brick_BeginWrapper(void);
-void Brick_EndWrapper(void);
+// Position Absolute
+void Brick_BeginPositionAbsolute(float x, float y);
+void Brick_EndPositionAbsolute(void);
 
 // Dropdown
 // Render a floating wrapper container below the given element
@@ -1382,8 +1394,8 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
         .padding = {
             BRICK_STYLE_PADDING_SMALL,
             BRICK_STYLE_PADDING_SMALL,
-            BRICK_STYLE_PADDING_MEDIUM,
-            BRICK_STYLE_PADDING_MEDIUM
+            0,
+            0,
         },
         .align = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
     };
@@ -1612,6 +1624,13 @@ Brick_ComponentId Brick_CreateLabelButton(const char* text) {
 
     Brick_ComponentId labelButtonId = PLEX(Brick_ComponentId){ buttonId.index, BRICK_COMPONENT_TYPE_BUTTON, BRICK_COMPONENT_SUBTYPE_LABEL };
     button->id = labelButtonId;
+
+    button->box.padding = PLEX(Clay_Padding){
+        BRICK_STYLE_PADDING_SMALL,
+        BRICK_STYLE_PADDING_SMALL,
+        0,
+        0,
+    };
     
     return labelButtonId;
 }
@@ -2029,10 +2048,10 @@ void Brick_EndFloatingPanel(void) {
     Clay__CloseElement();
 }
 
-// Horizontal Stack
+// Horizontal Direction
 // _____________________________________________________________________________
 
-void Brick_BeginHorizontalStack(void) {
+void Brick_BeginHorizontalDirection(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2047,14 +2066,14 @@ void Brick_BeginHorizontalStack(void) {
     });
 }
 
-void Brick_EndHorizontalStack(void) {
+void Brick_EndHorizontalDirection(void) {
     Clay__CloseElement();
 }
 
-// Vertical Stack
+// Vertical Direction
 // _____________________________________________________________________________
 
-void Brick_BeginVerticalStack(void) {
+void Brick_BeginVerticalDirection(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2069,16 +2088,87 @@ void Brick_BeginVerticalStack(void) {
     });
 }
 
-void Brick_EndVerticalStack(void) {
+void Brick_EndVerticalDirection(void) {
     Clay__CloseElement();
 }
 
-// Offset
+// Box
+// _____________________________________________________________________________
+
+void Brick_BeginBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndBox(void) {
+    Clay__CloseElement();
+}
+
+
+// Horizontal Box
+// _____________________________________________________________________________
+
+void Brick_BeginHorizontalBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndHorizontalBox(void) {
+    Clay__CloseElement();
+}
+
+// Vertical Box
+// _____________________________________________________________________________
+
+void Brick_BeginVerticalBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndVerticalBox(void) {
+    Clay__CloseElement();
+}
+
+// PositionRelative
 // _____________________________________________________________________________
 // TODO: check why transition was creating a black background
 // when it was being transitioned from a Panel with a black background
 
-void Brick_BeginOffset(float x, float y) {
+void Brick_BeginPositionRelative(float x, float y) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2093,21 +2183,23 @@ void Brick_BeginOffset(float x, float y) {
             // .zIndex = 1, 
             .attachPoints = { 
                 CLAY_ATTACH_POINT_CENTER_CENTER, 
-                CLAY_ATTACH_POINT_CENTER_CENTER 
+                CLAY_ATTACH_POINT_LEFT_TOP 
             }, 
             .attachTo = CLAY_ATTACH_TO_PARENT 
         },
     });
 }
 
-void Brick_EndOffset(void) {
+void Brick_EndPositionRelative(void) {
     Clay__CloseElement();
 }
 
-// Wrapper
+// Position Absolute
 // _____________________________________________________________________________
+// TODO: check why transition was creating a black background
+// when it was being transitioned from a Panel with a black background
 
-void Brick_BeginWrapper(void) {
+void Brick_BeginPositionAbsolute(float x, float y) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2115,17 +2207,26 @@ void Brick_BeginWrapper(void) {
                 .width = CLAY_SIZING_FIT(0),
                 .height = CLAY_SIZING_FIT(0),
             },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL,
             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }, 
         },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .floating = { 
+            .offset = {x, y}, 
+            // .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_LEFT_TOP 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_ROOT 
+        },
     });
 }
 
-void Brick_EndWrapper(void) {
+void Brick_EndPositionAbsolute(void) {
     Clay__CloseElement();
 }
+
+// Dropdown
+// _____________________________________________________________________________
 
 void Brick_BeginDropdown(Brick_ComponentId parentId) {
     Clay_ElementId parentClayId = Brick_ClayId_Get(parentId);
