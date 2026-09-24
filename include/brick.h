@@ -164,10 +164,10 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 // Theme 
 // _____________________________________________________________________________
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
-#define BRICK_THEME_FOREGROUND  BRICK_COLOR_BRICK
+#define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_DARK
 #define BRICK_THEME_PRIMARY     BRICK_COLOR_GRAY_LIGHT
-#define BRICK_THEME_SECONDARY   BRICK_COLOR_ORANGE
-#define BRICK_THEME_TERTIARY    BRICK_COLOR_OLIVE
+#define BRICK_THEME_SECONDARY   BRICK_COLOR_BRICK
+#define BRICK_THEME_TERTIARY    BRICK_COLOR_BROWN
 #define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
 
 // Styles
@@ -176,14 +176,27 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 // #define BRICK_STYLE_TEXT_HIGHLIGHT  CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
 // #define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
-// Theme-Style Mapping 
+// Theme-Component Style Mapping 
 // _____________________________________________________________________________
+// Label
+#define BRICK_COLOR_LABEL_TEXT              BRICK_THEME_PRIMARY
+#define BRICK_COLOR_LABEL_TEXT_HOVER        BRICK_THEME_ACCENT
+#define BRICK_COLOR_LABEL_TEXT_TOGGLE       BRICK_THEME_SECONDARY
+
+// Button
+#define BRICK_COLOR_BUTTON_TEXT             BRICK_THEME_PRIMARY
+#define BRICK_COLOR_BUTTON_TEXT_HOVER       BRICK_THEME_FOREGROUND
+#define BRICK_COLOR_BUTTON_TEXT_TOGGLE      BRICK_THEME_ACCENT
 #define BRICK_COLOR_BUTTON_BORDER           BRICK_THEME_TERTIARY
+#define BRICK_COLOR_BUTTON_BORDER_HOVER     BRICK_THEME_SECONDARY
 #define BRICK_COLOR_BUTTON_BORDER_TOGGLE    BRICK_THEME_TERTIARY
 #define BRICK_COLOR_BUTTON_BG               BRICK_THEME_FOREGROUND
-#define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_SECONDARY
 #define BRICK_COLOR_BUTTON_BG_HOVER         BRICK_THEME_ACCENT
+#define BRICK_COLOR_BUTTON_BG_TOGGLE        BRICK_THEME_SECONDARY
 
+// ScrollBox
+#define BRICK_COLOR_SCROLLBOX_BAR           BRICK_THEME_FOREGROUND
+#define BRICK_COLOR_SCROLLBOX_BAR_HOVER     BRICK_THEME_TERTIARY
 
 // ------------------------------------.----------------------------------------
 //                               PUBLIC TYPES
@@ -223,8 +236,9 @@ typedef struct Brick_ElementId {
     Brick_ElementType type;
 } Brick_ElementId;
 
-// Components include Brick elements and map to Clay elements
-// Components also trigger events
+// Components include Brick Elements
+// Components map to Clay Elements
+// Components trigger Events
 typedef CLAY_PACKED_ENUM {
     BRICK_COMPONENT_TYPE_NONE,
     BRICK_COMPONENT_TYPE_LABEL,
@@ -458,9 +472,11 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 // Create<Element> takes configuration arguments and returns an ID
 // Layout<Element> takes IDs and configures the element and updates state
 
-// Text
+// Inline Text
 void Brick_InlineText(const char* str);
 void Brick_InlineTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
+
+// Text
 Brick_ElementId Brick_CreateText(const char* str);
 Brick_ElementId Brick_CreateTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
 void Brick_LayoutText(Brick_ElementId textId);
@@ -472,6 +488,7 @@ void Brick_LayoutImage(Brick_ElementId buttonId);
 //                                  Components
 // ------------------------------------.----------------------------------------
 // Create<Component> takes configuration arguments and returns an ID
+// Create<Component>Ex takes extra configuration arguments and returns an ID
 // Layout<Component> takes IDs and configures the element and updates state
 
 // NOTE: Unused internally
@@ -482,25 +499,27 @@ Brick_ComponentId Brick_CreateLabel(const char* text);
 Brick_ComponentId Brick_CreateLabelEx(const char* text, uint16_t fontId, uint16_t fontSize);
 void Brick_LayoutLabel(Brick_ComponentId labelId);
 
-// Button
+// Button toggle getters and setters
 bool Brick_IsButtonToggled(const Brick_ComponentId buttonId);
 void Brick_ToggleButton(Brick_ComponentId buttonId);
 void Brick_ToggleButton_Set(Brick_ComponentId buttonId, bool isToggled);
+// Button
 Brick_ComponentId Brick_CreateButton(const char* text);
 Brick_ComponentId Brick_CreateButtonEx(const char* text, uint16_t fontId, uint16_t fontSize);
-// button extensions
 void Brick_LayoutButton(Brick_ComponentId buttonId);
+// Label Button
 Brick_ComponentId Brick_CreateLabelButton(const char* text);
 void Brick_LayoutLabelButton(Brick_ComponentId buttonId);
+// Image Button
 Brick_ComponentId Brick_CreateImageButton(float width, float height, void* imageData);
 void Brick_LayoutImageButton(Brick_ComponentId buttonId);
 
 // Group
 Brick_ComponentId Brick_CreateGroup(const Brick_ComponentId* componentIds, int32_t groupSize);
+void Brick_LayoutGroup(Brick_ComponentId groupId);
 // Toggle Group
 // the componentIds is not const because Label component gets promoted to Button in place
 Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32_t groupSize);
-void Brick_LayoutGroup(Brick_ComponentId groupId);
 void Brick_LayoutToggleGroup(Brick_ComponentId groupId);
 
 //                                Containers
@@ -1378,7 +1397,7 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
     };
 
     Brick_Text labelText = {
-        .color = BRICK_THEME_PRIMARY,
+        .color = BRICK_COLOR_LABEL_TEXT,
         .string = clayString,
         .id = textId,
         .fontId = 0,
@@ -1387,10 +1406,10 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
     };
 
     Brick_Box labelBox = {
-        .color = BRICK_THEME_BACKGROUND,
-        .borderColor = BRICK_THEME_SECONDARY,
+        .color = BRICK_COLOR_BLANK,
+        .borderColor = BRICK_COLOR_BLANK,
         // TODO: abstract to theme
-        .borderWidth = CLAY_BORDER_OUTSIDE(1),
+        .borderWidth = 0,
         .padding = {
             BRICK_STYLE_PADDING_SMALL,
             BRICK_STYLE_PADDING_SMALL,
@@ -1441,19 +1460,9 @@ void Brick__LayoutLabelIndex(int32_t index) {
             .padding = label->box.padding,
             .childAlignment = label->box.align,
         }, 
-        .backgroundColor = label->box.color,
-        .border = { 
-            .color = label->box.borderColor, 
-            .width = label->box.borderWidth 
-        },
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
-        // TODO: hook up the label->text styles
-        if (Clay_Hovered()) {
-            CLAY_TEXT(label->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontId = label->text.fontId, .fontSize = label->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        } else {
-            CLAY_TEXT(label->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontId = label->text.fontId, .fontSize = label->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        }
+        CLAY_TEXT(label->text.string, CLAY_TEXT_CONFIG({ .textColor = Clay_Hovered() ? BRICK_COLOR_LABEL_TEXT_HOVER : label->text.color, .fontId = label->text.fontId, .fontSize = label->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
     }
 }
 
@@ -1509,7 +1518,7 @@ Brick_ComponentId Brick_CreateButton(const char* text) {
     };
 
     Brick_Text buttonText = {
-        .color = BRICK_THEME_PRIMARY,
+        .color = BRICK_COLOR_BUTTON_TEXT,
         .string = clayString,
         .id = textId,
         .fontId = 0,
@@ -1518,8 +1527,8 @@ Brick_ComponentId Brick_CreateButton(const char* text) {
     };
 
     Brick_Box buttonBox = {
-        .color = BRICK_THEME_BACKGROUND,
-        .borderColor = BRICK_THEME_SECONDARY,
+        .color = BRICK_COLOR_BUTTON_BG,
+        .borderColor = BRICK_COLOR_BUTTON_BORDER,
         // TODO: abstract to theme
         .borderWidth = CLAY_BORDER_OUTSIDE(1),
         .padding = {
@@ -1572,9 +1581,10 @@ Brick_ComponentId Brick_CreateButtonEx(const char* text, uint16_t fontId, uint16
 // internal button layout function using internal index
 void Brick__LayoutButtonIndex(int32_t index) {
     Brick_Button* button = Brick_Button_IndexGet(index);
+    bool isToggled = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled;
     // TODO: add hoverColor and activeColor and hoverBorderColor to button
-    Clay_Color bgColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : button->box.color;
-    Clay_Color borderColor = button->id.subType == BRICK_COMPONENT_SUBTYPE_TOGGLE && button->action.toggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : button->box.borderColor;
+    Clay_Color bgColor = isToggled ? BRICK_COLOR_BUTTON_BG_TOGGLE : button->box.color;
+    Clay_Color borderColor = isToggled ? BRICK_COLOR_BUTTON_BORDER_TOGGLE : button->box.borderColor;
 
     CLAY(button->clayId, {
         .layout = {
@@ -1586,7 +1596,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
         }, 
         .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
-            .color = borderColor, 
+            .color = Clay_Hovered() ? BRICK_COLOR_BUTTON_BORDER_HOVER : borderColor, 
             .width = button->box.borderWidth
         },
         .transition = BRICK_TRANSITION_FADE_SLIDE
@@ -1594,13 +1604,10 @@ void Brick__LayoutButtonIndex(int32_t index) {
         Brick_OnHoverInteraction(&button->action, button->id.index, Clay_Hovered());
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, button);
+
+        Clay_Color textColor = isToggled ? BRICK_COLOR_BUTTON_TEXT_TOGGLE : button->text.color;
         // update text style on hover
-        // TODO: hook up text style
-        if (Clay_Hovered()) {
-            CLAY_TEXT(button->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontId = button->text.fontId, .fontSize = button->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        } else {
-            CLAY_TEXT(button->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontId = button->text.fontId, .fontSize = button->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        }
+        CLAY_TEXT(button->text.string, CLAY_TEXT_CONFIG({ .textColor = Clay_Hovered() ? BRICK_COLOR_BUTTON_TEXT_HOVER : textColor, .fontId = button->text.fontId, .fontSize = button->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
     }
 }
 
@@ -1636,7 +1643,6 @@ Brick_ComponentId Brick_CreateLabelButton(const char* text) {
 }
 
 void Brick__LayoutLabelButtonIndex(int32_t index) {
-
     Brick_Button* labelButton = Brick_Button_IndexGet(index);
 
     CLAY(labelButton->clayId, {
@@ -1655,12 +1661,8 @@ void Brick__LayoutLabelButtonIndex(int32_t index) {
         // NOTE: Clay_OnHover also handles click events
         Clay_OnHover(Brick_HandleClayHoverButton, labelButton);
         // update text style on hover
-        // TODO: hook up text style
-        if (Clay_Hovered()) {
-            CLAY_TEXT(labelButton->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontId = labelButton->text.fontId, .fontSize = labelButton->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        } else {
-            CLAY_TEXT(labelButton->text.string, CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontId = labelButton->text.fontId, .fontSize = labelButton->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
-        }
+        Clay_Color textColor = labelButton->action.toggled ? BRICK_COLOR_BUTTON_TEXT_TOGGLE : labelButton->text.color;
+        CLAY_TEXT(labelButton->text.string, CLAY_TEXT_CONFIG({ .textColor = Clay_Hovered() ? BRICK_COLOR_LABEL_TEXT_HOVER : textColor, .fontId = labelButton->text.fontId, .fontSize = labelButton->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
     }
 }
 
@@ -1981,8 +1983,7 @@ void Brick_EndScrollBox(void) {
                         CLAY_SIZING_FIXED((scrollContainerData.scrollContainerDimensions.height / scrollContainerData.contentDimensions.height) * scrollContainerData.scrollContainerDimensions.height) 
                     }
                 },
-                // TODO: map the theme at the top of file instead of using it directly
-                .backgroundColor = Clay_Hovered() || scrollBox->isPrimaryDown ? BRICK_THEME_SECONDARY : BRICK_THEME_TERTIARY,
+                .backgroundColor = Clay_Hovered() || scrollBox->isPrimaryDown ? BRICK_COLOR_SCROLLBOX_BAR_HOVER : BRICK_COLOR_SCROLLBOX_BAR,
             });
         }
     }
