@@ -62,16 +62,16 @@ void Menu::layoutGame() {
 
 void Menu::layoutOptions() {
     Brick_BeginFloatingPanel();
-        Brick_BeginHorizontalDirection();
+        Brick_BeginHorizontalLayout();
             Brick_LayoutGroup(bid_optionTabs);
-        Brick_EndHorizontalDirection();
+        Brick_EndHorizontalLayout();
 
         if(Brick_IsButtonToggled(bid_optionGame)) {
             Brick_BeginPanel();
                 Brick_InlineText("TAB 1");
             Brick_EndPanel();
         } else if(Brick_IsButtonToggled(bid_optionInput)) {
-            Brick_BeginHorizontalDirection();
+            Brick_BeginHorizontalLayout();
                 Brick_BeginScrollBox(cid_scrollBox);
                     Brick_LayoutText(sid_string1);
                 Brick_EndScrollBox();
@@ -79,7 +79,7 @@ void Menu::layoutOptions() {
                     Brick_InlineText(TEXT_TUTORIAL_2);
                     Brick_InlineText(TEXT_TUTORIAL_1);
                 Brick_EndScrollBox();
-            Brick_EndHorizontalDirection();
+            Brick_EndHorizontalLayout();
         } else if(Brick_IsButtonToggled(bid_optionAudio)) {
             Brick_BeginScrollBox(cid_scrollBox2);
                 Brick_InlineText(TEXT_TUTORIAL_2);
@@ -87,10 +87,10 @@ void Menu::layoutOptions() {
             Brick_EndScrollBox();
         }
 
-        Brick_BeginHorizontalDirection();
+        Brick_BeginHorizontalLayout();
             Brick_LayoutButton(bid_options_save);
             Brick_LayoutButton(bid_options_cancel);
-        Brick_EndHorizontalDirection();
+        Brick_EndHorizontalLayout();
     Brick_EndFloatingPanel();
 }
 

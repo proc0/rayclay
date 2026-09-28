@@ -5,65 +5,65 @@
 +---------+ 
 v0.1
 
-UI Component library built with Clay
+Render-agnostic, header-only
+UI Component Library for Clay
 
-USAGE SUMMARY
-This is a very high level overview.
-For more details see docs: 
+QUICK START
+--------------------------
+For full docs see README:
+https://github.com/proc0/brick 
 
-1. Import library
-DO NOT define CLAY_IMPLEMENTATION
+Brick requires Clay, and exposes some of the Clay interface. 
+Check out Clay and make sure you have a good idea of what it does:
+https://github.com/nicbarker/clay
+
+Make sure Clay is in your include path. Import Brick and define BRICK_IMPLEMENTION in EXACTLY ONE FILE.
+Then initialize with Brick_Initialize, and then create any components. These functions are not to be called in the update loop! 
+In the update loop call the UpdateEvents passing in the input data. Then build the component Layout using component IDs.
+Finally take the render commands from the EndLayout function and pass it into the renderer function.
+
+This summary is outlined in the six steps below.
+NOTE: This is pseudo-code for brevity, please check the API FUNCTIONS section of this file for syntax.
+
+1. Import Brick
 ----------------------------------
-- #define BRICK_IMPLEMENTATION
-- #include "brick.h"
+NOTE: If you are already using Clay,
+      DO NOT define CLAY_IMPLEMENTATION!
+- #define BRICK_IMPLEMENTATION (in exactly one file!)
+- #include "brick.h" (anywhere)
 
-2. Initialize 
-DO NOT call these in a loop!
+2. Initialize and create components
 ----------------------------------
-- Brick_Initialize 
-- Create Elements and save Ids
+NOTE: DO NOT call these in a loop!
+- Brick_Initialize(...) 
+- Brick_Create<Entity> and save IDs
 
-3. Update
-Call update before layout
+3. Update events
 ----------------------------------
-- Brick_Update -> events
-- Loop and handle events
+NOTE: Call update before building layout
+- Brick_EventsArray = Brick_Update(inputData)
+- Loop event array and handle events
 
-4. Layout
-DO NOT forget to close containers!
+4. Build layout
 ----------------------------------
-- Brick_BeginLayout
-- Brick_Begin<Container>
-- Brick_Layout<Element>
-- Brick_End<Container>
-- Brick_EndLayout -> render-commands 
+NOTE: DO NOT forget to close containers!
+- Brick_BeginLayout()
+-   Brick_Begin<Container>(ContainerId)
+-       Brick_Layout<Component>(ComponentId)
+-   Brick_End<Container>
+- Clay_RenderCommands = Brick_EndLayout(deltaTime) 
 
 5. Render
 ----------------------------------
-- Loop and render render-commands
+- Loop and render the render commands
+- Use the default Clay renderers or a custom one
 
-Define BRICK_IMPLEMENTATION in exactly ONE file only.
-Then include brick.h in the line after, and/or other files.
-```C/C++
-#define BRICK_IMPLEMENTATION
-#include "brick.h"
-```
-DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h for types or other utilities.
+6. Cleanup
+----------------------------------
+- Call Brick_Destroy and any relevant cleanup
+  functions that come with the Clay renderer.
 
 */
-// ####################################^########################################
-//                                  LIBRARY
-// #############################################################################
-
-// ------------------------------------.----------------------------------------
-//                                  CONTENT
-// =============================================================================
-
-//                                  Section
-// ------------------------------------.----------------------------------------
-
-// Sub-Section
-// _____________________________________________________________________________
 
 #ifdef BRICK_IMPLEMENTATION
 #define CLAY_IMPLEMENTATION
@@ -91,15 +91,13 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 //                                 SETTINGS
 // =============================================================================
 
-// Max Elements and (Stateful) Containers 
+// Max Entities
 // _____________________________________________________________________________
-// Determines the element and container type arrays max length
-// Arrays are initialized as static global arrays
+// Used in global state arrays as the upper bound
 
 // Elements
 #define BRICK_MAX_TEXTS 64
 #define BRICK_MAX_IMAGES 64
-// total max number of elements
 #define BRICK_MAX_ELEMENTS (BRICK_MAX_TEXTS + BRICK_MAX_IMAGES)
 
 // Components
@@ -107,19 +105,18 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 #define BRICK_MAX_BUTTONS 64
 // Both Labels and Buttons can be grouped
 // MAX_BUTTONS + MAX_LABELS should not exceed GROUP_SIZE * GROUPS
-// total max number of groups
 #define BRICK_MAX_GROUPS 8
 #define BRICK_MAX_GROUP_SIZE 16
-// total number of components
 #define BRICK_MAX_COMPONENTS (BRICK_MAX_LABELS + BRICK_MAX_BUTTONS + BRICK_MAX_GROUPS)
 
 // Containers
 #define BRICK_MAX_SCROLLBOXES 32
-// total max number of containers
 #define BRICK_MAX_CONTAINERS BRICK_MAX_SCROLLBOXES
 
-// General Global Styles 
+// Global Styles 
 // _____________________________________________________________________________
+// Used by components and containers as a default value
+
 #define BRICK_STYLE_FONT_SIZE_DEFAULT 24
 #define BRICK_STYLE_PADDING_SMALL 8
 #define BRICK_STYLE_PADDING_MEDIUM 12
@@ -127,6 +124,8 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 
 // Colors 
 // _____________________________________________________________________________
+// These colors are used immediately below in the Theme sub-section only
+
 #define BRICK_COLOR_BLANK       PLEX(Clay_Color){ 0, 0, 0, 0 }
 #define BRICK_COLOR_WHITE       PLEX(Clay_Color){ 255, 255, 255, 255 }
 #define BRICK_COLOR_BLACK       PLEX(Clay_Color){ 0, 0, 0, 255 }
@@ -163,6 +162,8 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 
 // Theme 
 // _____________________________________________________________________________
+// An abstracted theme that is mapped to component and container default styles
+
 #define BRICK_THEME_BACKGROUND  BRICK_COLOR_BLACK_A80
 #define BRICK_THEME_FOREGROUND  BRICK_COLOR_GRAY_DARK
 #define BRICK_THEME_PRIMARY     BRICK_COLOR_GRAY_LIGHT
@@ -170,14 +171,18 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 #define BRICK_THEME_TERTIARY    BRICK_COLOR_BROWN
 #define BRICK_THEME_ACCENT      BRICK_COLOR_YELLOW
 
-// Styles
+// Default Styles
 // _____________________________________________________________________________
+// used in inline elements and components that do not have any state
+
 #define BRICK_STYLE_TEXT_DEFAULT    CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
-// #define BRICK_STYLE_TEXT_HIGHLIGHT  CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_ACCENT, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_LEFT })
-// #define BRICK_STYLE_TEXT_CENTERED   CLAY_TEXT_CONFIG({ .textColor = BRICK_THEME_PRIMARY, .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
 
 // Theme-Component Style Mapping 
 // _____________________________________________________________________________
+// component and containers define their styles as literals (i.e. button text color),
+// then these are mapped to the abstracted theme categories above (i.e. primary color),
+// which allows max flexibility.
+
 // Label
 #define BRICK_COLOR_LABEL_TEXT              BRICK_THEME_PRIMARY
 #define BRICK_COLOR_LABEL_TEXT_HOVER        BRICK_THEME_ACCENT
@@ -206,7 +211,7 @@ DO NOT define CLAY_IMPLEMENTATION. Brick owns Clay, but files can include clay.h
 extern "C" {
 #endif
 
-// Global shared state storing window and pointer information.
+// Global shared state storing window and pointer information
 typedef struct {
     float width;
     float height;
@@ -214,7 +219,7 @@ typedef struct {
     int32_t lastHoveredId;
 } Brick_Window;
 
-// Transient frame state storing pointer frame data.
+// Transient frame state storing pointer frame data
 typedef struct {
     float x;
     float y;
@@ -246,6 +251,8 @@ typedef CLAY_PACKED_ENUM {
     BRICK_COMPONENT_TYPE_GROUP,
 } Brick_ComponentType;
 
+// Component sub-types have extended
+// or modified component functionality
 typedef CLAY_PACKED_ENUM {
     BRICK_COMPONENT_SUBTYPE_NONE,
     BRICK_COMPONENT_SUBTYPE_LABEL,
@@ -303,8 +310,7 @@ typedef struct Brick_Event {
     Brick_EventType type;
 } Brick_Event;
 
-// Events array container to match Clay's way of exposing
-// render commands. This can be iterated on the user's side.
+// An events array matching Clay's render commands API
 typedef struct Brick_EventArray {
     int32_t length;
     Brick_Event* data;
@@ -312,10 +318,13 @@ typedef struct Brick_EventArray {
 
 // Elements
 // _____________________________________________________________________________
-// There are two broad categories of elements, interactable and non-interactable.
-// Elements like Button or Image are interactable, triggering events.
-// Non-interactable elements like Text do not trigger any events.
+// There are two categories of elements, inline and stateful.
+// Elements like Text have an inline function that requires no state and can be 
+// used inside the Begin and EndLayout. Stateful elements are created and return
+// an ID like components.
 
+// Text is the basic building block that is used
+// for labels or long form text
 typedef struct Brick_Text {
     Clay_Color color;
     Clay_String string;
@@ -336,6 +345,8 @@ typedef struct Brick_Box {
     Clay_ChildAlignment align;
 } Brick_Box;
 
+// Image holds a pointer to some image data
+// that is referenced by the renderer
 typedef struct Brick_Image {
     Brick_ElementId id;
     void* imageData;
@@ -345,9 +356,14 @@ typedef struct Brick_Image {
 
 // Components
 // _____________________________________________________________________________
-// There are two broad categories of elements, interactable and non-interactable.
-// Elements like Button or Image are interactable, triggering events.
-// Non-interactable elements like Text do not trigger any events.
+// There are two broad categories of components, interactable and non-interactable.
+// Components like Button are interactable, triggering events.
+// Non-interactable elements like Label do not trigger any events.
+// Some non-interactable components can be promoted to interactable in certain cases,
+// i.e. Label can become a LabelButton if Labels are passed into ToggleGroup.
+
+// Label is a Text with a Box for more structure
+// and it can become interactable as a LabelButton
 typedef struct Brick_Label {
     Brick_Box box;
     Brick_Text text;
@@ -356,6 +372,7 @@ typedef struct Brick_Label {
     int32_t groupIndex;
 } Brick_Label;
 
+// Represents interactions by the user every frame
 typedef struct Brick_Interaction {
     bool hovered;
     bool cleared;
@@ -365,6 +382,10 @@ typedef struct Brick_Interaction {
     bool toggled;
 } Brick_Interaction;
 
+// Button is a Label with a Box that has a background
+// and is interactable. There are button sub-types 
+// like LabelButton and ImageButton that extend it 
+// with different behavior or appearance.
 typedef struct Brick_Button {
     Brick_Box box;
     Brick_Text text;
@@ -375,6 +396,8 @@ typedef struct Brick_Button {
     int32_t groupIndex;
 } Brick_Button;
 
+// Any component can be grouped to facilitate
+// event handling and layout operations
 typedef struct Brick_Group {
     int32_t indices[BRICK_MAX_GROUP_SIZE];
     Brick_ComponentId id;
@@ -436,16 +459,17 @@ typedef struct Brick_ScrollBox {
 
 //                                 Lifecycle
 // ------------------------------------.----------------------------------------
-// Initializes Clay and other global state. The MeasureText function is passed 
-// through directly to Clay_SetMeasureTextFunction along with the font data.
+// TODO: Resize will also recalculate styles based on native resolution. 
+
+// Initializes Clay and Brick global state. The MeasureText function is passed through directly to Clay_SetMeasureTextFunction along with the font data.
 void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFunction)(Clay_StringSlice text, Clay_TextElementConfig *config, void *fontData), void *fontData);
-// Calls Clay_SetLayoutDimensions to recalculate positioning of elements on the 
-// screen. TODO: Resize will also recalculate styles based on native resolution. 
+// Calls Clay_SetLayoutDimensions to recalculate positioning of elements on the screen. 
 void Brick_Resize(float width, float height);
 // Cleans up Clay arena. Global state is cleaned up by OS on exit. 
 void Brick_Destroy(void);
-// Simple wrapper around Clay_BeginLayout and ClayEndLayout
+// Simple wrapper around Clay_BeginLayout
 void Brick_BeginLayout(void);
+// Simple wrapper around ClayEndLayout
 Clay_RenderCommandArray Brick_EndLayout(float deltaTime);
 
 //                                   Events
@@ -472,18 +496,22 @@ Brick_EventArray Brick_UpdateEvents(Brick_PointerData pointerData, float deltaTi
 // Create<Element> takes configuration arguments and returns an ID
 // Layout<Element> takes IDs and configures the element and updates state
 
-// Inline Text
+// Layout the text in place by passing in a string literal
 void Brick_InlineText(const char* str);
+// Layout the text in place by passing in a string literal, the font index and font size.
 void Brick_InlineTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
 
-// Text
+// Creates a text element in Brick state and returns its ID
 Brick_ElementId Brick_CreateText(const char* str);
+// Creates a text element in Brick state with a font index and font size, and returns its ID
 Brick_ElementId Brick_CreateTextEx(const char* str, uint16_t fontId, uint16_t fontSize);
+// Layout the previously created text element using its ID
 void Brick_LayoutText(Brick_ElementId textId);
 
-// Image Button
+// Creates an image entry in Brick state, holding dimensions and a pointer to the data
 Brick_ElementId Brick_CreateImage(float width, float height, void* imageData);
-void Brick_LayoutImage(Brick_ElementId buttonId);
+// Layout the previously created image data using its ID
+void Brick_LayoutImage(Brick_ElementId imageId);
 
 //                                  Components
 // ------------------------------------.----------------------------------------
@@ -566,13 +594,13 @@ void Brick_EndVerticalBox(void);
 // Horizontal Direction
 // A container that aligns its children horizontally
 // Left aligned by default
-void Brick_BeginHorizontalDirection(void);
-void Brick_EndHorizontalDirection(void);
+void Brick_BeginHorizontalLayout(void);
+void Brick_EndHorizontalLayout(void);
 
 // Vertical Direction
 // A container that aligns its children vertically
-void Brick_BeginVerticalDirection(void);
-void Brick_EndVerticalDirection(void);
+void Brick_BeginVerticalLayout(void);
+void Brick_EndVerticalLayout(void);
 
 // Position Relative
 void Brick_BeginPositionRelative(float x, float y);
@@ -666,7 +694,6 @@ typedef struct Brick_Containers {
 
 //                               Global State
 // ------------------------------------.----------------------------------------
-// TODO: should arrays be initialized with CLAY__DEFAULT_STRUCT?
 
 // Clay context
 static Clay_Arena g_clay_arena;
@@ -718,7 +745,7 @@ static Brick_Components g_brick_components = {
     },
 };
 
-// Stateful Containers
+// Containers
 static int32_t g_brick_container_stack[BRICK_MAX_CONTAINERS];
 static Brick_ScrollBox g_brick_scroll_boxes[BRICK_MAX_SCROLLBOXES];
 static Brick_Containers g_brick_containers = {
@@ -752,6 +779,9 @@ Brick_ScrollBox Brick_ScrollBox_DEFAULT         = CLAY__DEFAULT_STRUCT;
 
 //                               Array Getters
 // ------------------------------------.----------------------------------------
+
+// Events
+// _____________________________________________________________________________
 Brick_Event* Brick_EventArray_Get(Brick_EventArray* array, int32_t index) {                                                    
     return index < array->length && index >= 0 ? &array->data[index] : &Brick_Event_DEFAULT;
 }
@@ -826,6 +856,8 @@ Clay_ElementId Brick_ClayId_Get(Brick_ComponentId id) {
 
 //                               Array Setters
 // ------------------------------------.----------------------------------------
+// Containers
+// _____________________________________________________________________________
 int32_t Brick_ContainerStack_Pop(void) {
     if (g_brick_containers.stack.length <= 0) return -1;
 
@@ -856,7 +888,7 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
     g_brick_window.width = width;
     g_brick_window.height = height;
 
-    // 1. Query minimum memory required for default element limits
+    // 1. Query minimum memory required for default Clay element limits
     uint64_t memorySize = Clay_MinMemorySize();
     // 2. Allocate memory (malloc, stack, or custom allocator)
     void* memory = malloc(memorySize);
@@ -869,8 +901,7 @@ void Brick_Initialize(float width, float height, Clay_Dimensions (*measureTextFu
 
     // seed button array and button group array at index 0 as unit values
     Brick_CreateButton("BRICK");
-    // Brick_CreateImage(0, 0, NULL);
-    // bypassing Brick_GroupButtons that checks 0 as invalid
+    // bypassing Brick_CreateGroup that checks 0 as invalid
     g_brick_components.groups.data[0] = Brick_Group_DEFAULT;
     g_brick_components.groups.length++;
 }
@@ -2052,7 +2083,7 @@ void Brick_EndFloatingPanel(void) {
 // Horizontal Direction
 // _____________________________________________________________________________
 
-void Brick_BeginHorizontalDirection(void) {
+void Brick_BeginHorizontalLayout(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2067,14 +2098,14 @@ void Brick_BeginHorizontalDirection(void) {
     });
 }
 
-void Brick_EndHorizontalDirection(void) {
+void Brick_EndHorizontalLayout(void) {
     Clay__CloseElement();
 }
 
 // Vertical Direction
 // _____________________________________________________________________________
 
-void Brick_BeginVerticalDirection(void) {
+void Brick_BeginVerticalLayout(void) {
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
@@ -2089,7 +2120,7 @@ void Brick_BeginVerticalDirection(void) {
     });
 }
 
-void Brick_EndVerticalDirection(void) {
+void Brick_EndVerticalLayout(void) {
     Clay__CloseElement();
 }
 
