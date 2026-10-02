@@ -1332,7 +1332,7 @@ void Brick_LayoutText(Brick_ElementId textId) {
 // Image
 // _____________________________________________________________________________
 
-Brick_ElementId Brick_CreateImage(float width, float height, void* imageData) {
+Brick_ElementId Brick_CreateImage(float width, float height, void* data) {
     int32_t index = g_brick_elements.images.length;
     // TODO: add error handling
     if (index >= BRICK_MAX_IMAGES || g_brick_elements.total_count >= BRICK_MAX_ELEMENTS) {
@@ -1346,8 +1346,7 @@ Brick_ElementId Brick_CreateImage(float width, float height, void* imageData) {
 
     Brick_Image new_image = {
         .id = imageId,
-        .imageData = imageData,
-        // .action = Brick_Interaction_DEFAULT,
+        .imageData = data,
         .width = width,
         .height = height,
     };
@@ -2033,6 +2032,7 @@ void Brick_BeginPanel(void) {
                 .height = CLAY_SIZING_GROW(0),
             },
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
         .transition = BRICK_TRANSITION_FADE_SLIDE
@@ -2089,6 +2089,7 @@ void Brick_BeginHorizontalLayout(void) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
@@ -2110,6 +2111,7 @@ void Brick_BeginVerticalLayout(void) {
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
@@ -2135,6 +2137,7 @@ void Brick_BeginBox(void) {
                 .width = CLAY_SIZING_FIT(0),
                 .height = CLAY_SIZING_FIT(0),
             },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
@@ -2159,6 +2162,7 @@ void Brick_BeginHorizontalBox(void) {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
             },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
@@ -2182,6 +2186,7 @@ void Brick_BeginVerticalBox(void) {
             .sizing = { 
                 .height = CLAY_SIZING_GROW(0),
             },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
             .layoutDirection = CLAY_TOP_TO_BOTTOM 
