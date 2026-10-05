@@ -316,6 +316,21 @@ typedef struct Brick_EventArray {
     Brick_Event* data;
 } Brick_EventArray;
 
+// the indices to the alignment global config
+#define MAX_ALIGNMENTS 10
+typedef CLAY_PACKED_ENUM {
+    BRICK_ALIGN_NONE,
+    BRICK_ALIGN_LEFT,
+    BRICK_ALIGN_CENTER,
+    BRICK_ALIGN_RIGHT,
+    BRICK_ALIGN_MIDDLE,
+    BRICK_ALIGN_MIDDLE_LEFT,
+    BRICK_ALIGN_MIDDLE_RIGHT,
+    BRICK_ALIGN_BOTTOM,
+    BRICK_ALIGN_BOTTOM_LEFT,
+    BRICK_ALIGN_BOTTOM_RIGHT
+} Brick_Align;
+
 // Elements
 // _____________________________________________________________________________
 // There are two categories of elements, inline and stateful.
@@ -515,9 +530,9 @@ void Brick_LayoutImage(Brick_ElementId imageId);
 
 //                                  Components
 // ------------------------------------.----------------------------------------
-// Create<Component> takes configuration arguments and returns an ID
-// Create<Component>Ex takes extra configuration arguments and returns an ID
-// Layout<Component> takes IDs and configures the element and updates state
+// Create<Component>    takes configuration arguments and returns an ID
+// Create<Component>Ex  takes extra configuration arguments and returns an ID
+// Layout<Component>    takes IDs and configures the element and updates state
 
 // NOTE: Unused internally
 Clay_Vector2 Brick_GetComponentPosition(Brick_ComponentId id);
@@ -567,6 +582,31 @@ void Brick_EndScrollBox(void);
 // _____________________________________________________________________________
 // Does not require creation or ID management
 
+// Layout Containers -----------------------------------------------------------
+
+// Position Relative
+void Brick_BeginPositionRelative(float x, float y);
+void Brick_EndPositionRelative(void);
+
+// Position Absolute
+void Brick_BeginPositionAbsolute(float x, float y);
+void Brick_EndPositionAbsolute(void);
+
+// Horizontal Layout
+// A container that aligns its children horizontally
+// Left aligned by default
+void Brick_BeginHorizontalLayout(void);
+void Brick_BeginHorizontalLayoutEx(Brick_Align alignment);
+void Brick_EndHorizontalLayout(void);
+
+// Vertical Layout
+// A container that aligns its children vertically
+void Brick_BeginVerticalLayout(void);
+void Brick_BeginVerticalLayoutEx(Brick_Align alignment);
+void Brick_EndVerticalLayout(void);
+
+// Solid Containers ------------------------------------------------------------
+
 // Panel
 // A container that.. TODO: what is the defining feature of panel?
 void Brick_BeginPanel(void);
@@ -584,31 +624,14 @@ void Brick_EndBox(void);
 // Horizontal Box shrinks to its content, aligns
 // its children horizontally, and has a background
 void Brick_BeginHorizontalBox(void);
+void Brick_BeginHorizontalBoxEx(Brick_Align alignment);
 void Brick_EndHorizontalBox(void);
 
 // Vertical Box shrinks to its content, aligns
 // its children vertically, and has a background
 void Brick_BeginVerticalBox(void);
+void Brick_BeginVerticalBoxEx(Brick_Align alignment);
 void Brick_EndVerticalBox(void);
-
-// Horizontal Direction
-// A container that aligns its children horizontally
-// Left aligned by default
-void Brick_BeginHorizontalLayout(void);
-void Brick_EndHorizontalLayout(void);
-
-// Vertical Direction
-// A container that aligns its children vertically
-void Brick_BeginVerticalLayout(void);
-void Brick_EndVerticalLayout(void);
-
-// Position Relative
-void Brick_BeginPositionRelative(float x, float y);
-void Brick_EndPositionRelative(void);
-
-// Position Absolute
-void Brick_BeginPositionAbsolute(float x, float y);
-void Brick_EndPositionAbsolute(void);
 
 // Dropdown
 // Render a floating wrapper container below the given element
@@ -776,6 +799,20 @@ Brick_Group Brick_Group_DEFAULT                 = CLAY__DEFAULT_STRUCT;
 
 Brick_ContainerId Brick_ContainerId_DEFAULT     = CLAY__DEFAULT_STRUCT;
 Brick_ScrollBox Brick_ScrollBox_DEFAULT         = CLAY__DEFAULT_STRUCT;
+
+// global alignment config dictionary
+static Clay_ChildAlignment g_brick_alignment[MAX_ALIGNMENTS] = {
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_TOP },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_TOP },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_TOP },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_TOP },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_CENTER },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_BOTTOM },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_BOTTOM },
+    PLEX(Clay_ChildAlignment) { .x = CLAY_ALIGN_X_RIGHT, .y = CLAY_ALIGN_Y_BOTTOM },
+};
 
 //                               Array Getters
 // ------------------------------------.----------------------------------------
@@ -1492,7 +1529,7 @@ void Brick__LayoutLabelIndex(int32_t index) {
         }, 
         .transition = BRICK_TRANSITION_FADE_SLIDE
     }) {
-        CLAY_TEXT(label->text.string, CLAY_TEXT_CONFIG({ .textColor = Clay_Hovered() ? BRICK_COLOR_LABEL_TEXT_HOVER : label->text.color, .fontId = label->text.fontId, .fontSize = label->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
+        CLAY_TEXT(label->text.string, CLAY_TEXT_CONFIG({ .textColor = label->text.color, .fontId = label->text.fontId, .fontSize = label->text.fontSize, .textAlignment = CLAY_TEXT_ALIGN_LEFT }));
     }
 }
 
@@ -1903,6 +1940,7 @@ void Brick_LayoutToggleGroup(Brick_ComponentId groupId) {
     }
 }
 
+// ------------------------------------.----------------------------------------
 //                                Containers
 // ------------------------------------.----------------------------------------
 // Layout Containers
@@ -1912,6 +1950,9 @@ Brick_ContainerId Brick_CreateContainerId(int32_t index, Brick_ContainerType typ
     Brick_ContainerId id = { index, type };
     return id;
 }
+
+//                             Stateful Containers
+// ------------------------------------.----------------------------------------
 
 // Scroll Box
 // _____________________________________________________________________________
@@ -2020,185 +2061,11 @@ void Brick_EndScrollBox(void) {
     Clay__CloseElement();
 }
 
-// Panel
-// _____________________________________________________________________________
-
-void Brick_BeginPanel(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL,
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndPanel(void) {
-    Clay__CloseElement();
-}
-
-// Floating Panel
-// _____________________________________________________________________________
-// TODO: figure out z-index configuration when there are multiple panels
-// test different overlapping floating panels with no z-index and add
-// FloatingPanelEx that takes a z-index param
-
-void Brick_BeginFloatingPanel(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_PERCENT(0.5f),
-                .height = CLAY_SIZING_PERCENT(0.5f),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL,
-            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_TOP },
-            .layoutDirection = CLAY_TOP_TO_BOTTOM 
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .floating = { 
-            .offset = {0, 0}, 
-            .zIndex = 1, 
-            .attachPoints = { 
-                CLAY_ATTACH_POINT_CENTER_CENTER, 
-                CLAY_ATTACH_POINT_CENTER_CENTER 
-            }, 
-            .attachTo = CLAY_ATTACH_TO_PARENT 
-        },
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndFloatingPanel(void) {
-    Clay__CloseElement();
-}
-
-// Horizontal Direction
-// _____________________________________________________________________________
-
-void Brick_BeginHorizontalLayout(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0),
-            },
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
-            .layoutDirection = CLAY_LEFT_TO_RIGHT 
-        },
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndHorizontalLayout(void) {
-    Clay__CloseElement();
-}
-
-// Vertical Direction
-// _____________________________________________________________________________
-
-void Brick_BeginVerticalLayout(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0),
-            },
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
-            .layoutDirection = CLAY_TOP_TO_BOTTOM 
-        },
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndVerticalLayout(void) {
-    Clay__CloseElement();
-}
-
-// Box
-// _____________________________________________________________________________
-
-void Brick_BeginBox(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_FIT(0),
-                .height = CLAY_SIZING_FIT(0),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, 
-            .layoutDirection = CLAY_LEFT_TO_RIGHT 
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndBox(void) {
-    Clay__CloseElement();
-}
+//                            Stateless Containers
+// ------------------------------------.----------------------------------------
 
 
-// Horizontal Box
-// _____________________________________________________________________________
-
-void Brick_BeginHorizontalBox(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
-            .layoutDirection = CLAY_LEFT_TO_RIGHT 
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndHorizontalBox(void) {
-    Clay__CloseElement();
-}
-
-// Vertical Box
-// _____________________________________________________________________________
-
-void Brick_BeginVerticalBox(void) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .height = CLAY_SIZING_GROW(0),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
-            .childGap = BRICK_STYLE_PADDING_SMALL, 
-            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
-            .layoutDirection = CLAY_TOP_TO_BOTTOM 
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndVerticalBox(void) {
-    Clay__CloseElement();
-}
+// Layout Containers -----------------------------------------------------------
 
 // PositionRelative
 // _____________________________________________________________________________
@@ -2261,6 +2128,256 @@ void Brick_BeginPositionAbsolute(float x, float y) {
 void Brick_EndPositionAbsolute(void) {
     Clay__CloseElement();
 }
+
+// Horizontal Layout
+// _____________________________________________________________________________
+
+void Brick_BeginHorizontalLayout(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_BeginHorizontalLayoutEx(Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = g_brick_alignment[alignment], 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndHorizontalLayout(void) {
+    Clay__CloseElement();
+}
+
+// Vertical Layout
+// _____________________________________________________________________________
+
+void Brick_BeginVerticalLayout(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+// A vertical layout with alignment configuration
+void Brick_BeginVerticalLayoutEx(Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = g_brick_alignment[alignment], 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndVerticalLayout(void) {
+    Clay__CloseElement();
+}
+
+// Solid Containers ------------------------------------------------------------
+
+// Panel
+// _____________________________________________________________________________
+
+void Brick_BeginPanel(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndPanel(void) {
+    Clay__CloseElement();
+}
+
+// Floating Panel
+// _____________________________________________________________________________
+// TODO: figure out z-index configuration when there are multiple panels
+// test different overlapping floating panels with no z-index and add
+// FloatingPanelEx that takes a z-index param
+
+void Brick_BeginFloatingPanel(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(0.5f),
+                .height = CLAY_SIZING_PERCENT(0.5f),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_TOP },
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .floating = { 
+            .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndFloatingPanel(void) {
+    Clay__CloseElement();
+}
+
+// Box
+// _____________________________________________________________________________
+
+void Brick_BeginBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_FIT(0),
+                .height = CLAY_SIZING_FIT(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndBox(void) {
+    Clay__CloseElement();
+}
+
+
+// Horizontal Box
+// _____________________________________________________________________________
+
+void Brick_BeginHorizontalBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_BeginHorizontalBoxEx(Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = g_brick_alignment[alignment], 
+            .layoutDirection = CLAY_LEFT_TO_RIGHT 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndHorizontalBox(void) {
+    Clay__CloseElement();
+}
+
+// Vertical Box
+// _____________________________________________________________________________
+
+void Brick_BeginVerticalBox(void) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = { .y = CLAY_ALIGN_Y_TOP }, 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_BeginVerticalBoxEx(Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL, 
+            .childAlignment = g_brick_alignment[alignment], 
+            .layoutDirection = CLAY_TOP_TO_BOTTOM 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndVerticalBox(void) {
+    Clay__CloseElement();
+}
+
 
 // Dropdown
 // _____________________________________________________________________________

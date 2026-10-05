@@ -38,14 +38,14 @@ Action::Display Display::update() {
 void Display::layoutGame() {
     Brick_BeginPositionAbsolute(window.widthf-150.0f, window.heightf-150.0f);
         Brick_BeginHorizontalLayout();
-    		Brick_BeginVerticalLayout();
+    		Brick_BeginVerticalLayoutEx(BRICK_ALIGN_CENTER);
 	        	Brick_LayoutImageButton(bid_arrowLeft);
         	Brick_EndHorizontalLayout();
     		Brick_BeginVerticalLayout();
 		        Brick_LayoutImageButton(bid_arrowUp);
 		        Brick_LayoutImageButton(bid_arrowDown);
     		Brick_EndVerticalLayout();
-    		Brick_BeginVerticalLayout();
+    		Brick_BeginVerticalLayoutEx(BRICK_ALIGN_CENTER);
 	        	Brick_LayoutImageButton(bid_arrowRight);
     		Brick_EndVerticalLayout();
         Brick_EndHorizontalLayout();
