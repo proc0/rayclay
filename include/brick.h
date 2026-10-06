@@ -610,6 +610,13 @@ void Brick_EndVerticalLayout(void);
 // Panel
 // A container that.. TODO: what is the defining feature of panel?
 void Brick_BeginPanel(void);
+void Brick_BeginPanelEx(Brick_Align alignment);
+void Brick_EndPanel(void);
+
+// Panel
+// A container that.. TODO: what is the defining feature of panel?
+void Brick_BeginSubPanel(float percentSize);
+void Brick_BeginSubPanelEx(float percentSize, Brick_Align alignment);
 void Brick_EndPanel(void);
 
 // Floating Panel
@@ -2221,7 +2228,7 @@ void Brick_BeginPanel(void) {
                 .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
             .childGap = BRICK_STYLE_PADDING_SMALL,
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
@@ -2229,7 +2236,64 @@ void Brick_BeginPanel(void) {
     });
 }
 
+void Brick_BeginPanelEx(Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = g_brick_alignment[alignment], 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
 void Brick_EndPanel(void) {
+    Clay__CloseElement();
+}
+
+// SubPanel
+// _____________________________________________________________________________
+
+void Brick_BeginSubPanel(float percentSize) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(percentSize),
+                .height = CLAY_SIZING_PERCENT(percentSize),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_BeginSubPanelEx(float percentSize, Brick_Align alignment) {
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = { 
+                .width = CLAY_SIZING_PERCENT(percentSize),
+                .height = CLAY_SIZING_PERCENT(percentSize),
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = g_brick_alignment[alignment], 
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_EndSubPanel(void) {
     Clay__CloseElement();
 }
 
@@ -2281,7 +2345,7 @@ void Brick_BeginBox(void) {
                 .width = CLAY_SIZING_FIT(0),
                 .height = CLAY_SIZING_FIT(0),
             },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT, .y = CLAY_ALIGN_Y_CENTER }, 
             .layoutDirection = CLAY_LEFT_TO_RIGHT 
