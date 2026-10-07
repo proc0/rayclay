@@ -316,21 +316,6 @@ typedef struct Brick_EventArray {
     Brick_Event* data;
 } Brick_EventArray;
 
-// the indices to the alignment global config
-#define MAX_ALIGNMENTS 10
-typedef CLAY_PACKED_ENUM {
-    BRICK_ALIGN_NONE,
-    BRICK_ALIGN_LEFT,
-    BRICK_ALIGN_CENTER,
-    BRICK_ALIGN_RIGHT,
-    BRICK_ALIGN_MIDDLE,
-    BRICK_ALIGN_MIDDLE_LEFT,
-    BRICK_ALIGN_MIDDLE_RIGHT,
-    BRICK_ALIGN_BOTTOM,
-    BRICK_ALIGN_BOTTOM_LEFT,
-    BRICK_ALIGN_BOTTOM_RIGHT
-} Brick_Align;
-
 // Elements
 // _____________________________________________________________________________
 // There are two categories of elements, inline and stateful.
@@ -440,6 +425,27 @@ typedef struct Brick_ContainerId {
     int32_t index;
     Brick_ContainerType type;
 } Brick_ContainerId;
+
+// the indices to the alignment global config
+#define MAX_ALIGNMENTS 10
+typedef CLAY_PACKED_ENUM {
+    BRICK_ALIGN_NONE,
+    BRICK_ALIGN_LEFT,
+    BRICK_ALIGN_CENTER,
+    BRICK_ALIGN_RIGHT,
+    BRICK_ALIGN_MIDDLE,
+    BRICK_ALIGN_MIDDLE_LEFT,
+    BRICK_ALIGN_MIDDLE_RIGHT,
+    BRICK_ALIGN_BOTTOM,
+    BRICK_ALIGN_BOTTOM_LEFT,
+    BRICK_ALIGN_BOTTOM_RIGHT
+} Brick_Align;
+
+typedef struct Brick_ContainerSettings {
+    float percentScale;
+    Brick_Align alignment;
+    Clay_LayoutDirection direction;
+} Brick_ContainerSettings;
 
 // Stateful container types
 typedef struct Brick_ScrollBox {
@@ -610,18 +616,13 @@ void Brick_EndVerticalLayout(void);
 // Panel
 // A container that.. TODO: what is the defining feature of panel?
 void Brick_BeginPanel(void);
-void Brick_BeginPanelEx(Brick_Align alignment);
-void Brick_EndPanel(void);
-
-// Panel
-// A container that.. TODO: what is the defining feature of panel?
-void Brick_BeginSubPanel(float percentSize);
-void Brick_BeginSubPanelEx(float percentSize, Brick_Align alignment);
+void Brick_BeginPanelEx(Brick_ContainerSettings settings);
 void Brick_EndPanel(void);
 
 // Floating Panel
 // A container that floats on top of a layer
 void Brick_BeginFloatingPanel(void);
+void Brick_BeginFloatingPanelEx(Brick_ContainerSettings settings);
 void Brick_EndFloatingPanel(void);
 
 // Box shrinks to its content and has a background
@@ -2236,17 +2237,20 @@ void Brick_BeginPanel(void) {
     });
 }
 
-void Brick_BeginPanelEx(Brick_Align alignment) {
+void Brick_BeginPanelEx(Brick_ContainerSettings settings) {
+    Clay_SizingAxis sizingAxis = settings.percentScale > 0.0f && settings.percentScale < 1.0f ? CLAY_SIZING_PERCENT(settings.percentScale) : CLAY_SIZING_GROW(0);
+
     Clay__OpenElement();
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0),
+                .width = sizingAxis,
+                .height = sizingAxis,
             },
             .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
             .childGap = BRICK_STYLE_PADDING_SMALL,
-            .childAlignment = g_brick_alignment[alignment], 
+            .childAlignment = g_brick_alignment[settings.alignment], 
+            .layoutDirection = settings.direction 
         },
         .backgroundColor = BRICK_THEME_BACKGROUND,
         .transition = BRICK_TRANSITION_FADE_SLIDE
@@ -2254,46 +2258,6 @@ void Brick_BeginPanelEx(Brick_Align alignment) {
 }
 
 void Brick_EndPanel(void) {
-    Clay__CloseElement();
-}
-
-// SubPanel
-// _____________________________________________________________________________
-
-void Brick_BeginSubPanel(float percentSize) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_PERCENT(percentSize),
-                .height = CLAY_SIZING_PERCENT(percentSize),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
-            .childGap = BRICK_STYLE_PADDING_SMALL,
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_BeginSubPanelEx(float percentSize, Brick_Align alignment) {
-    Clay__OpenElement();
-    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
-        .layout = {
-            .sizing = { 
-                .width = CLAY_SIZING_PERCENT(percentSize),
-                .height = CLAY_SIZING_PERCENT(percentSize),
-            },
-            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_LARGE), 
-            .childGap = BRICK_STYLE_PADDING_SMALL,
-            .childAlignment = g_brick_alignment[alignment], 
-        },
-        .backgroundColor = BRICK_THEME_BACKGROUND,
-        .transition = BRICK_TRANSITION_FADE_SLIDE
-    });
-}
-
-void Brick_EndSubPanel(void) {
     Clay__CloseElement();
 }
 
@@ -2319,6 +2283,36 @@ void Brick_BeginFloatingPanel(void) {
         .backgroundColor = BRICK_THEME_BACKGROUND,
         .floating = { 
             .offset = {0, 0}, 
+            .zIndex = 1, 
+            .attachPoints = { 
+                CLAY_ATTACH_POINT_CENTER_CENTER, 
+                CLAY_ATTACH_POINT_CENTER_CENTER 
+            }, 
+            .attachTo = CLAY_ATTACH_TO_PARENT 
+        },
+        .transition = BRICK_TRANSITION_FADE_SLIDE
+    });
+}
+
+void Brick_BeginFloatingPanelEx(Brick_ContainerSettings settings) {
+    Clay_SizingAxis sizingAxis = settings.percentScale > 0.0f && settings.percentScale < 1.0f ? CLAY_SIZING_PERCENT(settings.percentScale) : CLAY_SIZING_GROW(0);
+    
+    Clay__OpenElement();
+    Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
+        .layout = {
+            .sizing = {
+                .width = sizingAxis,
+                .height = sizingAxis,
+            },
+            .padding = CLAY_PADDING_ALL(BRICK_STYLE_PADDING_SMALL), 
+            .childGap = BRICK_STYLE_PADDING_SMALL,
+            .childAlignment = g_brick_alignment[settings.alignment], 
+            .layoutDirection = settings.direction
+        },
+        .backgroundColor = BRICK_THEME_BACKGROUND,
+        .floating = { 
+            .offset = {0, 0},
+            // TODO: calculate global z-index and set here
             .zIndex = 1, 
             .attachPoints = { 
                 CLAY_ATTACH_POINT_CENTER_CENTER, 
