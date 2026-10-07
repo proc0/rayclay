@@ -1319,13 +1319,16 @@ void Brick_InlineTextEx(const char* str, uint16_t fontId, uint16_t fontSize) {
 }
 
 Brick_ElementId Brick_CreateText(const char* str) {
+    int32_t index = g_brick_elements.texts.length;
+
+    // char textIdLabel[22];
+    // snprintf(textIdLabel, sizeof(textIdLabel), "text%d", index);
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
         .length = (int32_t)strlen(str), 
         .chars = str 
     };
 
-    int32_t index = g_brick_elements.texts.length;
     // TODO: add error handling
     if (index >= BRICK_MAX_TEXTS) return Brick_ElementId_DEFAULT;
 
@@ -1460,10 +1463,12 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
 
     // TODO: refactor to a CreateText and CreateBox
     // that doesn't add global state, and share with the API create functions
+    char textIdLabel[23];
+    snprintf(textIdLabel, sizeof(textIdLabel), "label%d", index);
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(text), 
-        .chars = text 
+        .length = (int32_t)strlen(textIdLabel), 
+        .chars = textIdLabel 
     };
 
     Brick_ElementId textId = {
@@ -1471,9 +1476,14 @@ Brick_ComponentId Brick_CreateLabel(const char* text) {
         .type = BRICK_ELEMENT_TYPE_TEXT,
     };
 
+    Clay_String textString = PLEX(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
     Brick_Text labelText = {
         .color = BRICK_COLOR_LABEL_TEXT,
-        .string = clayString,
+        .string = textString,
         .id = textId,
         .fontId = 0,
         .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT,
@@ -1581,10 +1591,12 @@ Brick_ComponentId Brick_CreateButton(const char* text) {
 
     // TODO: refactor to a CreateText and CreateBox
     // that doesn't add global state, and share with the API create functions
+    char buttonIdLabel[24];
+    snprintf(buttonIdLabel, sizeof(buttonIdLabel), "button%d", index);
     Clay_String clayString = PLEX(Clay_String){ 
         .isStaticallyAllocated = true, 
-        .length = (int32_t)strlen(text), 
-        .chars = text 
+        .length = (int32_t)strlen(buttonIdLabel), 
+        .chars = buttonIdLabel 
     };
 
     Brick_ElementId textId = {
@@ -1592,9 +1604,14 @@ Brick_ComponentId Brick_CreateButton(const char* text) {
         .type = BRICK_ELEMENT_TYPE_TEXT,
     };
 
+    Clay_String textString = PLEX(Clay_String){ 
+        .isStaticallyAllocated = true, 
+        .length = (int32_t)strlen(text), 
+        .chars = text 
+    };
     Brick_Text buttonText = {
         .color = BRICK_COLOR_BUTTON_TEXT,
-        .string = clayString,
+        .string = textString,
         .id = textId,
         .fontId = 0,
         .fontSize = BRICK_STYLE_FONT_SIZE_DEFAULT,
@@ -1669,7 +1686,7 @@ void Brick__LayoutButtonIndex(int32_t index) {
             .padding = button->box.padding,
             .childAlignment = button->box.align,
         }, 
-        .backgroundColor = Clay_PointerOver(button->clayId) ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
+        .backgroundColor = Clay_Hovered() ? BRICK_COLOR_BUTTON_BG_HOVER : bgColor,
         .border = { 
             .color = Clay_Hovered() ? BRICK_COLOR_BUTTON_BORDER_HOVER : borderColor, 
             .width = button->box.borderWidth
