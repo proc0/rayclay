@@ -63,7 +63,7 @@ void Menu::layoutGame() {
 void Menu::layoutOptions() {
     Brick_BeginFloatingPanel();
         Brick_BeginHorizontalLayout();
-            Brick_LayoutGroup(bid_optionTabs);
+            Brick_LayoutToggleGroup(bid_optionTabs);
         Brick_EndHorizontalLayout();
 
         if(Brick_IsButtonToggled(bid_optionGame)) {
