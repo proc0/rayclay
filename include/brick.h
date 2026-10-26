@@ -77,6 +77,7 @@ NOTE: DO NOT forget to close containers!
 #ifndef BRICK_HEADER
 #define BRICK_HEADER
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -1944,7 +1945,7 @@ Brick_ComponentId Brick_CreateToggleGroup(Brick_ComponentId* componentIds, int32
         if(componentIds[i].type == BRICK_COMPONENT_TYPE_LABEL) {
             Brick_Label* label = Brick_Label_IndexGet(componentIds[i].index);
             componentIds[i] = Brick_CreateLabelButton(label->text.string.chars);
-        } else if(componentIds[i].type == BRICK_COMPONENT_TYPE_BUTTON){
+        } else if(componentIds[i].type == BRICK_COMPONENT_TYPE_BUTTON && componentIds[i].subType == BRICK_COMPONENT_TYPE_NONE){
             Brick_Button* button = Brick_Button_IndexGet(componentIds[i].index);
             button->id.subType = BRICK_COMPONENT_SUBTYPE_TOGGLE;
         }
@@ -2202,6 +2203,7 @@ void Brick_BeginHorizontalLayout(void) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = { .x = CLAY_ALIGN_X_LEFT }, 
@@ -2217,6 +2219,7 @@ void Brick_BeginHorizontalLayoutEx(Brick_Align alignment) {
         .layout = {
             .sizing = { 
                 .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
             .childAlignment = g_brick_alignment[alignment], 
@@ -2238,6 +2241,7 @@ void Brick_BeginVerticalLayout(void) {
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
@@ -2254,6 +2258,7 @@ void Brick_BeginVerticalLayoutEx(Brick_Align alignment) {
     Clay__ConfigureOpenElement(PLEX(Clay_ElementDeclaration) {
         .layout = {
             .sizing = { 
+                .width = CLAY_SIZING_GROW(0),
                 .height = CLAY_SIZING_GROW(0),
             },
             .childGap = BRICK_STYLE_PADDING_SMALL, 
